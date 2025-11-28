@@ -15,6 +15,10 @@ export default function WelcomeScreen({ navigation }) {
       <TouchableOpacity onPress={() => navigation.navigate('Register')} style={{ backgroundColor: colors.secondary, padding: 16, borderRadius: 8 }}>
         <Text style={{ color: '#fff', textAlign: 'center', fontWeight: '500' }}>Register</Text>
       </TouchableOpacity>
+      <View style={{ height: 16 }} />
+      <TouchableOpacity onPress={() => navigation.navigate('Home')} style={{ padding: 12 }}>
+        <Text style={{ color: colors.text_secondary, textAlign: 'center', fontSize: 14 }}>Skip - Continue as Guest</Text>
+      </TouchableOpacity>
     </View>
   );
 }

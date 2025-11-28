@@ -18,7 +18,7 @@ export default function LoginScreen({ navigation }) {
     <View style={{ flex: 1, backgroundColor: colors.background, padding: 16, justifyContent: 'center' }}>
       <Text style={{ fontSize: 24, fontWeight: '600', color: colors.text_primary }}>Log In</Text>
       <TextInput placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 16 }} />
-      <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 12 }} />
+      <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry={true} style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 12 }} />
       <TouchableOpacity onPress={onLogin} style={{ backgroundColor: colors.primary, padding: 16, borderRadius: 8, marginTop: 16 }}>
         <Text style={{ color: '#fff', textAlign: 'center', fontWeight: '500' }}>Log In</Text>
       </TouchableOpacity>

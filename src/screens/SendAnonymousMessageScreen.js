@@ -10,7 +10,7 @@ export default function SendAnonymousMessageScreen({ route, navigation }) {
   return (
     <View style={{ flex: 1, padding: 16, backgroundColor: colors.background }}>
       <Text style={{ fontSize: 20, fontWeight: '600', color: colors.text_primary }}>Send Anonymous Message</Text>
-      <TextInput placeholder="Message" value={message} onChangeText={setMessage} multiline style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 16, minHeight: 120 }} />
+      <TextInput placeholder="Message" value={message} onChangeText={setMessage} multiline={true} style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 16, minHeight: 120 }} />
       <TouchableOpacity onPress={onSend} style={{ backgroundColor: colors.secondary, padding: 16, borderRadius: 8, marginTop: 16 }}>
         <Text style={{ color: '#fff', textAlign: 'center' }}>Send</Text>
       </TouchableOpacity>
