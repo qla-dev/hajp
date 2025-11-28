@@ -1,24 +1,162 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import colors from '../theme/colors';
 
 export default function WelcomeScreen({ navigation }) {
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, padding: 16, justifyContent: 'center' }}>
-      <Text style={{ fontSize: 32, fontWeight: '600', color: colors.text_primary }}>Hajp</Text>
-      <Text style={{ marginTop: 8, color: colors.text_secondary }}>Answer polls about friends. Share anonymous links.</Text>
-      <View style={{ height: 24 }} />
-      <TouchableOpacity onPress={() => navigation.navigate('Login')} style={{ backgroundColor: colors.primary, padding: 16, borderRadius: 8 }}>
-        <Text style={{ color: '#fff', textAlign: 'center', fontWeight: '500' }}>Login</Text>
-      </TouchableOpacity>
-      <View style={{ height: 12 }} />
-      <TouchableOpacity onPress={() => navigation.navigate('Register')} style={{ backgroundColor: colors.secondary, padding: 16, borderRadius: 8 }}>
-        <Text style={{ color: '#fff', textAlign: 'center', fontWeight: '500' }}>Register</Text>
-      </TouchableOpacity>
-      <View style={{ height: 16 }} />
-      <TouchableOpacity onPress={() => navigation.navigate('Home')} style={{ padding: 12 }}>
-        <Text style={{ color: colors.text_secondary, textAlign: 'center', fontSize: 14 }}>Skip - Continue as Guest</Text>
-      </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.welcomeText}>WELCOME TO</Text>
+        <View style={styles.logoContainer}>
+          <Text style={styles.logoText}>GAS</Text>
+          <Text style={styles.logoEmoji}>🔥</Text>
+        </View>
+        
+        <View style={styles.featuresContainer}>
+          <View style={styles.featureCard}>
+            <View style={styles.phonePreview}>
+              <Text style={styles.featureEmoji}>😁</Text>
+              <Text style={styles.featureTitle}>BEST SMILE</Text>
+            </View>
+            <Text style={styles.featureDescription}>Answer Polls{'\n'}About Friends</Text>
+          </View>
+          
+          <View style={styles.featureCard}>
+            <View style={styles.phonePreview}>
+              <Text style={styles.featureEmoji}>🔥</Text>
+            </View>
+            <Text style={styles.featureDescription}>Get Flames{'\n'}When Picked</Text>
+          </View>
+        </View>
+      </View>
+      
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('Register')} 
+          style={styles.startButton}
+        >
+          <Text style={styles.startButtonText}>Start</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('Login')} 
+          style={styles.loginButton}
+        >
+          <Text style={styles.loginText}>Already have an account? Log In</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('MainTabs')} 
+          style={styles.skipButton}
+        >
+          <Text style={styles.skipText}>Skip - Continue as Guest</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'center',
+  },
+  welcomeText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text_primary,
+    textAlign: 'center',
+    letterSpacing: 1,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 40,
+  },
+  logoText: {
+    fontSize: 64,
+    fontWeight: '900',
+    color: colors.primary,
+    letterSpacing: -2,
+  },
+  logoEmoji: {
+    fontSize: 48,
+    marginLeft: -8,
+  },
+  featuresContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+  },
+  featureCard: {
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 8,
+  },
+  phonePreview: {
+    backgroundColor: colors.pollPurple,
+    borderRadius: 20,
+    padding: 20,
+    width: 140,
+    height: 180,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  featureEmoji: {
+    fontSize: 48,
+  },
+  featureTitle: {
+    color: colors.textLight,
+    fontWeight: '700',
+    fontSize: 12,
+    marginTop: 8,
+  },
+  featureDescription: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text_primary,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  bottomContainer: {
+    padding: 24,
+    paddingBottom: 40,
+  },
+  startButton: {
+    backgroundColor: colors.primary,
+    padding: 18,
+    borderRadius: 30,
+    marginBottom: 16,
+  },
+  startButtonText: {
+    color: colors.textLight,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  loginButton: {
+    padding: 12,
+    marginBottom: 8,
+  },
+  loginText: {
+    color: colors.text_primary,
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  skipButton: {
+    padding: 8,
+  },
+  skipText: {
+    color: colors.text_secondary,
+    textAlign: 'center',
+    fontSize: 13,
+  },
+});

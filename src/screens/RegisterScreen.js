@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import colors from '../theme/colors';
 import { register } from '../api';
 
@@ -9,25 +9,172 @@ export default function RegisterScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [school, setSchool] = useState('');
   const [grade, setGrade] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const onRegister = async () => {
+    if (!name || !email || !password || !school || !grade) {
+      alert('Please fill in all fields');
+      return;
+    }
+    setLoading(true);
     try {
       await register({ name, email, password, school, grade });
-      navigation.replace('Home');
-    } catch (e) {}
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'MainTabs' }],
+      });
+    } catch (e) {
+      alert('Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, padding: 16 }}>
-      <Text style={{ fontSize: 24, fontWeight: '600', color: colors.text_primary }}>Create Account</Text>
-      <TextInput placeholder="Name" value={name} onChangeText={setName} style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 16 }} />
-      <TextInput placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 12 }} />
-      <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry={true} style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 12 }} />
-      <TextInput placeholder="School" value={school} onChangeText={setSchool} style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 12 }} />
-      <TextInput placeholder="Grade" value={grade} onChangeText={setGrade} style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 12 }} />
-      <TouchableOpacity onPress={onRegister} style={{ backgroundColor: colors.secondary, padding: 16, borderRadius: 8, marginTop: 16 }}>
-        <Text style={{ color: '#fff', textAlign: 'center', fontWeight: '500' }}>Register</Text>
-      </TouchableOpacity>
-    </View>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backText}>← Back</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.content}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Join Gas and start voting!</Text>
+
+          <TextInput
+            placeholder="Full Name"
+            value={name}
+            onChangeText={setName}
+            style={styles.input}
+            placeholderTextColor={colors.text_secondary}
+          />
+
+          <TextInput
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            style={styles.input}
+            placeholderTextColor={colors.text_secondary}
+          />
+
+          <TextInput
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={true}
+            style={styles.input}
+            placeholderTextColor={colors.text_secondary}
+          />
+
+          <TextInput
+            placeholder="School"
+            value={school}
+            onChangeText={setSchool}
+            style={styles.input}
+            placeholderTextColor={colors.text_secondary}
+          />
+
+          <TextInput
+            placeholder="Grade (e.g., 10th Grade)"
+            value={grade}
+            onChangeText={setGrade}
+            style={styles.input}
+            placeholderTextColor={colors.text_secondary}
+          />
+
+          <TouchableOpacity onPress={onRegister} style={[styles.registerButton, loading && styles.registerButtonDisabled]} disabled={loading}>
+            <Text style={styles.registerButtonText}>{loading ? 'Creating Account...' : 'Create Account'}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginLink}>
+            <Text style={styles.loginLinkText}>
+              Already have an account? <Text style={styles.loginLinkBold}>Log In</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  backButton: {
+    padding: 8,
+  },
+  backText: {
+    fontSize: 16,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: colors.text_primary,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: colors.text_secondary,
+    marginBottom: 32,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.surface,
+    backgroundColor: colors.surface,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    fontSize: 16,
+    color: colors.text_primary,
+  },
+  registerButton: {
+    backgroundColor: colors.primary,
+    padding: 18,
+    borderRadius: 30,
+    marginTop: 8,
+  },
+  registerButtonDisabled: {
+    opacity: 0.6,
+  },
+  registerButtonText: {
+    color: colors.textLight,
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  loginLink: {
+    marginTop: 20,
+    padding: 12,
+    marginBottom: 40,
+  },
+  loginLinkText: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: colors.text_secondary,
+  },
+  loginLinkBold: {
+    fontWeight: '700',
+    color: colors.primary,
+  },
+});

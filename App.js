@@ -15,6 +15,7 @@ import CreatePollScreen from './src/screens/CreatePollScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SendAnonymousMessageScreen from './src/screens/SendAnonymousMessageScreen';
 import ShareLinkScreen from './src/screens/ShareLinkScreen';
+import MainTabs from './src/navigation/MainTabs';
 
 const Stack = createNativeStackNavigator();
 
@@ -32,6 +33,7 @@ export default function App() {
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="MainTabs" component={MainTabs} />
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="CreatePoll" component={CreatePollScreen} />
           <Stack.Screen name="PollDetail" component={PollDetailScreen} />

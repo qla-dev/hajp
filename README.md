@@ -3,7 +3,7 @@ Hajp Frontend (Expo + React Native)
 Setup
 - Install Node.js and Expo CLI (`npm i -g expo` optional)
 - Inside `frontend`: `npm install`
-- Env: create `.env` with `REACT_NATIVE_API_URL=http://localhost:8000`
+- Env: create `.env` with `EXPO_PUBLIC_API_URL=http://localhost:8000` (or your LAN IP for device testing)
 
 Run
 - `npx expo start`
