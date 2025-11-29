@@ -15,7 +15,7 @@ const GasStack = createNativeStackNavigator();
 
 const iconMap = {
   Inbox: { active: 'chatbubble-ellipses', inactive: 'chatbubble-ellipses-outline' },
-  Gas: { active: 'flame', inactive: 'flame-outline' },
+  Hajp: { active: 'flame', inactive: 'flame-outline' },
   Activity: { active: 'time', inactive: 'time-outline' },
   Profile: { active: 'person', inactive: 'person-outline' },
 };
@@ -26,7 +26,7 @@ function GasStackNavigator() {
       screenOptions={{
         headerShown: true,
         headerTransparent: true,
-        headerTitle: () => <Text style={styles.gasHeaderTitle}>Gas</Text>,
+        headerTitle: () => <Text style={styles.gasHeaderTitle}>Hajp</Text>,
         headerTitleAlign: 'center',
         headerTintColor: colors.textLight,
         headerShadowVisible: false,
@@ -36,7 +36,7 @@ function GasStackNavigator() {
         headerBackground: () => <View style={styles.gasHeaderBackground} />,
       }}
     >
-      <GasStack.Screen name="GasHome" component={HomeScreen} />
+      <GasStack.Screen name="HajpHome" component={HomeScreen} />
     </GasStack.Navigator>
   );
 }
@@ -63,7 +63,7 @@ export default function MainTabs() {
           letterSpacing: 0.3,
         },
         tabBarIcon: ({ focused, color, size }) => {
-          const icons = iconMap[route.name] || iconMap.Gas;
+          const icons = iconMap[route.name] || iconMap.Hajp;
           const iconName = focused ? icons.active : icons.inactive;
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -71,7 +71,7 @@ export default function MainTabs() {
     >
       <Tab.Screen name="Inbox" component={AnonymousInboxScreen} />
       <Tab.Screen
-        name="Gas"
+        name="Hajp"
         component={GasStackNavigator}
         options={{
           headerShown: false, // use stack header inside

@@ -28,7 +28,7 @@ export default function LoginScreen({ navigation }) {
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={styles.content}>
         <Text style={styles.title}>Log In</Text>
-        <Text style={styles.subtitle}>Welcome back to Gas!</Text>
+        <Text style={styles.subtitle}>Welcome back to Hajp!</Text>
 
         <TextInput
           placeholder="Email"

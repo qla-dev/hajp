@@ -8,7 +8,7 @@ export default function WelcomeScreen({ navigation }) {
       <View style={styles.content}>
         <Text style={styles.welcomeText}>WELCOME TO</Text>
         <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>GAS</Text>
+          <Text style={styles.logoText}>HAJP</Text>
           <Text style={styles.logoEmoji}>🔥</Text>
         </View>
         

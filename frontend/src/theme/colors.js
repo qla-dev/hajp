@@ -1,5 +1,5 @@
 export default {
-  // Gas App Orange/Coral theme
+  // Hajp App Orange/Coral theme
   primary: '#FF6B35', // Bright orange
   primaryDark: '#FF5722',
   secondary: '#4ECDC4', // Teal/cyan

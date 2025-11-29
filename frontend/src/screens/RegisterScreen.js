@@ -35,7 +35,7 @@ export default function RegisterScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join Gas and start voting!</Text>
+          <Text style={styles.subtitle}>Join Hajp and start voting!</Text>
 
           <TextInput
             placeholder="Full Name"
