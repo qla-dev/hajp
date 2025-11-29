@@ -22,10 +22,10 @@ export default function ShareLinkScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Share Your Link</Text>
-      <Text style={styles.link}>{link || 'No link yet'}</Text>
+      <Text style={styles.title}>Podijeli svoj link</Text>
+      <Text style={styles.link}>{link || 'Još nema linka'}</Text>
       <TouchableOpacity style={styles.shareButton}>
-        <Text style={styles.shareButtonText}>Share</Text>
+        <Text style={styles.shareButtonText}>Podijeli</Text>
       </TouchableOpacity>
     </View>
   );

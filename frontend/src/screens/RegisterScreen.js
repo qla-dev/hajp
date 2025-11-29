@@ -34,11 +34,11 @@ export default function RegisterScreen({ navigation }) {
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join Hajp and start voting!</Text>
+          <Text style={styles.title}>Kreiraj račun</Text>
+          <Text style={styles.subtitle}>Pridruži se Hajpu i glasaj!</Text>
 
           <TextInput
-            placeholder="Full Name"
+            placeholder="Ime i prezime"
             value={name}
             onChangeText={setName}
             style={styles.input}
@@ -56,7 +56,7 @@ export default function RegisterScreen({ navigation }) {
           />
 
           <TextInput
-            placeholder="Password"
+            placeholder="Lozinka"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={true}
@@ -65,7 +65,7 @@ export default function RegisterScreen({ navigation }) {
           />
 
           <TextInput
-            placeholder="School"
+            placeholder="Škola"
             value={school}
             onChangeText={setSchool}
             style={styles.input}
@@ -73,7 +73,7 @@ export default function RegisterScreen({ navigation }) {
           />
 
           <TextInput
-            placeholder="Grade (e.g., 10th Grade)"
+            placeholder="Razred (npr. 2. razred)"
             value={grade}
             onChangeText={setGrade}
             style={styles.input}
@@ -81,12 +81,12 @@ export default function RegisterScreen({ navigation }) {
           />
 
           <TouchableOpacity onPress={onRegister} style={[styles.registerButton, loading && styles.registerButtonDisabled]} disabled={loading}>
-            <Text style={styles.registerButtonText}>{loading ? 'Creating Account...' : 'Create Account'}</Text>
+            <Text style={styles.registerButtonText}>{loading ? 'Kreiram račun...' : 'Kreiraj račun'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginLink}>
             <Text style={styles.loginLinkText}>
-              Already have an account? <Text style={styles.loginLinkBold}>Log In</Text>
+              Već imaš račun? <Text style={styles.loginLinkBold}>Prijavi se</Text>
             </Text>
           </TouchableOpacity>
         </View>

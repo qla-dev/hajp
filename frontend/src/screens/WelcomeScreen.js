@@ -6,50 +6,41 @@ export default function WelcomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.welcomeText}>WELCOME TO</Text>
+        <Text style={styles.welcomeText}>DOBRODOŠLI U</Text>
         <View style={styles.logoContainer}>
           <Text style={styles.logoText}>HAJP</Text>
           <Text style={styles.logoEmoji}>🔥</Text>
         </View>
-        
+
         <View style={styles.featuresContainer}>
           <View style={styles.featureCard}>
             <View style={styles.phonePreview}>
-              <Text style={styles.featureEmoji}>😁</Text>
-              <Text style={styles.featureTitle}>BEST SMILE</Text>
+              <Text style={styles.featureEmoji}>😊</Text>
+              <Text style={styles.featureTitle}>NAJBOLJI OSMIJEH</Text>
             </View>
-            <Text style={styles.featureDescription}>Answer Polls{'\n'}About Friends</Text>
+            <Text style={styles.featureDescription}>Odgovaraj na ankete{'\n'}o prijateljima</Text>
           </View>
-          
+
           <View style={styles.featureCard}>
             <View style={styles.phonePreview}>
               <Text style={styles.featureEmoji}>🔥</Text>
             </View>
-            <Text style={styles.featureDescription}>Get Flames{'\n'}When Picked</Text>
+            <Text style={styles.featureDescription}>Dobij plamenove{'\n'}kad te izaberu</Text>
           </View>
         </View>
       </View>
-      
+
       <View style={styles.bottomContainer}>
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('Register')} 
-          style={styles.startButton}
-        >
-          <Text style={styles.startButtonText}>Start</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.startButton}>
+          <Text style={styles.startButtonText}>Kreni</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('Login')} 
-          style={styles.loginButton}
-        >
-          <Text style={styles.loginText}>Already have an account? Log In</Text>
+
+        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginButton}>
+          <Text style={styles.loginText}>Već imaš račun? Prijavi se</Text>
         </TouchableOpacity>
-        
-          <TouchableOpacity 
-            onPress={() => navigation.navigate('Main')} 
-            style={styles.skipButton}
-          >
-          <Text style={styles.skipText}>Skip - Continue as Guest</Text>
+
+        <TouchableOpacity onPress={() => navigation.navigate('Main')} style={styles.skipButton}>
+          <Text style={styles.skipText}>Preskoči - nastavi kao gost</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -118,6 +109,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 12,
     marginTop: 8,
+    textAlign: 'center',
   },
   featureDescription: {
     fontSize: 14,

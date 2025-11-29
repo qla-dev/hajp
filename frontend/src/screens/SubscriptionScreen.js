@@ -8,10 +8,10 @@ export default function SubscriptionScreen() {
   useEffect(() => { subscriptionStatus().then(({ data }) => setSub(data.subscription)).catch(() => {}); }, []);
   return (
     <View style={{ flex: 1, padding: 16, backgroundColor: colors.background }}>
-      <Text style={{ fontSize: 20, fontWeight: '600', color: colors.text_primary }}>Subscription</Text>
-      <Text style={{ marginTop: 8, color: colors.text_secondary }}>{sub ? `Expires ${sub.expires_at}` : 'Not subscribed'}</Text>
+      <Text style={{ fontSize: 20, fontWeight: '600', color: colors.text_primary }}>Pretplata</Text>
+      <Text style={{ marginTop: 8, color: colors.text_secondary }}>{sub ? `Ističe ${sub.expires_at}` : 'Nema pretplate'}</Text>
       <TouchableOpacity onPress={() => subscribe().then(({ data }) => setSub(data.subscription))} style={{ backgroundColor: colors.primary, padding: 16, borderRadius: 8, marginTop: 16 }}>
-        <Text style={{ color: '#fff', textAlign: 'center' }}>{sub ? 'Renew' : 'Subscribe'}</Text>
+        <Text style={{ color: '#fff', textAlign: 'center' }}>{sub ? 'Obnovi' : 'Pretplati se'}</Text>
       </TouchableOpacity>
     </View>
   );

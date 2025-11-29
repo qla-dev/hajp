@@ -10,7 +10,7 @@ export default function PollDetailScreen({ route }) {
     fetchPollDetail(id).then(({ data }) => setPoll(data)).catch(() => {});
   }, [id]);
 
-  if (!poll) return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Text>Loading</Text></View>;
+  if (!poll) return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Text>Učitavam...</Text></View>;
 
   const onVote = async (opt) => {
     try { await votePoll(id, opt); } catch {}

@@ -6,8 +6,8 @@ export default function ActivityScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.title}>Activity</Text>
-        <Text style={styles.subtitle}>Your recent actions will appear here.</Text>
+        <Text style={styles.title}>Aktivnosti</Text>
+        <Text style={styles.subtitle}>Tvoje nedavne radnje će biti ovdje.</Text>
       </View>
     </SafeAreaView>
   );

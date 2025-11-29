@@ -69,7 +69,7 @@ export default function MainTabs() {
         },
       })}
     >
-      <Tab.Screen name="Inbox" component={AnonymousInboxScreen} />
+      <Tab.Screen name="Inbox" component={AnonymousInboxScreen} options={{ tabBarLabel: 'Sandučić' }} />
       <Tab.Screen
         name="Hajp"
         component={GasStackNavigator}
@@ -77,8 +77,8 @@ export default function MainTabs() {
           headerShown: false, // use stack header inside
         }}
       />
-      <Tab.Screen name="Activity" component={ActivityScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Activity" component={ActivityScreen} options={{ tabBarLabel: 'Aktivnosti' }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: 'Profil' }} />
     </Tab.Navigator>
   );
 }

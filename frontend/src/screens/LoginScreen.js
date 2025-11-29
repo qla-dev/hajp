@@ -27,8 +27,8 @@ export default function LoginScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={styles.content}>
-        <Text style={styles.title}>Log In</Text>
-        <Text style={styles.subtitle}>Welcome back to Hajp!</Text>
+        <Text style={styles.title}>Prijava</Text>
+        <Text style={styles.subtitle}>Dobrodošao nazad u Hajp!</Text>
 
         <TextInput
           placeholder="Email"
@@ -41,7 +41,7 @@ export default function LoginScreen({ navigation }) {
         />
 
         <TextInput
-          placeholder="Password"
+          placeholder="Lozinka"
           value={password}
           onChangeText={setPassword}
           secureTextEntry={true}
@@ -50,12 +50,12 @@ export default function LoginScreen({ navigation }) {
         />
 
         <TouchableOpacity onPress={onLogin} style={[styles.loginButton, loading && styles.loginButtonDisabled]} disabled={loading}>
-          <Text style={styles.loginButtonText}>{loading ? 'Logging in...' : 'Log In'}</Text>
+          <Text style={styles.loginButtonText}>{loading ? 'Prijavljujem...' : 'Prijavi se'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.registerLink}>
           <Text style={styles.registerLinkText}>
-            Don't have an account? <Text style={styles.registerLinkBold}>Sign Up</Text>
+            Nemaš račun? <Text style={styles.registerLinkBold}>Registruj se</Text>
           </Text>
         </TouchableOpacity>
       </View>

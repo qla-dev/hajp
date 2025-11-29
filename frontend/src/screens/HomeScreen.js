@@ -5,11 +5,11 @@ import { fetchPolls, votePoll } from '../api';
 
 const { width } = Dimensions.get('window');
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen() {
   const [polls, setPolls] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const emojis = useMemo(() => ['🔥', '😊', '😺', '😎', '🎉', '💫'], []);
+  const emojis = useMemo(() => ['🔥', '💥', '🎯', '✨', '🚀', '💡'], []);
 
   useEffect(() => {
     loadPolls();
@@ -33,7 +33,6 @@ export default function HomeScreen({ navigation }) {
     } catch (error) {
       console.error('Error voting:', error);
     } finally {
-      // Move to next poll regardless so UX feels snappy
       if (currentIndex < polls.length - 1) {
         setCurrentIndex(currentIndex + 1);
       } else {
@@ -59,7 +58,7 @@ export default function HomeScreen({ navigation }) {
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
-        <Text style={styles.loadingText}>Loading Polls...</Text>
+        <Text style={styles.loadingText}>Učitavam ankete...</Text>
       </View>
     );
   }
@@ -67,9 +66,9 @@ export default function HomeScreen({ navigation }) {
   if (polls.length === 0) {
     return (
       <View style={[styles.container, styles.center]}>
-        <Text style={styles.loadingText}>No polls available</Text>
+        <Text style={styles.loadingText}>Nema dostupnih anketa</Text>
         <TouchableOpacity onPress={loadPolls} style={[styles.retryButton, { marginTop: 12 }]}>
-          <Text style={styles.retryText}>Reload</Text>
+          <Text style={styles.retryText}>Ponovo učitaj</Text>
         </TouchableOpacity>
       </View>
     );
@@ -82,18 +81,15 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
-      {/* Poll Counter */}
       <Text style={styles.counter}>
-        {currentIndex + 1} of {polls.length}
+        {currentIndex + 1} od {polls.length}
       </Text>
 
-      {/* Poll Content */}
       <View style={styles.pollContent}>
         <Text style={styles.emoji}>{emoji}</Text>
         <Text style={styles.question}>{currentPoll.question}</Text>
       </View>
 
-      {/* Options Grid */}
       <View style={styles.optionsContainer}>
         {currentPoll.options &&
           currentPoll.options.slice(0, 4).map((option, index) => (
@@ -103,16 +99,15 @@ export default function HomeScreen({ navigation }) {
           ))}
       </View>
 
-      {/* Bottom Actions */}
       <View style={styles.bottomActions}>
         <TouchableOpacity onPress={handleShuffle} style={styles.actionButton}>
           <Text style={styles.actionIcon}>🔀</Text>
-          <Text style={styles.actionText}>Shuffle</Text>
+          <Text style={styles.actionText}>Izmiješaj</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleSkip} style={styles.actionButton}>
           <Text style={styles.actionIcon}>⏭️</Text>
-          <Text style={styles.actionText}>Skip</Text>
+          <Text style={styles.actionText}>Preskoči</Text>
         </TouchableOpacity>
       </View>
     </View>

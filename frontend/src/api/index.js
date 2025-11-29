@@ -23,5 +23,10 @@ export const subscriptionStatus = () => api.get('/api/subscription/status');
 export const subscribe = () => api.post('/api/subscription/subscribe');
 export const getInbox = (userId) => api.get(`/api/anonymous/inbox/${userId}`);
 export const sendAnonMessage = (inbox_id, message, metadata) => api.post('/api/anonymous/message', { inbox_id, message, metadata });
+export const getCurrentUser = async () => {
+  const { data } = await api.get('/api/user');
+  return data;
+};
+export const logout = () => api.post('/api/logout');
 
 export default api;

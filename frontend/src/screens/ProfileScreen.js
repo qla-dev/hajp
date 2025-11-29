@@ -7,13 +7,8 @@ export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    loadUser();
+    getCurrentUser().then(setUser);
   }, []);
-
-  const loadUser = async () => {
-    const currentUser = await getCurrentUser();
-    setUser(currentUser);
-  };
 
   const handleLogout = async () => {
     await logout();
@@ -25,14 +20,13 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Profile Info */}
       <View style={styles.profileSection}>
         <Image
           source={{
             uri:
               user?.profile_photo ||
               'https://ui-avatars.com/api/?name=' +
-                (user?.name || 'User') +
+                (user?.name || 'Korisnik') +
                 '&size=200&background=FF6B35&color=fff',
           }}
           style={styles.profileImage}
@@ -41,81 +35,74 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>176</Text>
-            <Text style={styles.statLabel}>friends</Text>
+            <Text style={styles.statLabel}>prijatelja</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>328</Text>
-            <Text style={styles.statLabel}>flames</Text>
+            <Text style={styles.statLabel}>plamenova</Text>
           </View>
         </View>
 
         <TouchableOpacity style={styles.editProfileButton}>
-          <Text style={styles.editProfileText}>EDIT PROFILE</Text>
+          <Text style={styles.editProfileText}>UREDI PROFIL</Text>
         </TouchableOpacity>
       </View>
 
-      {/* User Details */}
       <View style={styles.userDetails}>
-        <Text style={styles.userName}>{user?.name || 'Guest User'}</Text>
-        <Text style={styles.userHandle}>@{user?.name?.toLowerCase().replace(' ', '') || 'guest'}</Text>
+        <Text style={styles.userName}>{user?.name || 'Gost'}</Text>
+        <Text style={styles.userHandle}>@{user?.name?.toLowerCase().replace(' ', '') || 'gost'}</Text>
 
         <View style={styles.userInfo}>
-          <Text style={styles.userInfoItem}>🏫 {user?.school || 'No School'}</Text>
-          <Text style={styles.userInfoItem}>🎓 {user?.grade || 'No Grade'}</Text>
+          <Text style={styles.userInfoItem}>🏫 {user?.school || 'Bez škole'}</Text>
+          <Text style={styles.userInfoItem}>🎓 {user?.grade || 'Bez razreda'}</Text>
         </View>
       </View>
 
-      {/* Share Profile */}
       <View style={styles.section}>
         <TouchableOpacity style={styles.shareButton}>
-          <Text style={styles.shareButtonText}>Share Profile 🔗</Text>
+          <Text style={styles.shareButtonText}>Podijeli profil 🔗</Text>
         </TouchableOpacity>
 
         <View style={styles.coinsContainer}>
-          <Text style={styles.coinsLabel}>COINS</Text>
+          <Text style={styles.coinsLabel}>NOVČIĆI</Text>
           <View style={styles.coinsBox}>
             <Text style={styles.coinsAmount}>58</Text>
             <TouchableOpacity style={styles.shopButton}>
-              <Text style={styles.shopButtonText}>SHOP</Text>
+              <Text style={styles.shopButtonText}>PRODAVNICA</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      {/* Top Flames */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Top Flames</Text>
+        <Text style={styles.sectionTitle}>Top plamenovi</Text>
         <View style={styles.flameItem}>
           <Text style={styles.flameNumber}>1</Text>
           <Text style={styles.flameEmoji}>🔥</Text>
-          <Text style={styles.flameText}>Most unforgettable name</Text>
+          <Text style={styles.flameText}>Najnezaboravnije ime</Text>
         </View>
         <View style={styles.flameItem}>
           <Text style={styles.flameNumber}>2</Text>
           <Text style={styles.flameEmoji}>⭐</Text>
-          <Text style={styles.flameText}>Will grow up, move to LA, and make it big</Text>
+          <Text style={styles.flameText}>Odrast će, preseliti u LA i uspjeti</Text>
         </View>
       </View>
 
-      {/* Actions */}
       <View style={styles.actionsSection}>
         <TouchableOpacity onPress={() => navigation.navigate('AnonymousInbox')} style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>View Anonymous Inbox</Text>
+          <Text style={styles.actionButtonText}>Anonimni sandučić</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => navigation.navigate('Subscription')}
           style={[styles.actionButton, { backgroundColor: colors.primary }]}
         >
-          <Text style={[styles.actionButtonText, { color: colors.textLight }]}>Upgrade to Premium</Text>
+          <Text style={[styles.actionButtonText, { color: colors.textLight }]}>Nadogradi na Premium</Text>
         </TouchableOpacity>
 
         {user && (
-          <TouchableOpacity
-            onPress={handleLogout}
-            style={[styles.actionButton, { backgroundColor: colors.error }]}
-          >
-            <Text style={[styles.actionButtonText, { color: colors.textLight }]}>Logout</Text>
+          <TouchableOpacity onPress={handleLogout} style={[styles.actionButton, { backgroundColor: colors.error }]}>
+            <Text style={[styles.actionButtonText, { color: colors.textLight }]}>Odjava</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -289,14 +276,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: colors.text_primary,
-  },
-  centerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: colors.text_secondary,
   },
 });

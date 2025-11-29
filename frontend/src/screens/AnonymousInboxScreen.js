@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native
 import colors from '../theme/colors';
 import { getInbox, getCurrentUser } from '../api';
 
-export default function AnonymousInboxScreen({ navigation }) {
+export default function AnonymousInboxScreen() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,20 +22,22 @@ export default function AnonymousInboxScreen({ navigation }) {
         setMessages([]);
       }
     } catch (error) {
-      console.error('Error loading inbox:', error);
+      console.error('Greška pri učitavanju sandučića:', error);
     }
     setLoading(false);
   };
 
   const renderMessage = ({ item }) => {
     const metadata = item.metadata || {};
-    const from = metadata.gender ? `From a ${metadata.gender}` : 'Anonymous';
-    const ts = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    const from = metadata.gender ? `Od: ${metadata.gender}` : 'Anonimno';
+    const ts = item.created_at
+      ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : 'Upravo sada';
 
     return (
       <TouchableOpacity style={styles.messageCard}>
         <View style={styles.messageIcon}>
-          <Text style={styles.flameEmoji}>💌</Text>
+          <Text style={styles.flameEmoji}>🔥</Text>
         </View>
         <View style={styles.messageContent}>
           <Text style={styles.messageText} numberOfLines={1}>
@@ -43,22 +45,21 @@ export default function AnonymousInboxScreen({ navigation }) {
           </Text>
           <Text style={styles.messageMetadata}>{from}</Text>
         </View>
-        <Text style={styles.messageTime}>{ts || 'Just now'}</Text>
+        <Text style={styles.messageTime}>{ts}</Text>
       </TouchableOpacity>
     );
   };
 
   return (
     <View style={styles.container}>
-      {/* Messages List */}
       {loading ? (
         <View style={styles.centerContent}>
-          <Text style={styles.loadingText}>Loading messages...</Text>
+          <Text style={styles.loadingText}>Učitavam poruke...</Text>
         </View>
       ) : messages.length === 0 ? (
         <View style={styles.centerContent}>
-          <Text style={styles.emptyText}>No messages yet</Text>
-          <Text style={styles.emptySubtext}>Share your link to receive anonymous messages!</Text>
+          <Text style={styles.emptyText}>Još nema poruka</Text>
+          <Text style={styles.emptySubtext}>Podijeli svoj link da dobiješ anonimne poruke!</Text>
         </View>
       ) : (
         <FlatList
@@ -69,11 +70,10 @@ export default function AnonymousInboxScreen({ navigation }) {
         />
       )}
 
-      {/* Bottom CTA */}
       <View style={styles.bottomCTA}>
         <TouchableOpacity style={styles.ctaButton}>
           <Text style={styles.ctaIcon}>👀</Text>
-          <Text style={styles.ctaText}>See who likes you</Text>
+          <Text style={styles.ctaText}>Vidi ko te lajka</Text>
         </TouchableOpacity>
       </View>
     </View>
