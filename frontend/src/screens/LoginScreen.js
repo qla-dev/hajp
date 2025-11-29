@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import colors from '../theme/colors';
 import { login } from '../api';
 
@@ -13,10 +14,7 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
     try {
       await login({ email, password });
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Main' }],
-      });
+      navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
     } catch (e) {
       alert('Login failed. Please check your credentials.');
     } finally {
@@ -58,6 +56,24 @@ export default function LoginScreen({ navigation }) {
             Nemaš račun? <Text style={styles.registerLinkBold}>Registruj se</Text>
           </Text>
         </TouchableOpacity>
+
+        <View style={styles.socialBlock}>
+          <View style={styles.dividerRow}>
+            <View style={styles.divider} />
+            <Text style={styles.dividerText}>ili nastavi sa</Text>
+            <View style={styles.divider} />
+          </View>
+          <View style={styles.socialRow}>
+            <TouchableOpacity style={styles.socialButton} onPress={() => alert('Google prijava uskoro')}>
+              <Ionicons name="logo-google" size={22} color="#DB4437" />
+              <Text style={styles.socialText}>Google</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialButton} onPress={() => alert('Apple prijava uskoro')}>
+              <Ionicons name="logo-apple" size={22} color="#000" />
+              <Text style={styles.socialText}>Apple</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -71,18 +87,21 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 40,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 32,
     fontWeight: '700',
     color: colors.text_primary,
     marginBottom: 8,
+    textAlign: 'center',
+    marginTop: 30,
   },
   subtitle: {
     fontSize: 16,
     color: colors.text_secondary,
     marginBottom: 32,
+    textAlign: 'center',
   },
   input: {
     borderWidth: 1,
@@ -121,5 +140,48 @@ const styles = StyleSheet.create({
   registerLinkBold: {
     fontWeight: '700',
     color: colors.primary,
+  },
+  socialBlock: {
+    marginTop: 16,
+    paddingBottom: 16,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.surface,
+  },
+  dividerText: {
+    marginHorizontal: 10,
+    color: colors.text_secondary,
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  socialRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 20,
+  },
+  socialButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.surface,
+    backgroundColor: '#fff',
+  },
+  socialText: {
+    marginLeft: 8,
+    fontWeight: '700',
+    color: colors.text_primary,
   },
 });
