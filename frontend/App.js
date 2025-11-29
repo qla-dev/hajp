@@ -16,6 +16,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import SendAnonymousMessageScreen from './src/screens/SendAnonymousMessageScreen';
 import ShareLinkScreen from './src/screens/ShareLinkScreen';
 import MainTabs from './src/navigation/MainTabs';
+import BasicHeader from './src/components/BasicHeader';
 import colors from './src/theme/colors';
 
 const RootStack = createNativeStackNavigator();
@@ -47,8 +48,16 @@ function MainStackNavigator() {
       <MainStack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
       <MainStack.Screen name="Subscription" component={SubscriptionScreen} />
       <MainStack.Screen name="Profile" component={ProfileScreen} />
-      <MainStack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: false }} />
-      <MainStack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
+      <MainStack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{ header: () => <BasicHeader title="Uredi profil" /> }}
+      />
+      <MainStack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ header: () => <BasicHeader title="Podešavanja" /> }}
+      />
       <MainStack.Screen name="SendAnonymousMessage" component={SendAnonymousMessageScreen} />
       <MainStack.Screen name="ShareLink" component={ShareLinkScreen} />
       <MainStack.Screen name="CreatePoll" component={CreatePollScreen} options={{ headerShown: false }} />

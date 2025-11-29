@@ -9,14 +9,6 @@ export default function SettingsScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
-      <View style={styles.headerRow}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.headerAction}>Zatvori</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Podešavanja</Text>
-        <View style={{ width: 60 }} />
-      </View>
-
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Podešavanja</Text>
         <SettingRow label="Smanji notifikacije" value={reduceNotifications} onValueChange={setReduceNotifications} />
@@ -63,24 +55,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f7f7f7',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
-  },
-  headerAction: {
-    color: colors.text_primary,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: colors.text_primary,
   },
   section: {
     backgroundColor: '#fff',
