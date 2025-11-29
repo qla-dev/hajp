@@ -14,10 +14,13 @@ export default function PollingScreen({ route, navigation }) {
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [finished, setFinished] = useState(false);
-  const emojis = useMemo(() => ['🔥', '⭐️', '💥', '🎉', '💫', '✨'], []);
+  const emojis = useMemo(() => ['😀', '😎', '🔥', '🎉', '🚀', '⭐'], []);
+  const backgrounds = useMemo(() => ['#1d4ed8', '#7c3aed', '#2563eb', '#0ea5e9', '#22c55e', '#f97316'], []);
+  const [bgColor, setBgColor] = useState(backgrounds[0]);
 
   useEffect(() => {
     loadQuestion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
   const loadQuestion = async () => {
@@ -27,16 +30,20 @@ export default function PollingScreen({ route, navigation }) {
       const { data } = await fetchActiveQuestion(roomId);
       const incomingTotal = data?.total ?? 0;
       const incomingIndex = data?.index ?? 0;
+
       if (data?.question) {
         setQuestion(data.question);
         setFinished(false);
         setTotal(incomingTotal);
         setIndex(incomingIndex || (incomingTotal ? 1 : 0));
+        const idx = Math.max(0, (incomingIndex || 1) - 1);
+        setBgColor(backgrounds[idx % backgrounds.length]);
       } else {
         setQuestion(null);
         setFinished(true);
         setTotal(incomingTotal);
         setIndex(incomingIndex || 0);
+        setBgColor(backgrounds[0]);
       }
     } catch (error) {
       setQuestion(null);
@@ -82,19 +89,19 @@ export default function PollingScreen({ route, navigation }) {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.center, styles.pollBackground]}>
+      <View style={[styles.container, styles.center, { backgroundColor: bgColor }]}>
         <ActivityIndicator size="large" color={colors.textLight} />
-        <Text style={styles.loadingText}>Učitavanje ankete...</Text>
+        <Text style={styles.loadingText}>Ucitavanje ankete...</Text>
       </View>
     );
   }
 
   if (finished) {
     return (
-      <View style={[styles.container, styles.center, styles.pollBackground]}>
-        <Text style={styles.congratsEmoji}>🎉</Text>
-        <Text style={styles.congratsTitle}>Čestitamo!</Text>
-        <Text style={styles.congratsSubtitle}>Završio si ovu anketu.</Text>
+      <View style={[styles.container, styles.center, { backgroundColor: bgColor }]}>
+        <Text style={styles.congratsEmoji}>{emojis[0]}</Text>
+        <Text style={styles.congratsTitle}>Cestitamo!</Text>
+        <Text style={styles.congratsSubtitle}>Zavrsio si ovu anketu.</Text>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Rooms')}>
           <Text style={styles.backButtonText}>Nazad na sobe</Text>
         </TouchableOpacity>
@@ -104,13 +111,13 @@ export default function PollingScreen({ route, navigation }) {
 
   if (!question) {
     return (
-      <View style={[styles.container, styles.center, styles.pollBackground]}>
+      <View style={[styles.container, styles.center, { backgroundColor: bgColor }]}>
         <Text style={styles.loadingText}>Nema aktivnih pitanja</Text>
       </View>
     );
   }
 
-  const emoji = question.emoji || emojis[0];
+  const emoji = question.emoji || emojis[index % emojis.length];
   const options = question.options || [];
 
   const normalizedOptions = options.slice(0, 4).map((option) => {
@@ -123,7 +130,7 @@ export default function PollingScreen({ route, navigation }) {
   });
 
   return (
-    <View style={[styles.container, styles.pollBackground]}>
+    <View style={[styles.container, { backgroundColor: bgColor }]}>
       <Text style={styles.counter}>
         {index || 1} od {total || 0}
       </Text>
@@ -143,15 +150,15 @@ export default function PollingScreen({ route, navigation }) {
 
       <View style={styles.bottomActions}>
         <TouchableOpacity onPress={handleShuffle} style={styles.actionButton}>
-          <View style={styles.iconWrapper}>
-            <Ionicons name="shuffle-outline" size={32} color={colors.textLight} />
+          <View style={styles.iconWrapperSmall}>
+            <Ionicons name="shuffle-outline" size={26} color={colors.textLight} />
           </View>
           <Text style={styles.actionText}>Izmiješaj</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleSkip} style={styles.actionButton}>
-          <View style={styles.iconWrapper}>
-            <Ionicons name="play-skip-forward-outline" size={28} color={colors.textLight} />
+          <View style={styles.iconWrapperSmall}>
+            <Ionicons name="play-skip-forward-outline" size={24} color={colors.textLight} />
           </View>
           <Text style={styles.actionText}>Preskoči</Text>
         </TouchableOpacity>
@@ -162,18 +169,17 @@ export default function PollingScreen({ route, navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  pollBackground: { backgroundColor: colors.pollBlue },
   center: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
   counter: { color: colors.textLight, fontSize: 16, fontWeight: '600', textAlign: 'center', marginTop: 120 },
   pollContent: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   emoji: { fontSize: 80, marginBottom: 20 },
   question: { color: colors.textLight, fontSize: 24, fontWeight: '600', textAlign: 'center', lineHeight: 32 },
   optionsContainer: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, justifyContent: 'center', marginBottom: 20 },
-  optionButton: { backgroundColor: 'rgba(255, 255, 255, 0.92)', paddingVertical: 16, paddingHorizontal: 20, borderRadius: 12, margin: 6, width: (width - 64) / 2, alignItems: 'center' },
-  optionText: { color: colors.text_primary, fontSize: 15, fontWeight: '600', textAlign: 'center' },
+  optionButton: { backgroundColor: 'rgba(255, 255, 255, 0.92)', height: 72, paddingHorizontal: 16, borderRadius: 12, margin: 6, width: (width - 64) / 2, alignItems: 'center', justifyContent: 'center' },
+  optionText: { color: colors.text_primary, fontSize: 15, fontWeight: '600', textAlign: 'center', lineHeight: 20 },
   bottomActions: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 40, paddingBottom: 40 },
   actionButton: { alignItems: 'center' },
-  iconWrapper: { height: 32, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  iconWrapperSmall: { height: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
   actionText: { color: colors.textLight, fontSize: 14, fontWeight: '600' },
   loadingText: { color: colors.textLight, fontSize: 18, textAlign: 'center', marginTop: 12 },
   congratsEmoji: { fontSize: 72, marginBottom: 12 },
