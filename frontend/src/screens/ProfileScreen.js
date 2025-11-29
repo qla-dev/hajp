@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Alert } from 'react-native';
 import colors from '../theme/colors';
 import { getCurrentUser, logout } from '../api';
 
@@ -14,8 +14,23 @@ export default function ProfileScreen({ navigation }) {
     await logout();
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Welcome' }],
+      routes: [
+        {
+          name: 'Auth',
+          state: {
+            index: 0,
+            routes: [{ name: 'Welcome' }],
+          },
+        },
+      ],
     });
+  };
+
+  const confirmLogout = () => {
+    Alert.alert('Odjava', 'Da li želite da se odjavite?', [
+      { text: 'Otkaži', style: 'cancel' },
+      { text: 'Odjavi me', style: 'destructive', onPress: handleLogout },
+    ]);
   };
 
   return (
@@ -100,11 +115,9 @@ export default function ProfileScreen({ navigation }) {
           <Text style={[styles.actionButtonText, { color: colors.textLight }]}>Nadogradi na Premium</Text>
         </TouchableOpacity>
 
-        {user && (
-          <TouchableOpacity onPress={handleLogout} style={[styles.actionButton, { backgroundColor: colors.error }]}>
-            <Text style={[styles.actionButtonText, { color: colors.textLight }]}>Odjava</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity onPress={confirmLogout} style={[styles.actionButton, { backgroundColor: colors.error }]}>
+          <Text style={[styles.actionButtonText, { color: colors.textLight }]}>Odjava</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );

@@ -14,10 +14,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/questions', [QuestionController::class, 'index']);
 Route::get('/questions/{question}', [QuestionController::class, 'show']);
 Route::post('/questions/{question}/refresh', [QuestionController::class, 'refreshOptions']);
-Route::post('/questions/{question}/skip', [QuestionController::class, 'skip']);
-
 Route::get('/rooms', [RoomController::class, 'index']);
-Route::get('/rooms/{room}/questions/active', [RoomController::class, 'activeQuestion']);
 
 // basic polls CRUD
 Route::get('/polls', [PollController::class, 'index']);
@@ -36,6 +33,8 @@ Route::post('/anonymous/message', [AnonInboxController::class, 'createMessage'])
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/questions/{question}/vote', [QuestionController::class, 'vote']);
+    Route::post('/questions/{question}/skip', [QuestionController::class, 'skip']);
+    Route::get('/rooms/{room}/questions/active', [RoomController::class, 'activeQuestion']);
     Route::get('/subscription/status', [SubscriptionController::class, 'status']);
     Route::post('/subscription/subscribe', [SubscriptionController::class, 'subscribe']);
 });
