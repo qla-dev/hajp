@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Poll;
 use App\Models\PollVote;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PollController extends Controller
 {
@@ -40,14 +41,45 @@ class PollController extends Controller
 
     public function vote(Request $request, Poll $poll)
     {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        if (!$poll->active) {
+            return response()->json(['message' => 'Poll is closed'], 422);
+        }
+
         $data = $request->validate([
             'selected_option' => 'required|string',
         ]);
+
+        if (!in_array($data['selected_option'], $poll->options, true)) {
+            return response()->json(['message' => 'Selected option is invalid'], 422);
+        }
+
+        $existing = PollVote::where('poll_id', $poll->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existing) {
+            return response()->json($existing, 200);
+        }
+
         $vote = PollVote::create([
             'poll_id' => $poll->id,
-            'user_id' => $request->user()->id,
+            'user_id' => $user->id,
             'selected_option' => $data['selected_option'],
         ]);
-        return response()->json($vote, 201);
+
+        $totals = PollVote::select('selected_option', DB::raw('count(*) as votes'))
+            ->where('poll_id', $poll->id)
+            ->groupBy('selected_option')
+            ->get();
+
+        return response()->json([
+            'vote' => $vote,
+            'totals' => $totals,
+        ], 201);
     }
 }

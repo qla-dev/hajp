@@ -12,15 +12,17 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/polls', [PollController::class, 'index']);
 Route::get('/polls/{poll}', [PollController::class, 'show']);
 
-Route::get('/subscription/status', [SubscriptionController::class, 'status'])->middleware('auth:sanctum');
 Route::get('/anonymous/inbox/{user}', [AnonInboxController::class, 'show']);
+
 Route::post('/anonymous/message', [AnonInboxController::class, 'createMessage']);
 
-// Simple unauthenticated test endpoint
-Route::get('/ping', fn () => ['ok' => true, 'ts' => now()->toIso8601String()]);
- 
-
+Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/polls', [PollController::class, 'store']);
     Route::post('/polls/{poll}/vote', [PollController::class, 'vote']);
+    Route::get('/subscription/status', [SubscriptionController::class, 'status']);
     Route::post('/subscription/subscribe', [SubscriptionController::class, 'subscribe']);
+});
+
+// Simple unauthenticated test endpoint
+Route::get('/ping', fn () => ['ok' => true, 'ts' => now()->toIso8601String()]);
