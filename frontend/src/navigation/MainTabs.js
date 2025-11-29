@@ -2,8 +2,9 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, Pressable } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import colors from '../theme/colors';
 import RoomsScreen from '../screens/RoomsScreen';
 import PollingScreen from '../screens/PollingScreen';
@@ -16,16 +17,16 @@ const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
 
 const headerLabelMap = {
-  Inbox: 'Sandučić',
-  Hajp: 'Hajp',
-  Activity: 'Aktivnosti',
+  Hajp: 'Sobe',
+  Inbox: 'Inbox',
+  Activity: 'Hajpovi',
   Profile: 'Profil',
 };
 
 const iconMap = {
+  Hajp: { active: 'home', inactive: 'home-outline' },
   Inbox: { active: 'chatbubble-ellipses', inactive: 'chatbubble-ellipses-outline' },
-  Hajp: { active: 'flame', inactive: 'flame-outline' },
-  Activity: { active: 'time', inactive: 'time-outline' },
+  Activity: { active: 'flame', inactive: 'flame-outline' },
   Profile: { active: 'person', inactive: 'person-outline' },
 };
 
@@ -89,6 +90,7 @@ export default function MainTabs() {
             letterSpacing: 0.3,
           },
           tabBarLabel: headerLabelMap[route.name] || route.name,
+          tabBarButton: (props) => <HapticTabButton {...props} />,
           tabBarIcon: ({ focused: isFocused, color, size }) => {
             const icons = iconMap[route.name] || iconMap.Hajp;
             const iconName = isFocused ? icons.active : icons.inactive;
@@ -97,11 +99,34 @@ export default function MainTabs() {
         };
       }}
     >
-      <Tab.Screen name="Inbox" component={AnonymousInboxScreen} />
       <Tab.Screen name="Hajp" component={HajpStackNavigator} options={{ headerShown: false }} />
+      <Tab.Screen name="Inbox" component={AnonymousInboxScreen} />
       <Tab.Screen name="Activity" component={ActivityScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
+  );
+}
+
+function HapticTabButton({ children, onPress, onLongPress, accessibilityState, style, ...rest }) {
+  const handlePress = async () => {
+    Haptics.selectionAsync().catch(() => {});
+    onPress?.();
+  };
+  const handleLongPress = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    onLongPress?.();
+  };
+
+  return (
+    <Pressable
+      {...rest}
+      onPress={handlePress}
+      onLongPress={handleLongPress}
+      accessibilityState={accessibilityState}
+      style={[style, styles.tabButton]}
+    >
+      {children}
+    </Pressable>
   );
 }
 
@@ -117,5 +142,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 18,
     marginTop: 10,
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
