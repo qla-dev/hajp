@@ -11,7 +11,7 @@ Run
 
 Structure
 - Theme colors at `src/theme/colors.js`
-- Screens: Welcome, Login, Register, Home, CreatePoll, PollDetail, Subscription, Profile, AnonymousInbox, SendAnonymousMessage, ShareLink
+- Screens: Welcome, Login, Register, Home, CreatePoll, PollDetail, Subscription, Profile, SendAnonymousMessage, ShareLink
 - API client at `src/api/index.js` with token interceptors
 
 Notes

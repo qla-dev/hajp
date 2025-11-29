@@ -9,7 +9,6 @@ import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import PollDetailScreen from './src/screens/PollDetailScreen';
 import SubscriptionScreen from './src/screens/SubscriptionScreen';
-import AnonymousInboxScreen from './src/screens/AnonymousInboxScreen';
 import CreatePollScreen from './src/screens/CreatePollScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SendAnonymousMessageScreen from './src/screens/SendAnonymousMessageScreen';
@@ -46,7 +45,6 @@ function MainStackNavigator() {
       <MainStack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
       <MainStack.Screen name="Subscription" component={SubscriptionScreen} />
       <MainStack.Screen name="Profile" component={ProfileScreen} />
-      <MainStack.Screen name="AnonymousInbox" component={AnonymousInboxScreen} />
       <MainStack.Screen name="SendAnonymousMessage" component={SendAnonymousMessageScreen} />
       <MainStack.Screen name="ShareLink" component={ShareLinkScreen} />
       <MainStack.Screen name="CreatePoll" component={CreatePollScreen} options={{ headerShown: false }} />

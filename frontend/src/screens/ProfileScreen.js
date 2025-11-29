@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Alert, RefreshControl } from 'react-native';
 import colors from '../theme/colors';
 import { getCurrentUser, logout, fetchMyVotes } from '../api';
 
@@ -7,21 +7,30 @@ export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [hypeCount, setHypeCount] = useState(0);
   const [recentHypes, setRecentHypes] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadData = async () => {
+    const current = await getCurrentUser();
+    setUser(current);
+    try {
+      const { data } = await fetchMyVotes();
+      setHypeCount(data?.length || 0);
+      setRecentHypes((data || []).slice(0, 3));
+    } catch {
+      setHypeCount(0);
+      setRecentHypes([]);
+    }
+  };
 
   useEffect(() => {
-    (async () => {
-      const current = await getCurrentUser();
-      setUser(current);
-      try {
-        const { data } = await fetchMyVotes();
-        setHypeCount(data?.length || 0);
-        setRecentHypes((data || []).slice(0, 3));
-      } catch {
-        setHypeCount(0);
-        setRecentHypes([]);
-      }
-    })();
+    loadData();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -30,71 +39,77 @@ export default function ProfileScreen({ navigation }) {
       routes: [
         {
           name: 'Auth',
-          state: {
-            index: 0,
-            routes: [{ name: 'Welcome' }],
-          },
+          state: { index: 0, routes: [{ name: 'Welcome' }] },
         },
       ],
     });
   };
 
   const confirmLogout = () => {
-    Alert.alert('Odjava', 'Da li zelite da se odjavite?', [
-      { text: 'Otkazi', style: 'cancel' },
+    Alert.alert('Odjava', 'Da li želite da se odjavite?', [
+      { text: 'Otkaži', style: 'cancel' },
       { text: 'Odjavi me', style: 'destructive', onPress: handleLogout },
     ]);
   };
 
-  return (
-    <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
-      <View style={styles.profileSection}>
-        <Image
-          source={{
-            uri:
-              user?.profile_photo ||
-              'https://ui-avatars.com/api/?name=' +
-                (user?.name || 'Korisnik') +
-                '&size=200&background=f2f2f2&color=111',
-          }}
-          style={styles.profileImage}
-        />
+  const username = user?.name ? user.name.toLowerCase().replace(' ', '') : 'gost';
 
-        <View style={styles.statsRow}>
-          <View style={styles.statItemRow}>
-            <Text style={styles.statNumber}>176</Text>
-            <Text style={styles.statLabel}>friends</Text>
-          </View>
-          <View style={styles.statItemRow}>
-            <Text style={styles.statNumber}>{hypeCount}</Text>
-            <Text style={styles.statLabel}>flames</Text>
+  return (
+    <ScrollView
+      style={styles.container}
+      contentInsetAdjustmentBehavior="always"
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+    >
+      <View style={styles.profileSection}>
+        <View style={styles.profileRow}>
+          <Image
+            source={{
+              uri:
+                user?.profile_photo ||
+                'https://ui-avatars.com/api/?name=' +
+                  (user?.name || 'Korisnik') +
+                  '&size=200&background=f2f2f2&color=111',
+            }}
+            style={styles.profileImage}
+          />
+
+          <View style={styles.statsColumn}>
+            <View style={styles.statsRow}>
+              <View style={styles.statItemRow}>
+                <Text style={styles.statNumber}>176</Text>
+                <Text style={styles.statLabel}>prijatelja</Text>
+              </View>
+              <View style={styles.statItemRow}>
+                <Text style={styles.statNumber}>{hypeCount}</Text>
+                <Text style={styles.statLabel}>hajpova</Text>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.editProfileButton}>
+              <Text style={styles.editProfileText}>UREDI PROFIL</Text>
+            </TouchableOpacity>
           </View>
         </View>
-
-        <TouchableOpacity style={styles.editProfileButton}>
-          <Text style={styles.editProfileText}>EDIT PROFILE</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.userDetails}>
         <Text style={styles.userName}>{user?.name || 'Gost'}</Text>
-        <Text style={styles.userHandle}>@{user?.name?.toLowerCase().replace(' ', '') || 'gost'}</Text>
+        <Text style={styles.userHandle}>@{username}</Text>
 
         <View style={styles.userInfo}>
-          <Text style={styles.userInfoItem}>Škola: {user?.school || 'Bez skole'}</Text>
-          <Text style={styles.userInfoItem}>Razred: {user?.grade || 'Bez razreda'}</Text>
+          <Text style={styles.userInfoItem}>🏫 Škola: {user?.school || 'Bez škole'}</Text>
+          <Text style={styles.userInfoItem}>🎓 Razred: {user?.grade || 'Bez razreda'}</Text>
         </View>
       </View>
 
       <View style={styles.section}>
         <View style={styles.rowSpread}>
           <TouchableOpacity style={styles.shareButton}>
-            <Text style={styles.shareButtonText}>Share Profile</Text>
+            <Text style={styles.shareButtonText}>Podijeli profil</Text>
           </TouchableOpacity>
 
           <View style={styles.coinsBox}>
             <View>
-              <Text style={styles.coinsLabel}>COINS</Text>
+              <Text style={styles.coinsLabel}>NOVČIĆI</Text>
               <Text style={styles.coinsAmount}>58</Text>
             </View>
             <TouchableOpacity style={styles.shopButton}>
@@ -122,10 +137,6 @@ export default function ProfileScreen({ navigation }) {
       </View>
 
       <View style={styles.actionsSection}>
-        <TouchableOpacity onPress={() => navigation.navigate('AnonymousInbox')} style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>Anonimni sanducic</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => navigation.navigate('Subscription')}
           style={[styles.actionButton, { backgroundColor: colors.primary }]}
@@ -144,14 +155,19 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f7f7',
+    backgroundColor: '#fff',
   },
   profileSection: {
-    alignItems: 'center',
     paddingVertical: 24,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e5e5',
+  },
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+    paddingHorizontal: 20,
   },
   profileImage: {
     width: 110,
@@ -161,11 +177,17 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    gap: 32,
-    marginTop: 16,
+    alignItems: 'center',
+    gap: 16,
+  },
+  statsColumn: {
+    flex: 1,
+    gap: 10,
   },
   statItemRow: {
-    alignItems: 'center',
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
   },
   statNumber: {
     fontSize: 22,
@@ -177,13 +199,14 @@ const styles = StyleSheet.create({
     color: '#7a7a7a',
   },
   editProfileButton: {
-    marginTop: 16,
+    marginTop: 12,
     paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 22,
+    paddingHorizontal: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: '#d9d9d9',
-    backgroundColor: '#f8f8f8',
+    backgroundColor: 'transparent',
+    alignSelf: 'flex-start',
   },
   editProfileText: {
     fontSize: 13,
@@ -192,7 +215,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   userDetails: {
-    alignItems: 'center',
     paddingHorizontal: 24,
     paddingVertical: 20,
     backgroundColor: '#fff',
@@ -203,16 +225,20 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: '#000',
+    textAlign: 'left',
   },
   userHandle: {
     fontSize: 15,
     color: '#7a7a7a',
     marginTop: 4,
+    textAlign: 'left',
   },
   userInfo: {
     flexDirection: 'row',
     marginTop: 10,
     gap: 12,
+    alignItems: 'center',
+    flexWrap: 'wrap',
   },
   userInfoItem: {
     fontSize: 13,
@@ -233,11 +259,12 @@ const styles = StyleSheet.create({
   shareButton: {
     borderWidth: 1,
     borderColor: '#d9d9d9',
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 18,
     flex: 1,
     alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   shareButtonText: {
     fontSize: 15,
