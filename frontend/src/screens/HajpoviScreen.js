@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import colors from '../theme/colors';
 import { fetchMyVotes, getInbox, getCurrentUser } from '../api';
 
@@ -80,7 +81,12 @@ export default function HajpoviScreen() {
 
     return (
       <View style={styles.messageCard}>
-        <View style={[styles.messageIcon, voterSex === 'boy' ? styles.blueDot : styles.pinkDot]} />
+        <Ionicons
+          name="flame"
+          size={40}
+          color={voterSex === 'boy' ? '#60a5fa' : '#f472b6'}
+          style={styles.messageIcon}
+        />
         <View style={styles.messageContent}>
           <Text style={styles.messageText} numberOfLines={1}>
             {item?.question?.question || 'Pitanje'}
@@ -101,7 +107,7 @@ export default function HajpoviScreen() {
 
     return (
       <View style={styles.messageCard}>
-        <View style={[styles.messageIcon, styles.pinkDot]} />
+        <Ionicons name="flame" size={40} color="#f472b6" style={styles.messageIcon} />
         <View style={styles.messageContent}>
           <Text style={styles.messageText} numberOfLines={1}>
             {item.message}
@@ -118,7 +124,7 @@ export default function HajpoviScreen() {
       return (
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color={colors.text_secondary} />
-          <Text style={styles.loadingText}>Učitavanje...</Text>
+          <Text style={styles.loadingText}>Učitavanje</Text>
         </View>
       );
     }
@@ -127,8 +133,8 @@ export default function HajpoviScreen() {
       if (!votes.length) {
         return (
           <View style={styles.centerContent}>
-            <Text style={styles.emptyText}>Još nema hajpova</Text>
-            <Text style={styles.emptySubtext}>Kad god te neko označi, pojaviće se ovdje.</Text>
+            <Text style={styles.emptyText}>Još uvijek nemaš hajpova kroz ankete</Text>
+            <Text style={styles.emptySubtext}>Kad god te neko izhajpa u anketi, pojaviće se ovdje.</Text>
           </View>
         );
       }
@@ -146,8 +152,8 @@ export default function HajpoviScreen() {
     if (!messages.length) {
       return (
         <View style={styles.centerContent}>
-          <Text style={styles.emptyText}>Još nema poruka</Text>
-          <Text style={styles.emptySubtext}>Podijeli svoj link da dobiješ anonimne poruke!</Text>
+          <Text style={styles.emptyText}>Još uvijek nemaš hajpova kroz share link</Text>
+          <Text style={styles.emptySubtext}>Podijeli svoj link da dobiješ hajpove!</Text>
         </View>
       );
     }
@@ -172,7 +178,7 @@ export default function HajpoviScreen() {
             onPress={() => setActiveTab(tab)}
           >
             <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab === TAB_ANKETE ? 'Ankete' : 'Link'}
+              {tab === TAB_ANKETE ? 'Ankete' : 'Share link'}
             </Text>
           </TouchableOpacity>
         ))}
@@ -184,7 +190,7 @@ export default function HajpoviScreen() {
         <View style={styles.bottomCTA}>
           <TouchableOpacity style={styles.ctaButton}>
             <Text style={styles.ctaLock}>🔒</Text>
-            <Text style={styles.ctaText}>Vidi ko te lajka</Text>
+            <Text style={styles.ctaText}>Vidi ko te hajpa</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -224,7 +230,8 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   messagesList: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   messageCard: {
     flexDirection: 'row',
@@ -240,19 +247,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   messageIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginRight: 12,
-  },
-  pinkDot: {
-    backgroundColor: '#f472b6',
-  },
-  blueDot: {
-    backgroundColor: '#60a5fa',
   },
   messageContent: {
     flex: 1,
@@ -287,6 +282,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text_primary,
     marginBottom: 8,
+    textAlign: 'center',
   },
   emptySubtext: {
     fontSize: 14,
@@ -308,6 +304,7 @@ const styles = StyleSheet.create({
   ctaLock: {
     fontSize: 18,
     marginRight: 8,
+    marginBottom: 2,
   },
   ctaText: {
     color: colors.textLight,

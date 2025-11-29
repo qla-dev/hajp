@@ -52,7 +52,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: 16,
+    paddingTop: 4,
+    paddingHorizontal: 16,
+    paddingBottom: 4,
   },
   loadingText: {
     color: colors.text_secondary,
@@ -65,7 +67,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   list: {
-    paddingVertical: 8,
+    paddingTop: 4,
+    paddingBottom: 4,
   },
   roomCard: {
     backgroundColor: colors.surface,
