@@ -19,19 +19,24 @@ class RoomController extends Controller
             return response()->json(['message' => 'Nema aktivnih anketa'], 404);
         }
 
-        $questionIds = $poll->questions()->where('active', true)->orderBy('id')->pluck('id');
-        if ($questionIds->isEmpty()) {
+        $total = $poll->questions()->count();
+        if ($total === 0) {
             return response()->json(['message' => 'Nema aktivnih pitanja'], 404);
         }
 
-        $questionId = $questionIds->first();
+        $activeIds = $poll->questions()->where('active', true)->orderBy('id')->pluck('id');
+        if ($activeIds->isEmpty()) {
+            return response()->json(['message' => 'Nema aktivnih pitanja'], 404);
+        }
+
+        $questionId = $activeIds->first();
         $question = Question::with('votes')->find($questionId);
-        $index = $questionIds->search($questionId);
-        $index = ($index === false ? 1 : $index + 1);
+        $remainingActive = $activeIds->count();
+        $index = max(1, $total - $remainingActive + 1);
 
         return response()->json([
             'question' => $question,
-            'total' => $questionIds->count(),
+            'total' => $total,
             'index' => $index,
             'poll_id' => $poll->id,
         ]);

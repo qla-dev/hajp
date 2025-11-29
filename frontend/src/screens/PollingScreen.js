@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import colors from '../theme/colors';
-import { fetchActiveQuestion, refreshQuestionOptions, voteQuestion } from '../api';
+import { fetchActiveQuestion, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
 
 const { width } = Dimensions.get('window');
 
@@ -48,6 +48,7 @@ export default function PollingScreen({ route, navigation }) {
 
   const handleVote = async (option) => {
     if (!question) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     try {
       await voteQuestion(question.id, option);
       await loadQuestion();
@@ -68,7 +69,14 @@ export default function PollingScreen({ route, navigation }) {
   };
 
   const handleSkip = async () => {
+    if (!question) {
+      await loadQuestion();
+      return;
+    }
     Haptics.selectionAsync().catch(() => {});
+    try {
+      await skipQuestion(question.id);
+    } catch {}
     await loadQuestion();
   };
 

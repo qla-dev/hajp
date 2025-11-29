@@ -14,6 +14,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/questions', [QuestionController::class, 'index']);
 Route::get('/questions/{question}', [QuestionController::class, 'show']);
 Route::post('/questions/{question}/refresh', [QuestionController::class, 'refreshOptions']);
+Route::post('/questions/{question}/skip', [QuestionController::class, 'skip']);
 
 Route::get('/rooms', [RoomController::class, 'index']);
 Route::get('/rooms/{room}/questions/active', [RoomController::class, 'activeQuestion']);

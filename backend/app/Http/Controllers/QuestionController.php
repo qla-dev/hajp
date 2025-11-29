@@ -66,6 +66,10 @@ class QuestionController extends Controller
             'selected_option' => $data['selected_option'],
         ]);
 
+        // Mark question inactive so the next one can surface
+        $question->active = false;
+        $question->save();
+
         $totals = QuestionVote::select('selected_option', DB::raw('count(*) as votes'))
             ->where('question_id', $question->id)
             ->groupBy('selected_option')
@@ -75,5 +79,12 @@ class QuestionController extends Controller
             'vote' => $vote,
             'totals' => $totals,
         ], 201);
+    }
+
+    public function skip(Question $question)
+    {
+        $question->active = false;
+        $question->save();
+        return response()->json(['message' => 'Skipped']);
     }
 }
