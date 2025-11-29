@@ -22,7 +22,7 @@ export default function WelcomeScreen({ navigation }) {
           </View>
 
           <View style={styles.featureCard}>
-            <View style={styles.phonePreview}>
+            <View style={styles.phonePreview2}>
               <Text style={styles.featureEmoji}>🔥</Text>
             </View>
             <Text style={styles.featureDescription}>Dobij hajp kad te{'\n'}izaberu u anketi</Text>
@@ -50,7 +50,7 @@ export default function WelcomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+   
   },
   content: {
     flex: 1,
@@ -100,6 +100,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+  },
+   phonePreview2: {
+    backgroundColor: colors.background,
+    borderRadius: 20,
+    padding: 20,
+    width: 140,
+    height: 180,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderStyle: 'solid',
   },
   featureEmoji: {
     fontSize: 48,

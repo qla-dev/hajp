@@ -1,8 +1,8 @@
 export default {
-  // Hajp App Orange/Coral theme
+  // Core brand
   primary: '#FF6B35', // Bright orange
   primaryDark: '#FF5722',
-  secondary: '#4ECDC4', // Teal/cyan
+  secondary: '#9B59B6', // Purple
   accent: '#FFE66D', // Yellow
   
   // Backgrounds
@@ -17,6 +17,9 @@ export default {
   pollPurple: '#9B59B6',
   pollTeal: '#1ABC9C',
   pollOrange: '#FF6B35',
+
+  // Profile
+  profilePurple: '#9B59B6',
   
   // Text
   text_primary: '#212121',

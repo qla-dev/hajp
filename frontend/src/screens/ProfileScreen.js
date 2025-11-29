@@ -68,7 +68,9 @@ export default function ProfileScreen({ navigation }) {
                 user?.profile_photo ||
                 'https://ui-avatars.com/api/?name=' +
                   (user?.name || 'Korisnik') +
-                  '&size=200&background=f2f2f2&color=111',
+                  '&size=200&background=' +
+                  encodeURIComponent(colors.profilePurple.replace('#', '')) +
+                  '&color=ffffff',
             }}
             style={styles.profileImage}
           />
@@ -293,7 +295,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   shopButton: {
-    backgroundColor: '#f2a900',
+    backgroundColor: colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 14,
