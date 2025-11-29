@@ -13,6 +13,13 @@ import BasicHeader from '../components/BasicHeader';
 const Tab = createBottomTabNavigator();
 const GasStack = createNativeStackNavigator();
 
+const headerLabelMap = {
+  Inbox: 'Sandučić',
+  Hajp: 'Hajp',
+  Activity: 'Aktivnosti',
+  Profile: 'Profil',
+};
+
 const iconMap = {
   Inbox: { active: 'chatbubble-ellipses', inactive: 'chatbubble-ellipses-outline' },
   Hajp: { active: 'flame', inactive: 'flame-outline' },
@@ -45,7 +52,7 @@ export default function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        header: () => <BasicHeader title={route.name} />,
+        header: () => <BasicHeader title={headerLabelMap[route.name] || route.name} />,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.text_secondary,
         tabBarStyle: {
