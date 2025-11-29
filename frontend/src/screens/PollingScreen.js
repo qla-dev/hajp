@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -14,7 +14,8 @@ export default function PollingScreen({ route, navigation }) {
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [finished, setFinished] = useState(false);
-  const emojis = useMemo(() => ['😀', '😎', '🔥', '🎉', '🚀', '⭐'], []);
+  const [firstLoad, setFirstLoad] = useState(true);
+  const emojis = useMemo(() => ['ðŸ˜€', 'ðŸ˜Ž', 'ðŸ”¥', 'ðŸŽ‰', 'ðŸš€', 'â­'], []);
   const backgrounds = useMemo(() => ['#1d4ed8', '#7c3aed', '#2563eb', '#0ea5e9', '#22c55e', '#f97316'], []);
   const [bgColor, setBgColor] = useState(backgrounds[0]);
 
@@ -50,6 +51,7 @@ export default function PollingScreen({ route, navigation }) {
       setFinished(false);
       console.error('Error loading active question:', error);
     }
+    setFirstLoad(false);
     setLoading(false);
   };
 
@@ -88,10 +90,11 @@ export default function PollingScreen({ route, navigation }) {
   };
 
   if (loading) {
+    const loadingLabel = firstLoad ? 'Učitavanje ankete' : 'Učitavanje pitanja';
     return (
       <View style={[styles.container, styles.center, { backgroundColor: bgColor }]}>
         <ActivityIndicator size="large" color={colors.textLight} />
-        <Text style={styles.loadingText}>Ucitavanje ankete...</Text>
+        <Text style={styles.loadingText}>{loadingLabel}</Text>
       </View>
     );
   }
@@ -153,14 +156,14 @@ export default function PollingScreen({ route, navigation }) {
           <View style={styles.iconWrapperSmall}>
             <Ionicons name="shuffle-outline" size={26} color={colors.textLight} />
           </View>
-          <Text style={styles.actionText}>Izmiješaj</Text>
+          <Text style={styles.actionText}>Novi odgovori</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleSkip} style={styles.actionButton}>
           <View style={styles.iconWrapperSmall}>
             <Ionicons name="play-skip-forward-outline" size={24} color={colors.textLight} />
           </View>
-          <Text style={styles.actionText}>Preskoči</Text>
+          <Text style={styles.actionText}>Preskoči pitanje</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -188,3 +191,5 @@ const styles = StyleSheet.create({
   backButton: { backgroundColor: 'rgba(255,255,255,0.92)', paddingVertical: 14, paddingHorizontal: 22, borderRadius: 14 },
   backButtonText: { color: colors.text_primary, fontWeight: '700', fontSize: 16 },
 });
+
+
