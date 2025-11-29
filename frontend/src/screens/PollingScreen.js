@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import colors from '../theme/colors';
@@ -7,11 +7,13 @@ import { fetchActiveQuestion, refreshQuestionOptions, voteQuestion } from '../ap
 
 const { width } = Dimensions.get('window');
 
-export default function PollingScreen({ route, navigation }) {
+export default function PollingScreen({ route }) {
   const { roomId } = route.params || {};
   const [question, setQuestion] = useState(null);
+  const [total, setTotal] = useState(0);
+  const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const emojis = useMemo(() => ['🔥', '💥', '🎯', '✨', '🚀', '💡'], []);
+  const emojis = useMemo(() => ['🔥', '⭐️', '💥', '🎉', '💫', '✨'], []);
 
   useEffect(() => {
     loadQuestion();
@@ -22,7 +24,12 @@ export default function PollingScreen({ route, navigation }) {
     setLoading(true);
     try {
       const { data } = await fetchActiveQuestion(roomId);
-      setQuestion(data || null);
+      const incomingTotal = data?.total ?? 0;
+      const incomingIndex = data?.index ?? 0;
+
+      setQuestion(data?.question || null);
+      setTotal(incomingTotal);
+      setIndex(incomingIndex || (incomingTotal ? 1 : 0));
     } catch (error) {
       setQuestion(null);
       console.error('Error loading active question:', error);
@@ -58,15 +65,16 @@ export default function PollingScreen({ route, navigation }) {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.center]}>
-        <Text style={styles.loadingText}>Učitavam pitanje...</Text>
+      <View style={[styles.container, styles.center, styles.pollBackground]}>
+        <ActivityIndicator size="large" color={colors.textLight} />
+        <Text style={styles.loadingText}>Učitavanje ankete...</Text>
       </View>
     );
   }
 
   if (!question) {
     return (
-      <View style={[styles.container, styles.center]}>
+      <View style={[styles.container, styles.center, styles.pollBackground]}>
         <Text style={styles.loadingText}>Nema aktivnih pitanja</Text>
       </View>
     );
@@ -76,8 +84,10 @@ export default function PollingScreen({ route, navigation }) {
   const options = question.options || [];
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.pollBlue }]}>
-      <Text style={styles.counter}>Aktivno pitanje</Text>
+    <View style={[styles.container, styles.pollBackground]}>
+      <Text style={styles.counter}>
+        {index || 1} od {total || 0}
+      </Text>
 
       <View style={styles.pollContent}>
         <Text style={styles.emoji}>{emoji}</Text>
@@ -85,8 +95,8 @@ export default function PollingScreen({ route, navigation }) {
       </View>
 
       <View style={styles.optionsContainer}>
-        {options.slice(0, 4).map((option, index) => (
-          <TouchableOpacity key={index} onPress={() => handleVote(option)} style={styles.optionButton}>
+        {options.slice(0, 4).map((option, idx) => (
+          <TouchableOpacity key={idx} onPress={() => handleVote(option)} style={styles.optionButton}>
             <Text style={styles.optionText}>{option}</Text>
           </TouchableOpacity>
         ))}
@@ -114,6 +124,9 @@ export default function PollingScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  pollBackground: {
+    backgroundColor: colors.pollBlue,
   },
   center: {
     justifyContent: 'center',
@@ -186,8 +199,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   loadingText: {
-    color: colors.text_primary,
+    color: colors.textLight,
     fontSize: 18,
     textAlign: 'center',
+    marginTop: 12,
   },
 });

@@ -53,6 +53,8 @@ function HajpStackNavigator() {
           headerShadowVisible: false,
           headerStyle: { backgroundColor: 'transparent' },
           headerBackground: () => <View style={styles.gasHeaderBackground} />,
+          headerBackTitle: 'Sobe',
+          headerBackTitleVisible: true,
         }}
       />
     </HajpStack.Navigator>

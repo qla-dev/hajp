@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Question;
 use App\Models\Room;
 
 class RoomController extends Controller
@@ -17,11 +18,22 @@ class RoomController extends Controller
         if (!$poll) {
             return response()->json(['message' => 'Nema aktivnih anketa'], 404);
         }
-        $question = $poll->questions()->where('active', true)->first();
-        if (!$question) {
+
+        $questionIds = $poll->questions()->where('active', true)->orderBy('id')->pluck('id');
+        if ($questionIds->isEmpty()) {
             return response()->json(['message' => 'Nema aktivnih pitanja'], 404);
         }
-        $question->load('votes');
-        return $question;
+
+        $questionId = $questionIds->first();
+        $question = Question::with('votes')->find($questionId);
+        $index = $questionIds->search($questionId);
+        $index = ($index === false ? 1 : $index + 1);
+
+        return response()->json([
+            'question' => $question,
+            'total' => $questionIds->count(),
+            'index' => $index,
+            'poll_id' => $poll->id,
+        ]);
     }
 }
