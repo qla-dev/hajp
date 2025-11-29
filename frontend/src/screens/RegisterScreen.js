@@ -33,12 +33,6 @@ export default function RegisterScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backText}>← Back</Text>
-          </TouchableOpacity>
-        </View>
-
         <View style={styles.content}>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join Gas and start voting!</Text>
@@ -109,23 +103,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  backButton: {
-    padding: 8,
-  },
-  backText: {
-    fontSize: 16,
-    color: colors.primary,
-    fontWeight: '600',
-  },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
   },
   title: {
     fontSize: 32,
@@ -166,7 +148,6 @@ const styles = StyleSheet.create({
   loginLink: {
     marginTop: 20,
     padding: 12,
-    marginBottom: 40,
   },
   loginLinkText: {
     textAlign: 'center',

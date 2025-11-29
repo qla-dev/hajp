@@ -82,19 +82,6 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Inbox')}>
-          <Text style={styles.headerTab}>
-            Inbox <Text style={styles.badge}>12</Text>
-          </Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Gas</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.headerTab}>Profile</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Poll Counter */}
       <Text style={styles.counter}>
         {currentIndex + 1} of {polls.length}
@@ -140,38 +127,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-  },
-  headerTab: {
-    color: colors.textLight,
-    fontSize: 14,
-    opacity: 0.8,
-  },
-  badge: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 10,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  headerTitle: {
-    color: colors.textLight,
-    fontSize: 18,
-    fontWeight: '700',
-  },
   counter: {
     color: colors.textLight,
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 24,
   },
   pollContent: {
     flex: 1,

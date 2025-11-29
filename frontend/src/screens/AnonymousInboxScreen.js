@@ -6,7 +6,6 @@ import { getInbox, getCurrentUser } from '../api';
 export default function AnonymousInboxScreen({ navigation }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('inbox'); // 'activity' or 'inbox'
 
   useEffect(() => {
     loadInbox();
@@ -51,25 +50,6 @@ export default function AnonymousInboxScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Header Tabs */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => setActiveTab('activity')} style={styles.headerTab}>
-          <Text style={[styles.headerTabText, activeTab === 'activity' && styles.headerTabActive]}>
-            Activity <Text style={styles.badge}>2</Text>
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => setActiveTab('inbox')} style={styles.headerTab}>
-          <Text style={[styles.headerTabText, activeTab === 'inbox' && styles.headerTabActive]}>
-            Inbox <Text style={[styles.badge, styles.badgeOrange]}>10</Text>
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => navigation.navigate('Gas')} style={styles.headerTab}>
-          <Text style={styles.headerTabText}>Gas</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Messages List */}
       {loading ? (
         <View style={styles.centerContent}>
@@ -104,40 +84,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surface,
-  },
-  headerTab: {
-    paddingVertical: 8,
-  },
-  headerTabText: {
-    fontSize: 16,
-    color: colors.text_secondary,
-    fontWeight: '500',
-  },
-  headerTabActive: {
-    color: colors.text_primary,
-    fontWeight: '700',
-  },
-  badge: {
-    backgroundColor: colors.secondary,
-    color: colors.textLight,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    fontSize: 12,
-    fontWeight: '700',
-    overflow: 'hidden',
-  },
-  badgeOrange: {
-    backgroundColor: colors.primary,
   },
   messagesList: {
     padding: 16,

@@ -26,12 +26,6 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
-      </View>
-
       <View style={styles.content}>
         <Text style={styles.title}>Log In</Text>
         <Text style={styles.subtitle}>Welcome back to Gas!</Text>
@@ -74,23 +68,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  backButton: {
-    padding: 8,
-  },
-  backText: {
-    fontSize: 16,
-    color: colors.primary,
-    fontWeight: '600',
-  },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    justifyContent: 'center',
+    paddingTop: 40,
   },
   title: {
     fontSize: 32,

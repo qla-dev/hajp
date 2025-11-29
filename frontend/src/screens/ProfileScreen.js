@@ -25,19 +25,6 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Gas')}>
-          <Text style={styles.headerTab}>
-            Gas <Text style={styles.badge}>8</Text>
-          </Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity>
-          <Text style={styles.headerTab}>About</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Profile Info */}
       <View style={styles.profileSection}>
         <Image
@@ -140,36 +127,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingTop: 60,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surface,
-  },
-  headerTab: {
-    paddingVertical: 8,
-  },
-  headerTabText: {
-    fontSize: 16,
-    color: colors.text_secondary,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: 18,
-    color: colors.text_primary,
-    fontWeight: '700',
-  },
-  badge: {
-    backgroundColor: colors.primary,
-    color: colors.textLight,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    fontSize: 12,
-    fontWeight: '700',
   },
   profileSection: {
     alignItems: 'center',
