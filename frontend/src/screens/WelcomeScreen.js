@@ -50,7 +50,7 @@ export default function WelcomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-   
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-   phonePreview2: {
+  phonePreview2: {
     backgroundColor: colors.background,
     borderRadius: 20,
     padding: 20,

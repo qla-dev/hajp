@@ -86,7 +86,7 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={styles.statLabel}>hajpova</Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.editProfileButton}>
+            <TouchableOpacity style={styles.editProfileButton} onPress={() => navigation.navigate('EditProfile')}>
               <Text style={styles.editProfileText}>UREDI PROFIL</Text>
             </TouchableOpacity>
           </View>
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 8,
   },
   statsColumn: {
     flex: 1,
