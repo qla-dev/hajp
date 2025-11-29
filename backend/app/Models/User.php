@@ -56,11 +56,6 @@ class User extends Authenticatable
         return $this->hasMany(Poll::class, 'creator_id');
     }
 
-    public function pollVotes()
-    {
-        return $this->hasMany(PollVote::class);
-    }
-
     public function anonymousInbox()
     {
         return $this->hasOne(AnonymousInbox::class);
@@ -79,5 +74,10 @@ class User extends Authenticatable
     public function roomMemberships()
     {
         return $this->hasMany(RoomMember::class);
+    }
+
+    public function votes()
+    {
+        return $this->hasMany(Vote::class);
     }
 }

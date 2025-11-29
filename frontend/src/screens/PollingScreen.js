@@ -113,6 +113,15 @@ export default function PollingScreen({ route, navigation }) {
   const emoji = question.emoji || emojis[0];
   const options = question.options || [];
 
+  const normalizedOptions = options.slice(0, 4).map((option) => {
+    if (option && typeof option === 'object') {
+      const value = option.user_id ?? option.id;
+      const label = option.name ?? String(value ?? '');
+      return { value, label };
+    }
+    return { value: option, label: String(option ?? '') };
+  });
+
   return (
     <View style={[styles.container, styles.pollBackground]}>
       <Text style={styles.counter}>
@@ -125,9 +134,9 @@ export default function PollingScreen({ route, navigation }) {
       </View>
 
       <View style={styles.optionsContainer}>
-        {options.slice(0, 4).map((option, idx) => (
-          <TouchableOpacity key={idx} onPress={() => handleVote(option)} style={styles.optionButton}>
-            <Text style={styles.optionText}>{option}</Text>
+        {normalizedOptions.map((option, idx) => (
+          <TouchableOpacity key={idx} onPress={() => handleVote(option.value)} style={styles.optionButton}>
+            <Text style={styles.optionText}>{option.label}</Text>
           </TouchableOpacity>
         ))}
       </View>

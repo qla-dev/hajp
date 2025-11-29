@@ -6,10 +6,10 @@ use App\Models\AnonymousInbox;
 use App\Models\AnonymousMessage;
 use App\Models\Poll;
 use App\Models\Question;
-use App\Models\QuestionVote;
 use App\Models\Room;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Models\Vote;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -80,6 +80,12 @@ class DemoDataSeeder extends Seeder
             ]);
         }
 
+        foreach ($users as $user) {
+            if (isset($rooms[$user->school])) {
+                $rooms[$user->school]->users()->syncWithoutDetaching([$user->id]);
+            }
+        }
+
         // Seed questions and polls
         $pollQuestions = [
             ['question' => 'Smiling 24/7', 'emoji' => '😊'],
@@ -113,29 +119,27 @@ class DemoDataSeeder extends Seeder
 
             foreach ($pollQuestions as $pollData) {
                 $schoolUsers = array_filter($users, fn($u) => $u->school === $schoolName);
-                $shuffled = collect($schoolUsers)->shuffle()->take(4)->pluck('name')->toArray();
+                $optionUsers = collect($schoolUsers)->shuffle()->take(4);
 
-                if (count($shuffled) >= 2) {
+                if ($optionUsers->count() >= 2) {
                     $question = Question::create([
                         'poll_id' => $poll->id,
                         'question' => $pollData['question'],
                         'emoji' => $pollData['emoji'] ?? null,
-                        'options' => $shuffled,
                         'creator_id' => $creator->id,
-                        'target_school' => $schoolName,
-                        'active' => true,
                     ]);
 
+                    $optionPool = $optionUsers->pluck('id')->toArray();
                     $votersCount = rand(5, 20);
                     for ($i = 0; $i < $votersCount; $i++) {
                         $voter = $users[array_rand($users)];
-                        $selectedOption = $shuffled[array_rand($shuffled)];
+                        $selectedUserId = $optionPool[array_rand($optionPool)];
 
-                        if (!QuestionVote::where('question_id', $question->id)->where('user_id', $voter->id)->exists()) {
-                            QuestionVote::create([
+                        if (!Vote::where('question_id', $question->id)->where('user_id', $voter->id)->exists()) {
+                            Vote::create([
                                 'question_id' => $question->id,
                                 'user_id' => $voter->id,
-                                'selected_option' => $selectedOption,
+                                'selected_user_id' => $selectedUserId,
                             ]);
                         }
                     }

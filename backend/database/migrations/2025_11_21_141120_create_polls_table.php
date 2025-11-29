@@ -13,14 +13,9 @@ return new class extends Migration
     {
         Schema::create('polls', function (Blueprint $table) {
             $table->id();
-            $table->string('question');
-            $table->json('options');
-            $table->unsignedBigInteger('creator_id');
-            $table->string('target_school');
-            $table->boolean('active')->default(true);
+            $table->unsignedBigInteger('room_id')->nullable();
+            $table->string('status')->default('active');
             $table->timestamps();
-
-            $table->foreign('creator_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

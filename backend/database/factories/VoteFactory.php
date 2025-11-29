@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PollVote>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Vote>
  */
-class PollVoteFactory extends Factory
+class VoteFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,9 +17,9 @@ class PollVoteFactory extends Factory
     public function definition(): array
     {
         return [
-            'poll_id' => 1,
+            'question_id' => 1,
             'user_id' => 1,
-            'selected_option' => $this->faker->firstName(),
+            'selected_user_id' => 2,
         ];
     }
 }

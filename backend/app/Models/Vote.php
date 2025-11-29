@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class QuestionVote extends Model
+class Vote extends Model
 {
-    protected $fillable = ['question_id', 'user_id', 'selected_option'];
+    use HasFactory;
+
+    protected $fillable = ['question_id', 'user_id', 'selected_user_id'];
 
     public function question(): BelongsTo
     {
@@ -17,5 +20,10 @@ class QuestionVote extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function selectedUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'selected_user_id');
     }
 }

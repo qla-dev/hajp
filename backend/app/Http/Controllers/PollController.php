@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Poll;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class PollController extends Controller
 {
@@ -14,7 +15,22 @@ class PollController extends Controller
 
     public function show(Poll $poll)
     {
-        return $poll->load('room', 'questions');
+        $poll->load('room', 'questions.votes.selectedUser');
+
+        $poll->questions->transform(function ($question) {
+            $options = $question->generateOptions();
+
+            if (count($options) < 2) {
+                throw ValidationException::withMessages([
+                    'options' => 'Not enough users to generate options',
+                ]);
+            }
+
+            $question->setAttribute('options', $options);
+            return $question;
+        });
+
+        return $poll;
     }
 
     public function store(Request $request)

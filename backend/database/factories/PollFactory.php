@@ -17,11 +17,8 @@ class PollFactory extends Factory
     public function definition(): array
     {
         return [
-            'question' => $this->faker->sentence(),
-            'options' => [$this->faker->firstName(), $this->faker->firstName(), $this->faker->firstName(), $this->faker->firstName()],
-            'creator_id' => 1,
-            'target_school' => 'Demo High School',
-            'active' => true,
+            'room_id' => 1,
+            'status' => 'active',
         ];
     }
 }

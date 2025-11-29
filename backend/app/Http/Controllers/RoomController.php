@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Question;
 use App\Models\Room;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class RoomController extends Controller
 {
@@ -12,11 +14,25 @@ class RoomController extends Controller
         return Room::select('id', 'name', 'type', 'is_18_over')->get();
     }
 
-    public function activeQuestion(Room $room)
+    public function activeQuestion(Request $request, Room $room)
     {
+        $user = $request->user();
         $poll = $room->polls()->where('status', 'active')->latest()->first();
         if (!$poll) {
             return response()->json(['message' => 'Nema aktivnih anketa'], 404);
+        }
+
+        $questionsQuery = $poll->questions()->with('votes.selectedUser')->orderBy('id');
+
+        if ($user) {
+            $skipped = Cache::get("skipped_questions_user_{$user->id}", []);
+            $questionsQuery->whereDoesntHave('votes', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+
+            if (!empty($skipped)) {
+                $questionsQuery->whereNotIn('id', $skipped);
+            }
         }
 
         $total = $poll->questions()->count();
@@ -24,20 +40,22 @@ class RoomController extends Controller
             return response()->json(['message' => 'Nema aktivnih pitanja'], 404);
         }
 
-        $activeIds = $poll->questions()->where('active', true)->orderBy('id')->pluck('id');
-        if ($activeIds->isEmpty()) {
+        $question = $questionsQuery->first();
+        if (!$question) {
             return response()->json(['message' => 'Nema aktivnih pitanja'], 404);
         }
 
-        $questionId = $activeIds->first();
-        $question = Question::with('votes')->find($questionId);
-        $remainingActive = $activeIds->count();
-        $index = max(1, $total - $remainingActive + 1);
+        $options = $question->generateOptions();
+        if (count($options) < 2) {
+            return response()->json(['message' => 'Nema dovoljno korisnika za opcije'], 422);
+        }
+
+        $question->setAttribute('options', $options);
 
         return response()->json([
             'question' => $question,
             'total' => $total,
-            'index' => $index,
+            'index' => 1,
             'poll_id' => $poll->id,
         ]);
     }

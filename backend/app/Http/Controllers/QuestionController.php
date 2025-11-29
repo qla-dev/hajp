@@ -3,34 +3,35 @@
 namespace App\Http\Controllers;
 
 use App\Models\Question;
-use App\Models\QuestionVote;
-use App\Models\User;
+use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 
 class QuestionController extends Controller
 {
     public function index()
     {
-        return Question::where('active', true)->latest()->get();
+        return Question::with('votes.selectedUser')->latest()->get()->map(function (Question $question) {
+            $question->setAttribute('options', $this->generateOptions($question));
+            return $question;
+        });
     }
 
     public function show(Question $question)
     {
-        $question->load('votes');
+        $question->load('votes.selectedUser');
+        $question->setAttribute('options', $this->generateOptions($question));
+
         return $question;
     }
 
     public function refreshOptions(Question $question)
     {
-        $names = User::inRandomOrder()->limit(4)->pluck('name')->toArray();
-        if (count($names) < 2) {
-            return response()->json(['message' => 'Nema dovoljno korisnika za osvježenje opcija'], 422);
-        }
-        $question->options = $names;
-        $question->save();
+        $question->setAttribute('options', $this->generateOptions($question));
 
-        return $question->fresh();
+        return $question;
     }
 
     public function vote(Request $request, Question $question)
@@ -40,19 +41,11 @@ class QuestionController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        if (!$question->active) {
-            return response()->json(['message' => 'Pitanje je zatvoreno'], 422);
-        }
-
         $data = $request->validate([
-            'selected_option' => 'required|string',
+            'selected_option' => 'required|exists:users,id',
         ]);
 
-        if (!in_array($data['selected_option'], $question->options, true)) {
-            return response()->json(['message' => 'Odabir je neispravan'], 422);
-        }
-
-        $existing = QuestionVote::where('question_id', $question->id)
+        $existing = Vote::where('question_id', $question->id)
             ->where('user_id', $user->id)
             ->first();
 
@@ -60,20 +53,22 @@ class QuestionController extends Controller
             return response()->json($existing, 200);
         }
 
-        $vote = QuestionVote::create([
+        $vote = Vote::create([
             'question_id' => $question->id,
             'user_id' => $user->id,
-            'selected_option' => $data['selected_option'],
+            'selected_user_id' => $data['selected_option'],
         ]);
 
-        // Mark question inactive so the next one can surface
-        $question->active = false;
-        $question->save();
-
-        $totals = QuestionVote::select('selected_option', DB::raw('count(*) as votes'))
+        $totals = Vote::select('selected_user_id', DB::raw('count(*) as votes'))
             ->where('question_id', $question->id)
-            ->groupBy('selected_option')
-            ->get();
+            ->groupBy('selected_user_id')
+            ->with('selectedUser:id,name')
+            ->get()
+            ->map(fn($row) => [
+                'selected_user_id' => $row->selected_user_id,
+                'selected_user_name' => $row->selectedUser?->name,
+                'votes' => $row->votes,
+            ]);
 
         return response()->json([
             'vote' => $vote,
@@ -81,10 +76,31 @@ class QuestionController extends Controller
         ], 201);
     }
 
-    public function skip(Question $question)
+    public function skip(Request $request, Question $question)
     {
-        $question->active = false;
-        $question->save();
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        $cacheKey = "skipped_questions_user_{$user->id}";
+        $skipped = Cache::get($cacheKey, []);
+        $skipped[] = $question->id;
+        Cache::put($cacheKey, array_values(array_unique($skipped)), now()->addDay());
+
         return response()->json(['message' => 'Skipped']);
+    }
+
+    private function generateOptions(Question $question): array
+    {
+        $options = $question->generateOptions();
+
+        if (count($options) < 2) {
+            throw ValidationException::withMessages([
+                'options' => 'Not enough users to generate options',
+            ]);
+        }
+
+        return $options;
     }
 }
