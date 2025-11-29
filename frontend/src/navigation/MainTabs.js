@@ -3,15 +3,17 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { View, StyleSheet, Text } from 'react-native';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import colors from '../theme/colors';
-import HomeScreen from '../screens/HomeScreen';
+import RoomsScreen from '../screens/RoomsScreen';
+import PollingScreen from '../screens/PollingScreen';
 import AnonymousInboxScreen from '../screens/AnonymousInboxScreen';
 import ActivityScreen from '../screens/ActivityScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import BasicHeader from '../components/BasicHeader';
 
 const Tab = createBottomTabNavigator();
-const GasStack = createNativeStackNavigator();
+const HajpStack = createNativeStackNavigator();
 
 const headerLabelMap = {
   Inbox: 'Sandučić',
@@ -27,65 +29,76 @@ const iconMap = {
   Profile: { active: 'person', inactive: 'person-outline' },
 };
 
-function GasStackNavigator() {
+function HajpStackNavigator() {
   return (
-    <GasStack.Navigator
+    <HajpStack.Navigator
       screenOptions={{
         headerShown: true,
-        headerTransparent: true,
-        headerTitle: () => <Text style={styles.gasHeaderTitle}>Hajp</Text>,
         headerTitleAlign: 'center',
-        headerTintColor: colors.textLight,
-        headerShadowVisible: false,
-        headerStyle: {
-          backgroundColor: 'transparent',
-        },
-        headerBackground: () => <View style={styles.gasHeaderBackground} />,
       }}
     >
-      <GasStack.Screen name="HajpHome" component={HomeScreen} />
-    </GasStack.Navigator>
+      <HajpStack.Screen
+        name="Rooms"
+        component={RoomsScreen}
+        options={{ header: () => <BasicHeader title="Sobe" /> }}
+      />
+      <HajpStack.Screen
+        name="Polling"
+        component={PollingScreen}
+        options={{
+          headerTransparent: true,
+          headerTitle: () => <Text style={styles.gasHeaderTitle}>Hajp</Text>,
+          headerTitleAlign: 'center',
+          headerTintColor: colors.textLight,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: 'transparent' },
+          headerBackground: () => <View style={styles.gasHeaderBackground} />,
+        }}
+      />
+    </HajpStack.Navigator>
   );
 }
 
 export default function MainTabs() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        header: () => <BasicHeader title={headerLabelMap[route.name] || route.name} />,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.text_secondary,
-        tabBarStyle: {
-          backgroundColor: colors.background,
-          borderTopColor: colors.surface,
-          borderTopWidth: 1,
-          height: 86,
-          paddingBottom: 24,
-          paddingTop: 6,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '700',
-          textTransform: 'uppercase',
-          letterSpacing: 0.3,
-        },
-        tabBarIcon: ({ focused, color, size }) => {
-          const icons = iconMap[route.name] || iconMap.Hajp;
-          const iconName = focused ? icons.active : icons.inactive;
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-      })}
+      screenOptions={({ route }) => {
+        const focused = getFocusedRouteNameFromRoute(route) ?? '';
+        const hideTabBar = route.name === 'Hajp' && focused === 'Polling';
+
+        return {
+          header: () => <BasicHeader title={headerLabelMap[route.name] || route.name} />,
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: colors.text_secondary,
+          tabBarStyle: hideTabBar
+            ? { display: 'none' }
+            : {
+                backgroundColor: colors.background,
+                borderTopColor: colors.surface,
+                borderTopWidth: 1,
+                height: 86,
+                paddingBottom: 24,
+                paddingTop: 6,
+              },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '700',
+            textTransform: 'uppercase',
+            letterSpacing: 0.3,
+          },
+          tabBarLabel: headerLabelMap[route.name] || route.name,
+          tabBarIcon: ({ focused: isFocused, color, size }) => {
+            const icons = iconMap[route.name] || iconMap.Hajp;
+            const iconName = isFocused ? icons.active : icons.inactive;
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+        };
+      }}
     >
-      <Tab.Screen name="Inbox" component={AnonymousInboxScreen} options={{ tabBarLabel: 'Sandučić' }} />
-      <Tab.Screen
-        name="Hajp"
-        component={GasStackNavigator}
-        options={{
-          headerShown: false, // use stack header inside
-        }}
-      />
-      <Tab.Screen name="Activity" component={ActivityScreen} options={{ tabBarLabel: 'Aktivnosti' }} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: 'Profil' }} />
+      <Tab.Screen name="Inbox" component={AnonymousInboxScreen} />
+      <Tab.Screen name="Hajp" component={HajpStackNavigator} options={{ headerShown: false }} />
+      <Tab.Screen name="Activity" component={ActivityScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }

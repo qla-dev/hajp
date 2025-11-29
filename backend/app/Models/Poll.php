@@ -8,16 +8,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Poll extends Model
 {
-    protected $fillable = ['question','options','creator_id','target_school','active'];
-    protected $casts = ['options' => 'array', 'active' => 'boolean'];
+    protected $fillable = ['room_id', 'status'];
 
-    public function creator(): BelongsTo
+    public function room(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'creator_id');
+        return $this->belongsTo(Room::class);
     }
 
-    public function votes(): HasMany
+    public function questions(): HasMany
     {
-        return $this->hasMany(PollVote::class);
+        return $this->hasMany(Question::class);
     }
 }

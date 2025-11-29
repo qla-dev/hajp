@@ -2,12 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Poll;
-use App\Models\PollVote;
 use App\Models\AnonymousInbox;
 use App\Models\AnonymousMessage;
+use App\Models\Poll;
+use App\Models\Question;
+use App\Models\QuestionVote;
+use App\Models\Room;
 use App\Models\Subscription;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -15,7 +17,6 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create schools
         $schools = [
             'Newton North High School',
             'Newton South High School',
@@ -26,25 +27,24 @@ class DemoDataSeeder extends Seeder
 
         $grades = ['9th Grade', '10th Grade', '11th Grade', '12th Grade'];
 
-        // Create 50 users
         $users = [];
         $firstNames = ['Emma', 'Olivia', 'Ava', 'Sophia', 'Isabella', 'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn',
-                       'Liam', 'Noah', 'Oliver', 'Elijah', 'James', 'William', 'Benjamin', 'Lucas', 'Henry', 'Alexander',
-                       'Emily', 'Abigail', 'Ella', 'Scarlett', 'Grace', 'Chloe', 'Victoria', 'Riley', 'Aria', 'Lily',
-                       'Mason', 'Ethan', 'Logan', 'Jacob', 'Michael', 'Daniel', 'Jackson', 'Sebastian', 'Jack', 'Aiden',
-                       'Madison', 'Layla', 'Zoe', 'Penelope', 'Lillian', 'Addison', 'Aubrey', 'Hannah', 'Zoey', 'Nora'];
-        
+            'Liam', 'Noah', 'Oliver', 'Elijah', 'James', 'William', 'Benjamin', 'Lucas', 'Henry', 'Alexander',
+            'Emily', 'Abigail', 'Ella', 'Scarlett', 'Grace', 'Chloe', 'Victoria', 'Riley', 'Aria', 'Lily',
+            'Mason', 'Ethan', 'Logan', 'Jacob', 'Michael', 'Daniel', 'Jackson', 'Sebastian', 'Jack', 'Aiden',
+            'Madison', 'Layla', 'Zoe', 'Penelope', 'Lillian', 'Addison', 'Aubrey', 'Hannah', 'Zoey', 'Nora'];
+
         $lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez',
-                      'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin',
-                      'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson',
-                      'Walker', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores',
-                      'Green', 'Adams', 'Nelson', 'Baker', 'Hall', 'Rivera', 'Campbell', 'Mitchell', 'Carter', 'Roberts'];
+            'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin',
+            'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson',
+            'Walker', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores',
+            'Green', 'Adams', 'Nelson', 'Baker', 'Hall', 'Rivera', 'Campbell', 'Mitchell', 'Carter', 'Roberts'];
 
         foreach ($firstNames as $index => $firstName) {
             $lastName = $lastNames[$index];
             $school = $schools[array_rand($schools)];
             $grade = $grades[array_rand($grades)];
-            
+
             $user = User::create([
                 'name' => $firstName . ' ' . $lastName,
                 'email' => strtolower($firstName . '.' . $lastName . '@school.com'),
@@ -52,16 +52,14 @@ class DemoDataSeeder extends Seeder
                 'school' => $school,
                 'grade' => $grade,
                 'profile_photo' => null,
-                'is_subscribed' => rand(0, 1) == 1,
+                'is_subscribed' => rand(0, 1) === 1,
             ]);
 
-            // Create anonymous inbox for each user
             AnonymousInbox::create([
                 'user_id' => $user->id,
                 'share_link' => 'https://hajp.app/inbox/' . strtolower($firstName . $lastName),
             ]);
 
-            // Create subscription for some users
             if ($user->is_subscribed) {
                 Subscription::create([
                     'user_id' => $user->id,
@@ -72,67 +70,80 @@ class DemoDataSeeder extends Seeder
             $users[] = $user;
         }
 
-        // Create Gas-style poll questions
+        // Rooms per school
+        $rooms = [];
+        foreach ($schools as $schoolName) {
+            $rooms[$schoolName] = Room::create([
+                'name' => $schoolName,
+                'type' => 'school',
+                'is_18_over' => false,
+            ]);
+        }
+
+        // Seed questions and polls
         $pollQuestions = [
             ['question' => 'Smiling 24/7', 'emoji' => '😊'],
-            ['question' => 'Was probably a cat in their past life', 'emoji' => '😺'],
+            ['question' => 'Was probably a cat in their past life', 'emoji' => '🐱'],
             ['question' => 'Should be kept away from anything flammable', 'emoji' => '🔥'],
             ['question' => 'Wanna invite them over to my house', 'emoji' => '🏠'],
-            ['question' => 'Style you would like to steal', 'emoji' => '👖'],
-            ['question' => 'Low key, I really like their political views', 'emoji' => '🔑'],
-            ['question' => 'Most likely to write a famous Netflix series', 'emoji' => '📺'],
+            ['question' => 'Style you would like to steal', 'emoji' => '🧥'],
+            ['question' => 'Low key, I really like their political views', 'emoji' => '🗳️'],
+            ['question' => 'Most likely to write a famous Netflix series', 'emoji' => '🎬'],
             ['question' => 'Best smile', 'emoji' => '😁'],
             ['question' => 'Most likely to be a CEO', 'emoji' => '💼'],
             ['question' => 'Best dressed', 'emoji' => '👗'],
             ['question' => 'Funniest person', 'emoji' => '😂'],
-            ['question' => 'Most athletic', 'emoji' => '⚽'],
+            ['question' => 'Most athletic', 'emoji' => '🏅'],
             ['question' => 'Best hair', 'emoji' => '💇'],
             ['question' => 'Most creative', 'emoji' => '🎨'],
-            ['question' => 'Best dancer', 'emoji' => '💃'],
-            ['question' => 'Most likely to become famous', 'emoji' => '⭐'],
-            ['question' => 'Best personality', 'emoji' => '✨'],
+            ['question' => 'Best dancer', 'emoji' => '🕺'],
+            ['question' => 'Most likely to become famous', 'emoji' => '🌟'],
+            ['question' => 'Best personality', 'emoji' => '😊'],
             ['question' => 'Most trustworthy', 'emoji' => '🤝'],
-            ['question' => 'Best friend material', 'emoji' => '👯'],
+            ['question' => 'Best friend material', 'emoji' => '❤️'],
             ['question' => 'Most likely to brighten your day', 'emoji' => '☀️'],
         ];
 
-        // Create polls
-        foreach ($pollQuestions as $pollData) {
+        foreach ($rooms as $schoolName => $room) {
             $creator = $users[array_rand($users)];
-            $school = $schools[array_rand($schools)];
-            
-            // Get 4 random users from the same school for options
-            $schoolUsers = array_filter($users, fn($u) => $u->school === $school);
-            $shuffled = collect($schoolUsers)->shuffle()->take(4)->pluck('name')->toArray();
-            
-            if (count($shuffled) >= 2) {
-                $poll = Poll::create([
-                    'question' => $pollData['question'],
-                    'options' => $shuffled,
-                    'creator_id' => $creator->id,
-                    'target_school' => $school,
-                    'active' => true,
-                ]);
+            $poll = Poll::create([
+                'room_id' => $room->id,
+                'status' => 'active',
+            ]);
 
-                // Create random votes for this poll
-                $votersCount = rand(5, 20);
-                for ($i = 0; $i < $votersCount; $i++) {
-                    $voter = $users[array_rand($users)];
-                    $selectedOption = $shuffled[array_rand($shuffled)];
-                    
-                    // Avoid duplicate votes
-                    if (!PollVote::where('poll_id', $poll->id)->where('user_id', $voter->id)->exists()) {
-                        PollVote::create([
-                            'poll_id' => $poll->id,
-                            'user_id' => $voter->id,
-                            'selected_option' => $selectedOption,
-                        ]);
+            foreach ($pollQuestions as $pollData) {
+                $schoolUsers = array_filter($users, fn($u) => $u->school === $schoolName);
+                $shuffled = collect($schoolUsers)->shuffle()->take(4)->pluck('name')->toArray();
+
+                if (count($shuffled) >= 2) {
+                    $question = Question::create([
+                        'poll_id' => $poll->id,
+                        'question' => $pollData['question'],
+                        'emoji' => $pollData['emoji'] ?? null,
+                        'options' => $shuffled,
+                        'creator_id' => $creator->id,
+                        'target_school' => $schoolName,
+                        'active' => true,
+                    ]);
+
+                    $votersCount = rand(5, 20);
+                    for ($i = 0; $i < $votersCount; $i++) {
+                        $voter = $users[array_rand($users)];
+                        $selectedOption = $shuffled[array_rand($shuffled)];
+
+                        if (!QuestionVote::where('question_id', $question->id)->where('user_id', $voter->id)->exists()) {
+                            QuestionVote::create([
+                                'question_id' => $question->id,
+                                'user_id' => $voter->id,
+                                'selected_option' => $selectedOption,
+                            ]);
+                        }
                     }
                 }
             }
         }
 
-        // Create anonymous messages
+        // Anonymous messages
         $anonymousMessages = [
             'i don\'t think u ever knew how much u meant to me',
             'Dobar',
@@ -159,10 +170,5 @@ class DemoDataSeeder extends Seeder
                 }
             }
         }
-
-        $this->command->info('✅ Created ' . count($users) . ' users');
-        $this->command->info('✅ Created ' . Poll::count() . ' polls');
-        $this->command->info('✅ Created ' . PollVote::count() . ' poll votes');
-        $this->command->info('✅ Created ' . AnonymousMessage::count() . ' anonymous messages');
     }
 }

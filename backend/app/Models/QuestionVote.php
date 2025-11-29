@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PollVote extends Model
+class QuestionVote extends Model
 {
-    protected $fillable = ['poll_id','user_id','selected_option'];
+    protected $fillable = ['question_id', 'user_id', 'selected_option'];
 
-    public function poll(): BelongsTo
+    public function question(): BelongsTo
     {
-        return $this->belongsTo(Poll::class);
+        return $this->belongsTo(Question::class);
     }
 
     public function user(): BelongsTo

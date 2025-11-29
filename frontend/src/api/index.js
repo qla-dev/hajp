@@ -16,10 +16,11 @@ export const login = async (payload) => {
   global.__HAJP_TOKEN__ = data.token;
   return data;
 };
-export const fetchPolls = () => api.get('/api/polls');
-export const fetchPollDetail = (id) => api.get(`/api/polls/${id}`);
-export const votePoll = (id, selected_option) => api.post(`/api/polls/${id}/vote`, { selected_option });
-export const refreshPollOptions = (id) => api.post(`/api/polls/${id}/refresh`);
+export const fetchRooms = () => api.get('/api/rooms');
+export const fetchActiveQuestion = (roomId) => api.get(`/api/rooms/${roomId}/questions/active`);
+export const fetchQuestionDetail = (id) => api.get(`/api/questions/${id}`);
+export const voteQuestion = (id, selected_option) => api.post(`/api/questions/${id}/vote`, { selected_option });
+export const refreshQuestionOptions = (id) => api.post(`/api/questions/${id}/refresh`);
 export const subscriptionStatus = () => api.get('/api/subscription/status');
 export const subscribe = () => api.post('/api/subscription/subscribe');
 export const getInbox = (userId) => api.get(`/api/anonymous/inbox/${userId}`);

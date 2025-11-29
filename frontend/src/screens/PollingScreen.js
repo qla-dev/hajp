@@ -1,123 +1,109 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import colors from '../theme/colors';
-import { fetchPolls, fetchPollDetail, refreshPollOptions, votePoll } from '../api';
+import { fetchActiveQuestion, refreshQuestionOptions, voteQuestion } from '../api';
 
 const { width } = Dimensions.get('window');
 
-export default function HomeScreen() {
-  const [polls, setPolls] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+export default function PollingScreen({ route, navigation }) {
+  const { roomId } = route.params || {};
+  const [question, setQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const emojis = useMemo(() => ['🔥', '💥', '🎯', '✨', '🚀', '💡'], []);
 
   useEffect(() => {
-    loadPolls();
-  }, []);
+    loadQuestion();
+  }, [roomId]);
 
-  const loadPolls = async () => {
+  const loadQuestion = async () => {
+    if (!roomId) return;
     setLoading(true);
     try {
-      const { data } = await fetchPolls();
-      setPolls(data || []);
+      const { data } = await fetchActiveQuestion(roomId);
+      setQuestion(data || null);
     } catch (error) {
-      console.error('Error loading polls:', error);
+      setQuestion(null);
+      console.error('Error loading active question:', error);
     }
     setLoading(false);
   };
 
   const handleVote = async (option) => {
-    const poll = polls[currentIndex];
+    if (!question) return;
     try {
-      await votePoll(poll.id, option);
+      await voteQuestion(question.id, option);
+      await loadQuestion();
     } catch (error) {
       console.error('Error voting:', error);
-    } finally {
-      if (currentIndex < polls.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-      } else {
-        setCurrentIndex(0);
-      }
     }
   };
 
   const handleShuffle = async () => {
-    if (!polls.length) return;
-    const poll = polls[currentIndex];
+    if (!question) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     try {
-      const { data } = await refreshPollOptions(poll.id);
-      const refreshed = { ...poll, ...data };
-      const nextPolls = [...polls];
-      nextPolls[currentIndex] = refreshed;
-      setPolls(nextPolls);
+      const { data } = await refreshQuestionOptions(question.id);
+      setQuestion({ ...question, ...data });
     } catch (error) {
-      console.error('Error refreshing poll:', error);
+      console.error('Error refreshing options:', error);
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     Haptics.selectionAsync().catch(() => {});
-    if (currentIndex < polls.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      setCurrentIndex(0);
-    }
+    await loadQuestion();
   };
 
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
-        <Text style={styles.loadingText}>Učitavam ankete...</Text>
+        <Text style={styles.loadingText}>Učitavam pitanje...</Text>
       </View>
     );
   }
 
-  if (polls.length === 0) {
+  if (!question) {
     return (
       <View style={[styles.container, styles.center]}>
-        <Text style={styles.loadingText}>Nema dostupnih anketa</Text>
-        <TouchableOpacity onPress={loadPolls} style={[styles.retryButton, { marginTop: 12 }]}>
-          <Text style={styles.retryText}>Ponovo učitaj</Text>
-        </TouchableOpacity>
+        <Text style={styles.loadingText}>Nema aktivnih pitanja</Text>
       </View>
     );
   }
 
-  const currentPoll = polls[currentIndex];
-  const pollColors = [colors.pollBlue, colors.pollPink, colors.pollPurple, colors.pollTeal, colors.pollOrange];
-  const bgColor = pollColors[currentIndex % pollColors.length];
-  const emoji = currentPoll.emoji || emojis[currentIndex % emojis.length];
+  const emoji = question.emoji || emojis[0];
+  const options = question.options || [];
 
   return (
-    <View style={[styles.container, { backgroundColor: bgColor }]}>
-      <Text style={styles.counter}>
-        {currentIndex + 1} od {polls.length}
-      </Text>
+    <View style={[styles.container, { backgroundColor: colors.pollBlue }]}>
+      <Text style={styles.counter}>Aktivno pitanje</Text>
 
       <View style={styles.pollContent}>
         <Text style={styles.emoji}>{emoji}</Text>
-        <Text style={styles.question}>{currentPoll.question}</Text>
+        <Text style={styles.question}>{question.question}</Text>
       </View>
 
       <View style={styles.optionsContainer}>
-        {currentPoll.options &&
-          currentPoll.options.slice(0, 4).map((option, index) => (
-            <TouchableOpacity key={index} onPress={() => handleVote(option)} style={styles.optionButton}>
-              <Text style={styles.optionText}>{option}</Text>
-            </TouchableOpacity>
-          ))}
+        {options.slice(0, 4).map((option, index) => (
+          <TouchableOpacity key={index} onPress={() => handleVote(option)} style={styles.optionButton}>
+            <Text style={styles.optionText}>{option}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <View style={styles.bottomActions}>
         <TouchableOpacity onPress={handleShuffle} style={styles.actionButton}>
-          <Text style={styles.actionIcon}>🔀</Text>
+          <View style={styles.iconWrapper}>
+            <Ionicons name="shuffle-outline" size={32} color={colors.textLight} />
+          </View>
           <Text style={styles.actionText}>Izmiješaj</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleSkip} style={styles.actionButton}>
-          <Text style={styles.actionIcon}>⏭️</Text>
+          <View style={styles.iconWrapper}>
+            <Ionicons name="play-skip-forward-outline" size={32} color={colors.textLight} />
+          </View>
           <Text style={styles.actionText}>Preskoči</Text>
         </TouchableOpacity>
       </View>
@@ -188,10 +174,11 @@ const styles = StyleSheet.create({
   actionButton: {
     alignItems: 'center',
   },
-  actionIcon: {
-    fontSize: 24,
+  iconWrapper: {
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 4,
-    color: colors.textLight,
   },
   actionText: {
     color: colors.textLight,
@@ -202,15 +189,5 @@ const styles = StyleSheet.create({
     color: colors.text_primary,
     fontSize: 18,
     textAlign: 'center',
-  },
-  retryButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  retryText: {
-    color: colors.textLight,
-    fontWeight: '700',
   },
 });
