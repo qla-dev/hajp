@@ -151,7 +151,7 @@ export default function PollingScreen({ route, navigation }) {
 
         <TouchableOpacity onPress={handleSkip} style={styles.actionButton}>
           <View style={styles.iconWrapper}>
-            <Ionicons name="play-skip-forward-outline" size={32} color={colors.textLight} />
+            <Ionicons name="play-skip-forward-outline" size={28} color={colors.textLight} />
           </View>
           <Text style={styles.actionText}>Preskoči</Text>
         </TouchableOpacity>
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   pollBackground: { backgroundColor: colors.pollBlue },
   center: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
-  counter: { color: colors.textLight, fontSize: 16, fontWeight: '600', textAlign: 'center', marginTop: 150 },
+  counter: { color: colors.textLight, fontSize: 16, fontWeight: '600', textAlign: 'center', marginTop: 120 },
   pollContent: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   emoji: { fontSize: 80, marginBottom: 20 },
   question: { color: colors.textLight, fontSize: 24, fontWeight: '600', textAlign: 'center', lineHeight: 32 },
