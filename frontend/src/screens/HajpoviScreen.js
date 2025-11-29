@@ -14,13 +14,18 @@ export default function HajpoviScreen() {
   const [user, setUser] = useState(null);
 
   const loadUser = useCallback(async () => {
-    const current = await getCurrentUser();
-    setUser(current || null);
-    return current;
+    try {
+      const current = await getCurrentUser();
+      setUser(current || null);
+      return current;
+    } catch (error) {
+      console.error('Greška pri učitavanju korisnika:', error);
+      setUser(null);
+      return null;
+    }
   }, []);
 
   const loadVotes = useCallback(async () => {
-    setLoading(true);
     try {
       const { data } = await fetchMyVotes();
       setVotes(data || []);
@@ -28,12 +33,10 @@ export default function HajpoviScreen() {
       setVotes([]);
       console.error('Greška pri učitavanju hajpova:', error);
     }
-    setLoading(false);
   }, []);
 
   const loadMessages = useCallback(
     async (currentUser) => {
-      setLoading(true);
       try {
         const targetUser = currentUser || user || (await loadUser());
         if (targetUser) {
@@ -46,18 +49,22 @@ export default function HajpoviScreen() {
         setMessages([]);
         console.error('Greška pri učitavanju poruka:', error);
       }
-      setLoading(false);
     },
     [user, loadUser],
   );
 
   useEffect(() => {
     (async () => {
+      setLoading(true);
       const current = await loadUser();
-      if (activeTab === TAB_ANKETE) {
-        await loadVotes();
-      } else {
-        await loadMessages(current);
+      try {
+        if (activeTab === TAB_ANKETE) {
+          await loadVotes();
+        } else {
+          await loadMessages(current);
+        }
+      } finally {
+        setLoading(false);
       }
     })();
   }, [activeTab, loadUser, loadVotes, loadMessages]);
