@@ -1,13 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Alert } from 'react-native';
 import colors from '../theme/colors';
-import { getCurrentUser, logout } from '../api';
+import { getCurrentUser, logout, fetchMyVotes } from '../api';
 
 export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
+  const [hypeCount, setHypeCount] = useState(0);
+  const [recentHypes, setRecentHypes] = useState([]);
 
   useEffect(() => {
-    getCurrentUser().then(setUser);
+    (async () => {
+      const current = await getCurrentUser();
+      setUser(current);
+      try {
+        const { data } = await fetchMyVotes();
+        setHypeCount(data?.length || 0);
+        setRecentHypes((data || []).slice(0, 3));
+      } catch {
+        setHypeCount(0);
+        setRecentHypes([]);
+      }
+    })();
   }, []);
 
   const handleLogout = async () => {
@@ -27,14 +40,14 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const confirmLogout = () => {
-    Alert.alert('Odjava', 'Da li želite da se odjavite?', [
-      { text: 'Otkaži', style: 'cancel' },
+    Alert.alert('Odjava', 'Da li zelite da se odjavite?', [
+      { text: 'Otkazi', style: 'cancel' },
       { text: 'Odjavi me', style: 'destructive', onPress: handleLogout },
     ]);
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
       <View style={styles.profileSection}>
         <Image
           source={{
@@ -42,24 +55,24 @@ export default function ProfileScreen({ navigation }) {
               user?.profile_photo ||
               'https://ui-avatars.com/api/?name=' +
                 (user?.name || 'Korisnik') +
-                '&size=200&background=FF6B35&color=fff',
+                '&size=200&background=f2f2f2&color=111',
           }}
           style={styles.profileImage}
         />
 
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
+        <View style={styles.statsRow}>
+          <View style={styles.statItemRow}>
             <Text style={styles.statNumber}>176</Text>
-            <Text style={styles.statLabel}>prijatelja</Text>
+            <Text style={styles.statLabel}>friends</Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>328</Text>
-            <Text style={styles.statLabel}>hajpova</Text>
+          <View style={styles.statItemRow}>
+            <Text style={styles.statNumber}>{hypeCount}</Text>
+            <Text style={styles.statLabel}>flames</Text>
           </View>
         </View>
 
         <TouchableOpacity style={styles.editProfileButton}>
-          <Text style={styles.editProfileText}>UREDI PROFIL</Text>
+          <Text style={styles.editProfileText}>EDIT PROFILE</Text>
         </TouchableOpacity>
       </View>
 
@@ -68,22 +81,24 @@ export default function ProfileScreen({ navigation }) {
         <Text style={styles.userHandle}>@{user?.name?.toLowerCase().replace(' ', '') || 'gost'}</Text>
 
         <View style={styles.userInfo}>
-          <Text style={styles.userInfoItem}>🏫 {user?.school || 'Bez škole'}</Text>
-          <Text style={styles.userInfoItem}>🎓 {user?.grade || 'Bez razreda'}</Text>
+          <Text style={styles.userInfoItem}>Škola: {user?.school || 'Bez skole'}</Text>
+          <Text style={styles.userInfoItem}>Razred: {user?.grade || 'Bez razreda'}</Text>
         </View>
       </View>
 
       <View style={styles.section}>
-        <TouchableOpacity style={styles.shareButton}>
-          <Text style={styles.shareButtonText}>Podijeli profil 🔗</Text>
-        </TouchableOpacity>
+        <View style={styles.rowSpread}>
+          <TouchableOpacity style={styles.shareButton}>
+            <Text style={styles.shareButtonText}>Share Profile</Text>
+          </TouchableOpacity>
 
-        <View style={styles.coinsContainer}>
-          <Text style={styles.coinsLabel}>NOVČIĆI</Text>
           <View style={styles.coinsBox}>
-            <Text style={styles.coinsAmount}>58</Text>
+            <View>
+              <Text style={styles.coinsLabel}>COINS</Text>
+              <Text style={styles.coinsAmount}>58</Text>
+            </View>
             <TouchableOpacity style={styles.shopButton}>
-              <Text style={styles.shopButtonText}>PRODAVNICA</Text>
+              <Text style={styles.shopButtonText}>SHOP</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -91,21 +106,24 @@ export default function ProfileScreen({ navigation }) {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Top hajpovi</Text>
-        <View style={styles.flameItem}>
-          <Text style={styles.flameNumber}>1</Text>
-          <Text style={styles.flameEmoji}>🔥</Text>
-          <Text style={styles.flameText}>Najnezaboravnije ime</Text>
-        </View>
-        <View style={styles.flameItem}>
-          <Text style={styles.flameNumber}>2</Text>
-          <Text style={styles.flameEmoji}>⭐</Text>
-          <Text style={styles.flameText}>Odrast će, preseliti u LA i uspjeti</Text>
-        </View>
+        {recentHypes.length === 0 ? (
+          <Text style={styles.emptyHype}>Još nema hajpova</Text>
+        ) : (
+          recentHypes.map((item, idx) => (
+            <View key={item.id || idx} style={styles.flameItem}>
+              <Text style={styles.flameNumber}>{idx + 1}</Text>
+              <Text style={styles.flameEmoji}>🔥</Text>
+              <Text style={styles.flameText} numberOfLines={1}>
+                {item?.question?.question || 'Hajp'}
+              </Text>
+            </View>
+          ))
+        )}
       </View>
 
       <View style={styles.actionsSection}>
         <TouchableOpacity onPress={() => navigation.navigate('AnonymousInbox')} style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>Anonimni sandučić</Text>
+          <Text style={styles.actionButtonText}>Anonimni sanducic</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -115,7 +133,7 @@ export default function ProfileScreen({ navigation }) {
           <Text style={[styles.actionButtonText, { color: colors.textLight }]}>Nadogradi na Premium</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={confirmLogout} style={[styles.actionButton, { backgroundColor: colors.error }]}>
+        <TouchableOpacity onPress={confirmLogout} style={[styles.actionButton, { backgroundColor: colors.error }]} >
           <Text style={[styles.actionButtonText, { color: colors.textLight }]}>Odjava</Text>
         </TouchableOpacity>
       </View>
@@ -126,128 +144,143 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#f7f7f7',
   },
   profileSection: {
     alignItems: 'center',
     paddingVertical: 24,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e5e5',
   },
   profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     backgroundColor: colors.surface,
   },
-  statsContainer: {
+  statsRow: {
     flexDirection: 'row',
+    gap: 32,
     marginTop: 16,
-    gap: 40,
   },
-  statItem: {
+  statItemRow: {
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    color: colors.text_primary,
+    color: '#000',
   },
   statLabel: {
-    fontSize: 14,
-    color: colors.text_secondary,
+    fontSize: 13,
+    color: '#7a7a7a',
   },
   editProfileButton: {
     marginTop: 16,
     paddingVertical: 10,
     paddingHorizontal: 24,
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: colors.surface,
+    borderColor: '#d9d9d9',
+    backgroundColor: '#f8f8f8',
   },
   editProfileText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.text_secondary,
-    letterSpacing: 0.5,
+    color: '#5a5a5a',
+    letterSpacing: 0.4,
   },
   userDetails: {
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingBottom: 24,
+    paddingVertical: 20,
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: colors.surface,
+    borderBottomColor: '#e5e5e5',
   },
   userName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.text_primary,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#000',
   },
   userHandle: {
-    fontSize: 16,
-    color: colors.text_secondary,
+    fontSize: 15,
+    color: '#7a7a7a',
     marginTop: 4,
   },
   userInfo: {
     flexDirection: 'row',
-    marginTop: 12,
-    gap: 16,
+    marginTop: 10,
+    gap: 12,
   },
   userInfoItem: {
-    fontSize: 14,
-    color: colors.text_secondary,
+    fontSize: 13,
+    color: '#7a7a7a',
   },
   section: {
-    padding: 20,
+    padding: 16,
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: colors.surface,
+    borderBottomColor: '#e5e5e5',
+  },
+  rowSpread: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
   },
   shareButton: {
     borderWidth: 1,
-    borderColor: colors.surface,
-    padding: 14,
-    borderRadius: 25,
-    marginBottom: 16,
+    borderColor: '#d9d9d9',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+    flex: 1,
+    alignItems: 'center',
   },
   shareButtonText: {
-    textAlign: 'center',
     fontSize: 15,
     fontWeight: '600',
-    color: colors.text_primary,
-  },
-  coinsContainer: {
-    alignItems: 'flex-end',
-  },
-  coinsLabel: {
-    fontSize: 11,
-    color: colors.text_secondary,
-    fontWeight: '600',
-    marginBottom: 4,
+    color: '#444',
   },
   coinsBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#d9d9d9',
+  },
+  coinsLabel: {
+    fontSize: 11,
+    color: '#7a7a7a',
+    fontWeight: '600',
   },
   coinsAmount: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    color: colors.text_primary,
+    color: '#000',
   },
   shopButton: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    backgroundColor: '#f2a900',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 14,
   },
   shopButtonText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
-    color: colors.text_primary,
+    color: '#000',
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text_primary,
-    marginBottom: 16,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#000',
+    marginBottom: 12,
   },
   flameItem: {
     flexDirection: 'row',
@@ -256,28 +289,27 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   flameNumber: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: colors.textLight,
-    backgroundColor: colors.primary,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    textAlign: 'center',
-    lineHeight: 32,
+    color: '#f97316',
   },
   flameEmoji: {
-    fontSize: 24,
+    fontSize: 22,
   },
   flameText: {
     flex: 1,
     fontSize: 15,
-    color: colors.text_primary,
-    fontWeight: '500',
+    color: '#111',
+    fontWeight: '600',
+  },
+  emptyHype: {
+    fontSize: 14,
+    color: '#7a7a7a',
   },
   actionsSection: {
     padding: 20,
     gap: 12,
+    backgroundColor: '#fff',
   },
   actionButton: {
     backgroundColor: colors.surface,
