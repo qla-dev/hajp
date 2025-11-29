@@ -103,4 +103,19 @@ class QuestionController extends Controller
 
         return $options;
     }
+
+    public function myVotes(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        $votes = Vote::with(['question', 'user'])
+            ->where('selected_user_id', $user->id)
+            ->latest()
+            ->get();
+
+        return $votes;
+    }
 }

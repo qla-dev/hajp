@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator }
 import colors from '../theme/colors';
 import { fetchRooms } from '../api';
 
-export default function RoomsScreen({ navigation }) {
+export default function RankRoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,7 +23,7 @@ export default function RoomsScreen({ navigation }) {
   };
 
   const renderRoom = ({ item }) => (
-    <TouchableOpacity style={styles.roomCard} onPress={() => navigation.navigate('Polling', { roomId: item.id })}>
+    <TouchableOpacity style={styles.roomCard} onPress={() => navigation.navigate('Ranking', { roomId: item.id })}>
       <Text style={styles.roomName}>{item.name}</Text>
       {item.is_18_over ? <Text style={styles.roomBadge}>18+</Text> : null}
     </TouchableOpacity>
@@ -54,15 +54,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     padding: 16,
   },
-  loadingText: {
-    color: colors.text_secondary,
-    fontSize: 16,
-    marginTop: 12,
-  },
   loader: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingText: {
+    color: colors.text_secondary,
+    fontSize: 16,
+    marginTop: 12,
   },
   list: {
     paddingVertical: 8,

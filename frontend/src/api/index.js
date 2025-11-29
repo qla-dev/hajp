@@ -22,6 +22,7 @@ export const fetchQuestionDetail = (id) => api.get(`/api/questions/${id}`);
 export const voteQuestion = (id, selected_option) => api.post(`/api/questions/${id}/vote`, { selected_option });
 export const refreshQuestionOptions = (id) => api.post(`/api/questions/${id}/refresh`);
 export const skipQuestion = (id) => api.post(`/api/questions/${id}/skip`);
+export const fetchMyVotes = () => api.get('/api/my/votes');
 export const subscriptionStatus = () => api.get('/api/subscription/status');
 export const subscribe = () => api.post('/api/subscription/subscribe');
 export const getInbox = (userId) => api.get(`/api/anonymous/inbox/${userId}`);

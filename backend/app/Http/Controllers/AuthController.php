@@ -17,6 +17,7 @@ class AuthController extends Controller
             'password' => 'required|string|min:6',
             'school' => 'required|string',
             'grade' => 'required|string',
+            'sex' => 'nullable|string|max:10',
         ]);
 
         $user = User::create([
@@ -25,6 +26,7 @@ class AuthController extends Controller
             'password' => Hash::make($data['password']),
             'school' => $data['school'],
             'grade' => $data['grade'],
+            'sex' => $data['sex'] ?? null,
         ]);
 
         $token = $user->createToken('api')->plainTextToken;

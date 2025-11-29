@@ -24,6 +24,7 @@ class User extends Authenticatable
         'password',
         'school',
         'grade',
+        'sex',
         'profile_photo',
         'is_subscribed',
     ];

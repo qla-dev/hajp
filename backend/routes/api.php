@@ -34,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/questions/{question}/vote', [QuestionController::class, 'vote']);
     Route::post('/questions/{question}/skip', [QuestionController::class, 'skip']);
+    Route::get('/my/votes', [QuestionController::class, 'myVotes']);
     Route::get('/rooms/{room}/questions/active', [RoomController::class, 'activeQuestion']);
     Route::get('/subscription/status', [SubscriptionController::class, 'status']);
     Route::post('/subscription/subscribe', [SubscriptionController::class, 'subscribe']);

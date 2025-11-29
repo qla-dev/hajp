@@ -8,8 +8,9 @@ import * as Haptics from 'expo-haptics';
 import colors from '../theme/colors';
 import RoomsScreen from '../screens/RoomsScreen';
 import PollingScreen from '../screens/PollingScreen';
-import AnonymousInboxScreen from '../screens/AnonymousInboxScreen';
-import ActivityScreen from '../screens/ActivityScreen';
+import HajpoviScreen from '../screens/HajpoviScreen';
+import RankRoomsScreen from '../screens/RankRoomsScreen';
+import RankingScreen from '../screens/RankingScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import BasicHeader from '../components/BasicHeader';
 
@@ -18,15 +19,15 @@ const HajpStack = createNativeStackNavigator();
 
 const headerLabelMap = {
   Hajp: 'Sobe',
-  Inbox: 'Inbox',
-  Activity: 'Hajpovi',
+  Inbox: 'Hajpovi',
+  Rank: 'Rank',
   Profile: 'Profil',
 };
 
 const iconMap = {
   Hajp: { active: 'home', inactive: 'home-outline' },
-  Inbox: { active: 'chatbubble-ellipses', inactive: 'chatbubble-ellipses-outline' },
-  Activity: { active: 'flame', inactive: 'flame-outline' },
+  Rank: { active: 'trophy', inactive: 'trophy-outline' },
+  Inbox: { active: 'flame', inactive: 'flame-outline' },
   Profile: { active: 'person', inactive: 'person-outline' },
 };
 
@@ -59,6 +60,25 @@ function HajpStackNavigator() {
         }}
       />
     </HajpStack.Navigator>
+  );
+}
+
+const RankStack = createNativeStackNavigator();
+
+function RankStackNavigator() {
+  return (
+    <RankStack.Navigator screenOptions={{ headerShown: true, headerTitleAlign: 'center' }}>
+      <RankStack.Screen
+        name="RankRooms"
+        component={RankRoomsScreen}
+        options={{ header: () => <BasicHeader title="Sobe" /> }}
+      />
+      <RankStack.Screen
+        name="Ranking"
+        component={RankingScreen}
+        options={{ header: () => <BasicHeader title="Ranking" /> }}
+      />
+    </RankStack.Navigator>
   );
 }
 
@@ -100,8 +120,8 @@ export default function MainTabs() {
       }}
     >
       <Tab.Screen name="Hajp" component={HajpStackNavigator} options={{ headerShown: false }} />
-      <Tab.Screen name="Inbox" component={AnonymousInboxScreen} />
-      <Tab.Screen name="Activity" component={ActivityScreen} />
+      <Tab.Screen name="Rank" component={RankStackNavigator} options={{ headerShown: false }} />
+      <Tab.Screen name="Inbox" component={HajpoviScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
