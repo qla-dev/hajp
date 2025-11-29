@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import colors from '../theme/colors';
 import { fetchPolls, fetchPollDetail, refreshPollOptions, votePoll } from '../api';
 
@@ -44,6 +45,7 @@ export default function HomeScreen() {
   const handleShuffle = async () => {
     if (!polls.length) return;
     const poll = polls[currentIndex];
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     try {
       const { data } = await refreshPollOptions(poll.id);
       const refreshed = { ...poll, ...data };
@@ -56,6 +58,7 @@ export default function HomeScreen() {
   };
 
   const handleSkip = () => {
+    Haptics.selectionAsync().catch(() => {});
     if (currentIndex < polls.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
