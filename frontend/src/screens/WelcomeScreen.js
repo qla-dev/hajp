@@ -45,10 +45,10 @@ export default function WelcomeScreen({ navigation }) {
           <Text style={styles.loginText}>Already have an account? Log In</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('MainTabs')} 
-          style={styles.skipButton}
-        >
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('Main')} 
+            style={styles.skipButton}
+          >
           <Text style={styles.skipText}>Skip - Continue as Guest</Text>
         </TouchableOpacity>
       </View>

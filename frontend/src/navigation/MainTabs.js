@@ -1,7 +1,8 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import colors from '../theme/colors';
 import HomeScreen from '../screens/HomeScreen';
 import AnonymousInboxScreen from '../screens/AnonymousInboxScreen';
@@ -10,6 +11,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import BasicHeader from '../components/BasicHeader';
 
 const Tab = createBottomTabNavigator();
+const GasStack = createNativeStackNavigator();
 
 const iconMap = {
   Inbox: { active: 'chatbubble-ellipses', inactive: 'chatbubble-ellipses-outline' },
@@ -18,14 +20,24 @@ const iconMap = {
   Profile: { active: 'person', inactive: 'person-outline' },
 };
 
-function GasHeader() {
+function GasStackNavigator() {
   return (
-    <SafeAreaView style={styles.gasHeaderSafe} pointerEvents="none">
-      <View style={styles.gasHeaderBar}>
-        <Ionicons name="flame" size={18} color={colors.textLight} style={styles.gasHeaderIcon} />
-        <Ionicons name="flame" size={0} />{/* placeholder to keep height stable */}
-      </View>
-    </SafeAreaView>
+    <GasStack.Navigator
+      screenOptions={{
+        headerShown: true,
+        headerTransparent: true,
+        headerTitle: () => <Text style={styles.gasHeaderTitle}>Gas</Text>,
+        headerTitleAlign: 'center',
+        headerTintColor: colors.textLight,
+        headerShadowVisible: false,
+        headerStyle: {
+          backgroundColor: 'transparent',
+        },
+        headerBackground: () => <View style={styles.gasHeaderBackground} />,
+      }}
+    >
+      <GasStack.Screen name="GasHome" component={HomeScreen} />
+    </GasStack.Navigator>
   );
 }
 
@@ -60,9 +72,9 @@ export default function MainTabs() {
       <Tab.Screen name="Inbox" component={AnonymousInboxScreen} />
       <Tab.Screen
         name="Gas"
-        component={HomeScreen}
+        component={GasStackNavigator}
         options={{
-          header: () => <GasHeader />,
+          headerShown: false, // use stack header inside
         }}
       />
       <Tab.Screen name="Activity" component={ActivityScreen} />
@@ -72,18 +84,16 @@ export default function MainTabs() {
 }
 
 const styles = StyleSheet.create({
-  gasHeaderSafe: {
+  gasHeaderBackground: {
+    flex: 1,
     backgroundColor: 'transparent',
-  },
-  gasHeaderBar: {
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.7)',
-    backgroundColor: 'transparent',
+    borderBottomWidth: 1,
   },
-  gasHeaderIcon: {
+  gasHeaderTitle: {
     color: colors.textLight,
+    fontWeight: '700',
+    fontSize: 18,
+    marginTop: 10,
   },
 });

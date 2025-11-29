@@ -15,7 +15,7 @@ export default function LoginScreen({ navigation }) {
       await login({ email, password });
       navigation.reset({
         index: 0,
-        routes: [{ name: 'MainTabs' }],
+        routes: [{ name: 'Main' }],
       });
     } catch (e) {
       alert('Login failed. Please check your credentials.');

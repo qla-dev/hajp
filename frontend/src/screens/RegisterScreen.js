@@ -21,7 +21,7 @@ export default function RegisterScreen({ navigation }) {
       await register({ name, email, password, school, grade });
       navigation.reset({
         index: 0,
-        routes: [{ name: 'MainTabs' }],
+        routes: [{ name: 'Main' }],
       });
     } catch (e) {
       alert('Registration failed. Please try again.');

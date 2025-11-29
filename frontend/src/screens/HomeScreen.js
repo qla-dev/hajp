@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: 24,
+    marginTop: 150,
   },
   pollContent: {
     flex: 1,
