@@ -1,5 +1,6 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
@@ -40,8 +41,8 @@ function MainStackNavigator() {
       screenOptions={{
         headerShown: true,
         headerTitleAlign: 'center',
-        headerTintColor: colors.text_primary,
-        headerTitleStyle: { color: colors.text_primary, fontWeight: '700', fontSize: 18 },
+        headerTintColor: '#ff0000ff',
+        headerTitleStyle: { backgroundColor:'transparent', color: '#ff0000ff', fontWeight: '700', fontSize: 18 },
         animation: 'default',
       }}
     >
@@ -52,15 +53,27 @@ function MainStackNavigator() {
         name="EditProfile"
         component={EditProfileScreen}
         options={{
-          headerShown: false,
+          title: 'Uredi profil',
+          headerBackTitle: 'Sobe',
+          headerTintColor: colors.text_primary,
+          headerTitleStyle: { color: colors.text_primary, fontWeight: '700' },
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: 'transparent' },
         }}
       />
       <MainStack.Screen
         name="Settings"
         component={SettingsScreen}
         options={{
-          headerShown: false,
-        }}
+          title: 'Podešavanja',
+          headerBackTitle: 'Sobe',
+          headerTintColor: colors.text_primary,
+          headerTitleStyle: { color: colors.text_primary, fontWeight: '700' },
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: 'transparent' },
+       }}
       />
       <MainStack.Screen name="SendAnonymousMessage" component={SendAnonymousMessageScreen} />
       <MainStack.Screen name="ShareLink" component={ShareLinkScreen} />
@@ -83,3 +96,12 @@ export default function App() {
     </GluestackUIProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  gasHeaderBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+    borderBottomWidth: 1,
+  },
+});

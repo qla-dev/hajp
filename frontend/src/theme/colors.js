@@ -10,6 +10,7 @@ export default {
   backgroundDark: '#1A1A1A',
   surface: '#F8F9FA',
   surfaceDark: '#2C2C2C',
+  transparent: 'transparent',
   
   // Poll/Card colors
   pollBlue: '#5DADE2',
