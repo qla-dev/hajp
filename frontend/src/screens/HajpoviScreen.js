@@ -35,28 +35,27 @@ export default function HajpoviScreen() {
     }
   }, []);
 
-  const loadMessages = useCallback(
-    async (currentUser) => {
-      try {
-        const targetUser = currentUser || user || (await loadUser());
-        if (targetUser) {
-          const { data } = await getInbox(targetUser.id);
-          setMessages(data?.messages || []);
-        } else {
-          setMessages([]);
-        }
-      } catch (error) {
+  const loadMessages = useCallback(async (targetUser) => {
+    try {
+      const resolvedUser = targetUser || (await loadUser());
+      if (resolvedUser) {
+        const { data } = await getInbox(resolvedUser.id);
+        setMessages(data?.messages || []);
+      } else {
         setMessages([]);
-        console.error('Greška pri učitavanju poruka:', error);
       }
-    },
-    [user, loadUser],
-  );
+    } catch (error) {
+      setMessages([]);
+      console.error('Greška pri učitavanju poruka:', error);
+    }
+  }, [loadUser]);
 
   useEffect(() => {
+    let isMounted = true;
     (async () => {
       setLoading(true);
       const current = await loadUser();
+      if (!isMounted) return;
       try {
         if (activeTab === TAB_ANKETE) {
           await loadVotes();
@@ -64,9 +63,12 @@ export default function HajpoviScreen() {
           await loadMessages(current);
         }
       } finally {
-        setLoading(false);
+        isMounted && setLoading(false);
       }
     })();
+    return () => {
+      isMounted = false;
+    };
   }, [activeTab, loadUser, loadVotes, loadMessages]);
 
   const renderVote = ({ item }) => {

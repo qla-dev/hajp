@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\RoomController;
@@ -32,6 +33,7 @@ Route::post('/anonymous/message', [AnonInboxController::class, 'createMessage'])
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', fn (Request $request) => $request->user());
     Route::post('/questions/{question}/vote', [QuestionController::class, 'vote']);
     Route::post('/questions/{question}/skip', [QuestionController::class, 'skip']);
     Route::get('/my/votes', [QuestionController::class, 'myVotes']);
