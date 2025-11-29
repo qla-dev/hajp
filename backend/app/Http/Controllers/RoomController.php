@@ -52,10 +52,20 @@ class RoomController extends Controller
 
         $question->setAttribute('options', $options);
 
+        $answeredCount = 0;
+        $skippedCount = 0;
+        if ($user) {
+            $answeredCount = $poll->questions()
+                ->whereHas('votes', fn($q) => $q->where('user_id', $user->id))
+                ->count();
+            $skippedCount = count(Cache::get("skipped_questions_user_{$user->id}", []));
+        }
+        $index = $user ? min($total, $answeredCount + $skippedCount + 1) : 1;
+
         return response()->json([
             'question' => $question,
             'total' => $total,
-            'index' => 1,
+            'index' => $index,
             'poll_id' => $poll->id,
         ]);
     }
