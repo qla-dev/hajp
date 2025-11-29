@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   shopButtonText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#000',
+    color: '#fff',
   },
   sectionTitle: {
     fontSize: 18,
