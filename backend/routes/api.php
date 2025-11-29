@@ -11,6 +11,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/polls', [PollController::class, 'index']);
 Route::get('/polls/{poll}', [PollController::class, 'show']);
+Route::post('/polls/{poll}/refresh', [PollController::class, 'refreshOptions']);
 
 Route::get('/anonymous/inbox/{user}', [AnonInboxController::class, 'show']);
 

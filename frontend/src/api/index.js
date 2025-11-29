@@ -19,6 +19,7 @@ export const login = async (payload) => {
 export const fetchPolls = () => api.get('/api/polls');
 export const fetchPollDetail = (id) => api.get(`/api/polls/${id}`);
 export const votePoll = (id, selected_option) => api.post(`/api/polls/${id}/vote`, { selected_option });
+export const refreshPollOptions = (id) => api.post(`/api/polls/${id}/refresh`);
 export const subscriptionStatus = () => api.get('/api/subscription/status');
 export const subscribe = () => api.post('/api/subscription/subscribe');
 export const getInbox = (userId) => api.get(`/api/anonymous/inbox/${userId}`);

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import colors from '../theme/colors';
-import { fetchPolls, votePoll } from '../api';
+import { fetchPolls, fetchPollDetail, refreshPollOptions, votePoll } from '../api';
 
 const { width } = Dimensions.get('window');
 
@@ -41,10 +41,18 @@ export default function HomeScreen() {
     }
   };
 
-  const handleShuffle = () => {
+  const handleShuffle = async () => {
     if (!polls.length) return;
-    const randomIndex = Math.floor(Math.random() * polls.length);
-    setCurrentIndex(randomIndex);
+    const poll = polls[currentIndex];
+    try {
+      const { data } = await refreshPollOptions(poll.id);
+      const refreshed = { ...poll, ...data };
+      const nextPolls = [...polls];
+      nextPolls[currentIndex] = refreshed;
+      setPolls(nextPolls);
+    } catch (error) {
+      console.error('Error refreshing poll:', error);
+    }
   };
 
   const handleSkip = () => {

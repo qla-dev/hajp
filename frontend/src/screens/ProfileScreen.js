@@ -39,7 +39,7 @@ export default function ProfileScreen({ navigation }) {
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>328</Text>
-            <Text style={styles.statLabel}>plamenova</Text>
+            <Text style={styles.statLabel}>vatricâ</Text>
           </View>
         </View>
 
@@ -75,7 +75,7 @@ export default function ProfileScreen({ navigation }) {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Top plamenovi</Text>
+        <Text style={styles.sectionTitle}>Top vatrice</Text>
         <View style={styles.flameItem}>
           <Text style={styles.flameNumber}>1</Text>
           <Text style={styles.flameEmoji}>🔥</Text>

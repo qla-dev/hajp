@@ -25,7 +25,7 @@ export default function WelcomeScreen({ navigation }) {
             <View style={styles.phonePreview}>
               <Text style={styles.featureEmoji}>🔥</Text>
             </View>
-            <Text style={styles.featureDescription}>Dobij plamenove{'\n'}kad te izaberu</Text>
+            <Text style={styles.featureDescription}>Dobij vatrice{'\n'}kad te izaberu</Text>
           </View>
         </View>
       </View>

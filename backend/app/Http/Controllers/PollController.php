@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Poll;
 use App\Models\PollVote;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -37,6 +38,24 @@ class PollController extends Controller
     {
         $poll->load('votes');
         return $poll;
+    }
+
+    public function refreshOptions(Poll $poll)
+    {
+        // Pull fresh random user names to replace current options
+        $names = User::inRandomOrder()
+            ->limit(4)
+            ->pluck('name')
+            ->toArray();
+
+        if (count($names) < 2) {
+            return response()->json(['message' => 'Nema dovoljno korisnika za osvježavanje opcija'], 422);
+        }
+
+        $poll->options = $names;
+        $poll->save();
+
+        return $poll->fresh();
     }
 
     public function vote(Request $request, Poll $poll)
