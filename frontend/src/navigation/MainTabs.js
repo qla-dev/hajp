@@ -52,8 +52,8 @@ export default function MainTabs() {
           backgroundColor: colors.background,
           borderTopColor: colors.surface,
           borderTopWidth: 1,
-          height: 64,
-          paddingBottom: 8,
+          height: 86,
+          paddingBottom: 24,
           paddingTop: 6,
         },
         tabBarLabelStyle: {
