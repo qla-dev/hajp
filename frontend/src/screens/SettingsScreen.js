@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
+import BasicHeader from '../components/BasicHeader';
 import colors from '../theme/colors';
 
 export default function SettingsScreen({ navigation }) {
@@ -8,7 +9,9 @@ export default function SettingsScreen({ navigation }) {
   const [breakEnabled, setBreakEnabled] = useState(false);
 
   return (
-    <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
+    <>
+      <BasicHeader title="Podešavanja" />
+      <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Podešavanja</Text>
         <SettingRow label="Smanji notifikacije" value={reduceNotifications} onValueChange={setReduceNotifications} />
@@ -38,7 +41,8 @@ export default function SettingsScreen({ navigation }) {
           <Text style={styles.deleteText}>Obriši nalog</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }
 
@@ -55,6 +59,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f7f7f7',
+    paddingTop: 0,
   },
   section: {
     backgroundColor: '#fff',

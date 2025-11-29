@@ -1,12 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
+import BasicHeader from '../components/BasicHeader';
 import colors from '../theme/colors';
 
 export default function EditProfileScreen({ navigation, route }) {
   const user = route.params?.user || {};
 
   return (
-    <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
+    <>
+      <BasicHeader title="Uredi profil" />
+      <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
       <View style={styles.avatarWrapper}>
         <Image
           source={{
@@ -47,7 +50,8 @@ export default function EditProfileScreen({ navigation, route }) {
           <Text style={styles.listRowText}>Upravljaj nalogom</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }
 

@@ -122,7 +122,22 @@ export default function MainTabs() {
       <Tab.Screen name="Hajp" component={HajpStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Rank" component={RankStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Inbox" component={HajpoviScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+        <Tab.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={({ navigation }) => ({
+            header: () => (
+              <BasicHeader
+                title={headerLabelMap.Profile}
+                rightComponent={
+                  <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+                    <Ionicons name="settings-outline" size={22} color={colors.text_primary} />
+                  </TouchableOpacity>
+                }
+              />
+            ),
+          })}
+        />
     </Tab.Navigator>
   );
 }

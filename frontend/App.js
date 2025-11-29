@@ -51,12 +51,16 @@ function MainStackNavigator() {
       <MainStack.Screen
         name="EditProfile"
         component={EditProfileScreen}
-        options={{ header: () => <BasicHeader title="Uredi profil" /> }}
+        options={{
+          headerShown: false,
+        }}
       />
       <MainStack.Screen
         name="Settings"
         component={SettingsScreen}
-        options={{ header: () => <BasicHeader title="Podešavanja" /> }}
+        options={{
+          headerShown: false,
+        }}
       />
       <MainStack.Screen name="SendAnonymousMessage" component={SendAnonymousMessageScreen} />
       <MainStack.Screen name="ShareLink" component={ShareLinkScreen} />
