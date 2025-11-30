@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator }
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchMyVotes, getInbox, getCurrentUser } from '../api';
+import BottomCTA from '../components/BottomCTA';
 
 const TAB_ANKETE = 'ankete';
 const TAB_LINK = 'link';
@@ -189,12 +190,7 @@ export default function HajpoviScreen({ navigation }) {
       {renderContent()}
 
       {activeTab === TAB_ANKETE && (
-        <View style={styles.bottomCTA}>
-          <TouchableOpacity style={styles.ctaButton} onPress={() => navigation.navigate('Subscription')}>
-            <Text style={styles.ctaLock}>🔒</Text>
-            <Text style={styles.ctaText}>Vidi ko te hajpa</Text>
-          </TouchableOpacity>
-        </View>
+        <BottomCTA label="Vidi ko te hajpa" iconName="diamond-outline" onPress={() => navigation.navigate('Subscription')} fixed />
       )}
     </View>
   );
@@ -294,29 +290,5 @@ const createStyles = (colors, isDark) =>
       fontSize: 14,
       color: colors.text_secondary,
       textAlign: 'center',
-    },
-    bottomCTA: {
-      padding: 20,
-      paddingBottom: 10,
-      paddingTop: 10,
-    },
-    ctaButton: {
-      backgroundColor: colors.primary,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 18,
-      borderRadius: 30,
-    },
-    ctaLock: {
-      fontSize: 18,
-      marginRight: 8,
-      marginBottom: 2,
-      color: colors.textLight,
-    },
-    ctaText: {
-      color: colors.textLight,
-      fontSize: 16,
-      fontWeight: '700',
     },
   });

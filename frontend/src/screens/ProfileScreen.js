@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, RefreshControl } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, fetchMyVotes } from '../api';
+import BottomCTA from '../components/BottomCTA';
 
 export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
@@ -129,12 +129,7 @@ export default function ProfileScreen({ navigation }) {
 
       </ScrollView>
 
-      <View style={styles.bottomCTA}>
-        <TouchableOpacity onPress={() => navigation.navigate('Subscription')} style={styles.ctaButton}>
-          <Ionicons name="diamond-outline" size={20} color={colors.textLight} style={styles.ctaIcon} />
-          <Text style={styles.ctaText}>Nadogradi na Premium</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomCTA label="Nadogradi na Premium" iconName="diamond-outline" onPress={() => navigation.navigate('Subscription')} fixed />
     </View>
   );
 }
@@ -311,38 +306,5 @@ const createStyles = (colors) =>
     emptyHype: {
       fontSize: 14,
       color: colors.text_secondary,
-    },
-    bottomCTA: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: colors.surface,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: 0.08,
-      shadowRadius: 6,
-      elevation: 6,
-      padding: 20,
-      paddingBottom: 10,
-      paddingTop: 10,
-      borderTopColor: colors.border,
-      borderTopWidth: 1,
-    },
-    ctaButton: {
-      backgroundColor: colors.primary,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 18,
-      borderRadius: 30,
-    },
-    ctaIcon: {
-      marginRight: 8,
-    },
-    ctaText: {
-      color: colors.textLight,
-      fontSize: 16,
-      fontWeight: '700',
     },
   });
