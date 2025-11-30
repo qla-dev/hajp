@@ -147,7 +147,6 @@ function HajpoviStackNavigator() {
 
 export default function MainTabs() {
   const { colors } = useTheme();
-  const styles = useThemedStyles(createStyles);
 
   return (
     <Tab.Navigator
@@ -235,13 +234,8 @@ const createStyles = (colors, isDark) =>
       paddingHorizontal: 12,
       paddingVertical: 8,
       borderRadius: 14,
-      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.55)',
       borderWidth: 1,
-      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.4)',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: isDark ? 0.2 : 0.08,
-      shadowRadius: 2,
+      borderColor: 'transparent',
     },
     gearButton: {
       paddingHorizontal: 10,

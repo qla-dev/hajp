@@ -57,13 +57,15 @@ function MainStackNavigator() {
         component={EditProfileScreen}
         options={{
           title: 'Uredi profil',
+          headerBackTitle: 'Nazad',
         }}
       />
       <MainStack.Screen
         name="Settings"
         component={SettingsScreen}
         options={{
-          title: 'Podesavanja',
+          title: 'Podešavanja',
+          headerBackTitle: 'Nazad',
         }}
       />
       <MainStack.Screen
