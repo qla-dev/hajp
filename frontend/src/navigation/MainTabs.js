@@ -16,6 +16,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
+const HajpoviStack = createNativeStackNavigator();
 
 const headerLabelMap = {
   Hajp: 'Sobe',
@@ -119,6 +120,22 @@ function ProfileStackNavigator() {
   );
 }
 
+function HajpoviStackNavigator() {
+  return (
+    <HajpoviStack.Navigator
+      screenOptions={{
+        headerTransparent: true,
+        headerShadowVisible: false,
+        headerTitleAlign: 'center',
+        headerTintColor: colors.text_primary,
+        headerStyle: { backgroundColor: 'transparent' },
+      }}
+    >
+      <HajpoviStack.Screen name="Hajpovi" component={HajpoviScreen} options={{ title: headerLabelMap.Inbox }} />
+    </HajpoviStack.Navigator>
+  );
+}
+
 export default function MainTabs() {
   return (
     <Tab.Navigator
@@ -164,7 +181,7 @@ export default function MainTabs() {
     >
       <Tab.Screen name="Hajp" component={HajpStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Rank" component={RankStackNavigator} options={{ headerShown: false }} />
-      <Tab.Screen name="Inbox" component={HajpoviScreen} />
+      <Tab.Screen name="Inbox" component={HajpoviStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Profile" component={ProfileStackNavigator} options={{ headerShown: false }} />
     </Tab.Navigator>
   );
