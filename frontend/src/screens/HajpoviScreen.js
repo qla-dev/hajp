@@ -7,7 +7,7 @@ import { fetchMyVotes, getInbox, getCurrentUser } from '../api';
 const TAB_ANKETE = 'ankete';
 const TAB_LINK = 'link';
 
-export default function HajpoviScreen() {
+export default function HajpoviScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState(TAB_ANKETE);
   const [loading, setLoading] = useState(true);
   const [votes, setVotes] = useState([]);
@@ -188,7 +188,7 @@ export default function HajpoviScreen() {
 
       {activeTab === TAB_ANKETE && (
         <View style={styles.bottomCTA}>
-          <TouchableOpacity style={styles.ctaButton}>
+          <TouchableOpacity style={styles.ctaButton} onPress={() => navigation.navigate('Subscription')}>
             <Text style={styles.ctaLock}>🔒</Text>
             <Text style={styles.ctaText}>Vidi ko te hajpa</Text>
           </TouchableOpacity>

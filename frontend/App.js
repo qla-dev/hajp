@@ -47,7 +47,7 @@ function MainStackNavigator() {
       }}
     >
       <MainStack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
-      <MainStack.Screen name="Subscription" component={SubscriptionScreen} />
+      <MainStack.Screen name="Subscription" component={SubscriptionScreen} options={{ headerShown: false }} />
       <MainStack.Screen name="Profile" component={ProfileScreen} />
       <MainStack.Screen
         name="EditProfile"
