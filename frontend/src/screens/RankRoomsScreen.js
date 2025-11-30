@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   list: {
-    paddingTop: 4,
+    paddingTop: 95,
     paddingBottom: 4,
   },
   roomCard: {

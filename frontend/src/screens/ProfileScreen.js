@@ -163,10 +163,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   contentContainer: {
-    paddingBottom: 140,
+    paddingBottom: 0,
   },
   profileSection: {
-    paddingVertical: 24,
+    paddingVertical: 20,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e5e5',

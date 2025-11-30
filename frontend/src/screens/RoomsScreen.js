@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   list: {
-    paddingTop: 4,
+    paddingTop: 95,
     paddingBottom: 4,
   },
   roomCard: {
