@@ -56,11 +56,13 @@ export default function ProfileScreen({ navigation }) {
   const username = user?.name ? user.name.toLowerCase().replace(' ', '') : 'gost';
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentInsetAdjustmentBehavior="always"
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
-    >
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        contentInsetAdjustmentBehavior="always"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+      >
       <View style={styles.profileSection}>
         <View style={styles.profileRow}>
           <Image
@@ -139,21 +141,29 @@ export default function ProfileScreen({ navigation }) {
         )}
       </View>
 
+      </ScrollView>
+
       <View style={styles.bottomCTA}>
         <TouchableOpacity onPress={() => navigation.navigate('Subscription')} style={styles.ctaButton}>
-          <Ionicons name="diamond-outline" size={18} color={colors.textLight} style={{ marginRight: 8 }} />
+          <Ionicons name="diamond-outline" size={20} color={colors.textLight} style={styles.ctaIcon} />
           <Text style={styles.ctaText}>Nadogradi na Premium</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingBottom: 80,
+  },
+  contentContainer: {
+    paddingBottom: 140,
   },
   profileSection: {
     paddingVertical: 24,
@@ -332,8 +342,19 @@ const styles = StyleSheet.create({
     color: '#7a7a7a',
   },
   bottomCTA: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 6,
+    padding: 20,
+    paddingBottom: 10,
+    paddingTop: 10,
   },
   ctaButton: {
     backgroundColor: colors.text_primary,
@@ -342,6 +363,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 18,
     borderRadius: 30,
+  },
+  ctaIcon: {
+    marginRight: 8,
   },
   ctaText: {
     color: colors.textLight,
