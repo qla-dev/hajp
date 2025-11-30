@@ -53,6 +53,7 @@ export const darkColors = {
   surface: '#171A23',
   surfaceDark: '#1F2430',
   border: '#2C3340',
+  borderLight: '#3A4251',
   transparent: 'transparent',
 
   // Poll/Card colors

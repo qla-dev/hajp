@@ -149,7 +149,7 @@ const createStyles = (colors) =>
     },
     profileSection: {
       paddingVertical: 20,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.background,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
@@ -238,7 +238,7 @@ const createStyles = (colors) =>
     userDetails: {
       paddingHorizontal: 24,
       paddingVertical: 20,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.background,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
@@ -267,7 +267,7 @@ const createStyles = (colors) =>
     },
     section: {
       padding: 16,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.background,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
