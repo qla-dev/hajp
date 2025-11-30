@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import colors from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { login } from '../api';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   const onLogin = async () => {
     if (!email || !password) return;
@@ -80,115 +82,116 @@ export default function LoginScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: colors.text_primary,
-    marginBottom: 8,
-    textAlign: 'center',
-    marginTop: 30,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.text_secondary,
-    marginBottom: 32,
-    textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.surface,
-    backgroundColor: colors.surface,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    fontSize: 16,
-    color: colors.text_primary,
-  },
-  loginButton: {
-    backgroundColor: colors.primary,
-    padding: 18,
-    borderRadius: 30,
-    marginTop: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loginButtonDisabled: {
-    opacity: 0.6,
-  },
-  loginSpinner: {
-    marginRight: 8,
-  },
-  loginButtonText: {
-    color: colors.textLight,
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  registerLink: {
-    marginTop: 20,
-    padding: 12,
-  },
-  registerLinkText: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: colors.text_secondary,
-  },
-  registerLinkBold: {
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  socialBlock: {
-    marginTop: 16,
-    paddingBottom: 16,
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.surface,
-  },
-  dividerText: {
-    marginHorizontal: 10,
-    color: colors.text_secondary,
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  socialRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginTop: 20,
-  },
-  socialButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.surface,
-    backgroundColor: '#fff',
-  },
-  socialText: {
-    marginLeft: 8,
-    fontWeight: '700',
-    color: colors.text_primary,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: 24,
+      justifyContent: 'center',
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: '700',
+      color: colors.text_primary,
+      marginBottom: 8,
+      textAlign: 'center',
+      marginTop: 30,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.text_secondary,
+      marginBottom: 32,
+      textAlign: 'center',
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 16,
+      fontSize: 16,
+      color: colors.text_primary,
+    },
+    loginButton: {
+      backgroundColor: colors.primary,
+      padding: 18,
+      borderRadius: 30,
+      marginTop: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    loginButtonDisabled: {
+      opacity: 0.6,
+    },
+    loginSpinner: {
+      marginRight: 8,
+    },
+    loginButtonText: {
+      color: colors.textLight,
+      textAlign: 'center',
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    registerLink: {
+      marginTop: 20,
+      padding: 12,
+    },
+    registerLinkText: {
+      textAlign: 'center',
+      fontSize: 14,
+      color: colors.text_secondary,
+    },
+    registerLinkBold: {
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    socialBlock: {
+      marginTop: 16,
+      paddingBottom: 16,
+    },
+    dividerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    divider: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+    dividerText: {
+      marginHorizontal: 10,
+      color: colors.text_secondary,
+      fontSize: 12,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    socialRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 12,
+      marginTop: 20,
+    },
+    socialButton: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 14,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    socialText: {
+      marginLeft: 8,
+      fontWeight: '700',
+      color: colors.text_primary,
+    },
+  });

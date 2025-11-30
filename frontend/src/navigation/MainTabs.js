@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Pressable, TouchableOpacity, Text } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
-import colors from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/darkMode';
 import RoomsScreen from '../screens/RoomsScreen';
 import PollingScreen from '../screens/PollingScreen';
 import HajpoviScreen from '../screens/HajpoviScreen';
@@ -33,6 +33,8 @@ const iconMap = {
 };
 
 function HajpStackNavigator() {
+  const { colors } = useTheme();
+
   return (
     <HajpStack.Navigator
       screenOptions={{
@@ -64,6 +66,8 @@ function HajpStackNavigator() {
 const RankStack = createNativeStackNavigator();
 
 function RankStackNavigator() {
+  const { colors } = useTheme();
+
   return (
     <RankStack.Navigator
       screenOptions={{
@@ -81,6 +85,9 @@ function RankStackNavigator() {
 }
 
 function ProfileStackNavigator() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <ProfileStack.Navigator
       screenOptions={{
@@ -121,6 +128,8 @@ function ProfileStackNavigator() {
 }
 
 function HajpoviStackNavigator() {
+  const { colors } = useTheme();
+
   return (
     <HajpoviStack.Navigator
       screenOptions={{
@@ -137,6 +146,9 @@ function HajpoviStackNavigator() {
 }
 
 export default function MainTabs() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => {
@@ -156,8 +168,8 @@ export default function MainTabs() {
           tabBarStyle: hideTabBar
             ? { display: 'none' }
             : {
-                backgroundColor: colors.background,
-                borderTopColor: colors.surface,
+                backgroundColor: colors.surface,
+                borderTopColor: colors.border,
                 borderTopWidth: 1,
                 height: 86,
                 paddingBottom: 24,
@@ -188,6 +200,8 @@ export default function MainTabs() {
 }
 
 function HapticTabButton({ children, onPress, onLongPress, accessibilityState, style, ...rest }) {
+  const styles = useThemedStyles(createStyles);
+
   const handlePress = async () => {
     Haptics.selectionAsync().catch(() => {});
     onPress?.();
@@ -210,31 +224,32 @@ function HapticTabButton({ children, onPress, onLongPress, accessibilityState, s
   );
 }
 
-const styles = StyleSheet.create({
-  tabButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  glassButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.55)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-  },
-  gearButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  glassButtonLabel: {
-    color: colors.text_primary,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    tabButton: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    glassButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 14,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.55)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.4)',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: isDark ? 0.2 : 0.08,
+      shadowRadius: 2,
+    },
+    gearButton: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+    },
+    glassButtonLabel: {
+      color: colors.text_primary,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+  });

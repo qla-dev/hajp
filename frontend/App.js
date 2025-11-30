@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationLightTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config } from '@gluestack-ui/config';
@@ -17,7 +17,7 @@ import ShareScreen from './src/screens/ShareScreen';
 import SendAnonymousMessageScreen from './src/screens/SendAnonymousMessageScreen';
 import ShareLinkScreen from './src/screens/ShareLinkScreen';
 import MainTabs from './src/navigation/MainTabs';
-import colors from './src/theme/colors';
+import { ThemeProvider, useTheme } from './src/theme/darkMode';
 
 const RootStack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
@@ -34,6 +34,8 @@ function AuthStackNavigator() {
 }
 
 function MainStackNavigator() {
+  const { colors } = useTheme();
+
   return (
     <MainStack.Navigator
       initialRouteName="MainTabs"
@@ -79,16 +81,42 @@ function MainStackNavigator() {
   );
 }
 
-export default function App() {
+function AppContent() {
+  const { colors, isDark } = useTheme();
+
+  const navigationTheme = useMemo(() => {
+    const base = isDark ? NavigationDarkTheme : NavigationLightTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        primary: colors.primary,
+        background: colors.background,
+        card: colors.surface,
+        text: colors.text_primary,
+        border: colors.border,
+        notification: colors.accent,
+      },
+    };
+  }, [colors, isDark]);
+
   return (
     <GluestackUIProvider config={config}>
-      <NavigationContainer>
+      <NavigationContainer theme={navigationTheme}>
         <RootStack.Navigator initialRouteName="Auth" screenOptions={{ headerShown: false, animation: 'default' }}>
           <RootStack.Screen name="Auth" component={AuthStackNavigator} />
           <RootStack.Screen name="Main" component={MainStackNavigator} />
         </RootStack.Navigator>
-        <StatusBar style="auto" />
+        <StatusBar style={isDark ? 'light' : 'dark'} />
       </NavigationContainer>
     </GluestackUIProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }

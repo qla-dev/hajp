@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import colors from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/darkMode';
 
 export default function RankingScreen({ route }) {
   const { roomId } = route.params || {};
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   return (
     <View style={styles.container}>
@@ -16,33 +18,34 @@ export default function RankingScreen({ route }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: 16,
-    paddingTop: 100,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.text_primary,
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.text_secondary,
-    marginBottom: 16,
-  },
-  placeholder: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#ededed',
-  },
-  placeholderText: {
-    color: colors.text_secondary,
-    fontSize: 14,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      padding: 16,
+      paddingTop: 100,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: colors.text_primary,
+      marginBottom: 6,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.text_secondary,
+      marginBottom: 16,
+    },
+    placeholder: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    placeholderText: {
+      color: colors.text_secondary,
+      fontSize: 14,
+    },
+  });

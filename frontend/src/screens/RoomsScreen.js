@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
-import colors from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRooms } from '../api';
 
 export default function RoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   useEffect(() => {
     loadRooms();
@@ -48,45 +50,51 @@ export default function RoomsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: 4,
-    paddingHorizontal: 16,
-    paddingBottom: 4,
-  },
-  loadingText: {
-    color: colors.text_secondary,
-    fontSize: 16,
-    marginTop: 12,
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  list: {
-    paddingTop: 95,
-    paddingBottom: 4,
-  },
-  roomCard: {
-    backgroundColor: colors.surface,
-    padding: 16,
-    borderRadius: 12,
-    marginVertical: 6,
-    borderWidth: 1,
-    borderColor: colors.surface,
-  },
-  roomName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text_primary,
-  },
-  roomBadge: {
-    marginTop: 4,
-    fontSize: 12,
-    color: colors.error,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: 4,
+      paddingHorizontal: 16,
+      paddingBottom: 4,
+    },
+    loadingText: {
+      color: colors.text_secondary,
+      fontSize: 16,
+      marginTop: 12,
+    },
+    loader: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    list: {
+      paddingTop: 95,
+      paddingBottom: 4,
+    },
+    roomCard: {
+      backgroundColor: colors.surface,
+      padding: 16,
+      borderRadius: 12,
+      marginVertical: 6,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    roomName: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text_primary,
+    },
+    roomBadge: {
+      marginTop: 4,
+      fontSize: 12,
+      color: colors.error,
+      fontWeight: '700',
+    },
+  });

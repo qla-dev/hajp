@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import colors from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchMyVotes, getInbox, getCurrentUser } from '../api';
 
 const TAB_ANKETE = 'ankete';
@@ -13,6 +13,8 @@ export default function HajpoviScreen({ navigation }) {
   const [votes, setVotes] = useState([]);
   const [messages, setMessages] = useState([]);
   const [user, setUser] = useState(null);
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   const loadUser = useCallback(async () => {
     try {
@@ -198,119 +200,123 @@ export default function HajpoviScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  tabs: {
-    flexDirection: 'row',
-    padding: 16,
-    paddingTop: 100,
-    gap: 10,
-  },
-  tabButton: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.surface,
-    alignItems: 'center',
-  },
-  tabButtonActive: {
-    borderColor: colors.primary,
-    backgroundColor: '#eef2ff',
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.text_secondary,
-  },
-  tabTextActive: {
-    color: colors.primary,
-  },
-  messagesList: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  messageCard: {
-    flexDirection: 'row',
-    backgroundColor: colors.background,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  messageIcon: {
-    marginRight: 12,
-  },
-  messageContent: {
-    flex: 1,
-  },
-  messageText: {
-    fontSize: 15,
-    color: colors.text_primary,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  messageMetadata: {
-    fontSize: 13,
-    color: colors.text_secondary,
-  },
-  messageTime: {
-    fontSize: 12,
-    color: colors.text_secondary,
-  },
-  centerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: colors.text_secondary,
-    marginTop: 12,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text_primary,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: colors.text_secondary,
-    textAlign: 'center',
-  },
-  bottomCTA: {
-    padding: 20,
-    paddingBottom: 10,
-    paddingTop: 10,
-  },
-  ctaButton: {
-    backgroundColor: colors.text_primary,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 18,
-    borderRadius: 30,
-  },
-  ctaLock: {
-    fontSize: 18,
-    marginRight: 8,
-    marginBottom: 2,
-  },
-  ctaText: {
-    color: colors.textLight,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    tabs: {
+      flexDirection: 'row',
+      padding: 16,
+      paddingTop: 100,
+      gap: 10,
+    },
+    tabButton: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      paddingVertical: 10,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+    },
+    tabButtonActive: {
+      borderColor: colors.primary,
+      backgroundColor: isDark ? 'rgba(255, 107, 53, 0.12)' : '#eef2ff',
+    },
+    tabText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text_secondary,
+    },
+    tabTextActive: {
+      color: colors.primary,
+    },
+    messagesList: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+    },
+    messageCard: {
+      flexDirection: 'row',
+      backgroundColor: colors.surface,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 12,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08,
+      shadowRadius: 2,
+      elevation: 2,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    messageIcon: {
+      marginRight: 12,
+    },
+    messageContent: {
+      flex: 1,
+    },
+    messageText: {
+      fontSize: 15,
+      color: colors.text_primary,
+      fontWeight: '700',
+      marginBottom: 4,
+    },
+    messageMetadata: {
+      fontSize: 13,
+      color: colors.text_secondary,
+    },
+    messageTime: {
+      fontSize: 12,
+      color: colors.text_secondary,
+    },
+    centerContent: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 40,
+    },
+    loadingText: {
+      fontSize: 16,
+      color: colors.text_secondary,
+      marginTop: 12,
+    },
+    emptyText: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text_primary,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    emptySubtext: {
+      fontSize: 14,
+      color: colors.text_secondary,
+      textAlign: 'center',
+    },
+    bottomCTA: {
+      padding: 20,
+      paddingBottom: 10,
+      paddingTop: 10,
+    },
+    ctaButton: {
+      backgroundColor: colors.primary,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 18,
+      borderRadius: 30,
+    },
+    ctaLock: {
+      fontSize: 18,
+      marginRight: 8,
+      marginBottom: 2,
+      color: colors.textLight,
+    },
+    ctaText: {
+      color: colors.textLight,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+  });

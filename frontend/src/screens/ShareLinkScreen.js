@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import colors from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, getInbox } from '../api';
 
 export default function ShareLinkScreen() {
   const [link, setLink] = useState('');
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   useEffect(() => {
     const load = async () => {
@@ -31,32 +33,33 @@ export default function ShareLinkScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: colors.background,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.text_primary,
-    marginBottom: 12,
-  },
-  link: {
-    fontSize: 16,
-    color: colors.text_primary,
-    marginBottom: 16,
-  },
-  shareButton: {
-    backgroundColor: colors.primary,
-    padding: 16,
-    borderRadius: 12,
-  },
-  shareButtonText: {
-    color: colors.textLight,
-    textAlign: 'center',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 16,
+      backgroundColor: colors.background,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: colors.text_primary,
+      marginBottom: 12,
+    },
+    link: {
+      fontSize: 16,
+      color: colors.text_primary,
+      marginBottom: 16,
+    },
+    shareButton: {
+      backgroundColor: colors.primary,
+      padding: 16,
+      borderRadius: 12,
+    },
+    shareButtonText: {
+      color: colors.textLight,
+      textAlign: 'center',
+      fontSize: 15,
+      fontWeight: '700',
+    },
+  });

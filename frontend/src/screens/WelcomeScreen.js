@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import colors from '../theme/colors';
+import { useThemedStyles } from '../theme/darkMode';
 
 export default function WelcomeScreen({ navigation }) {
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -44,121 +46,122 @@ export default function WelcomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'center',
-  },
-  welcomeText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text_primary,
-    textAlign: 'center',
-    letterSpacing: 1,
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 40,
-  },
-  logoText: {
-    fontSize: 64,
-    fontWeight: '900',
-    color: colors.primary,
-    letterSpacing: -2,
-  },
-  logoEmoji: {
-    fontSize: 48,
-    marginLeft: -8,
-  },
-  featuresContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 20,
-  },
-  featureCard: {
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 8,
-  },
-  phonePreview: {
-    backgroundColor: colors.pollPurple,
-    borderRadius: 20,
-    padding: 20,
-    width: 140,
-    height: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  phonePreview2: {
-    backgroundColor: colors.background,
-    borderRadius: 20,
-    padding: 20,
-    width: 140,
-    height: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    borderStyle: 'solid',
-  },
-  featureEmoji: {
-    fontSize: 48,
-  },
-  featureTitle: {
-    color: colors.textLight,
-    fontWeight: '700',
-    fontSize: 12,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  featureDescription: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text_primary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  bottomContainer: {
-    padding: 24,
-    paddingBottom: 40,
-  },
-  startButton: {
-    backgroundColor: colors.primary,
-    padding: 18,
-    borderRadius: 30,
-    marginBottom: 16,
-  },
-  startButtonText: {
-    color: colors.textLight,
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  loginButton: {
-    padding: 12,
-    marginBottom: 8,
-  },
-  loginText: {
-    color: colors.text_primary,
-    textAlign: 'center',
-    fontSize: 14,
-  },
-  skipButton: {
-    padding: 8,
-  },
-  skipText: {
-    color: colors.text_secondary,
-    textAlign: 'center',
-    fontSize: 13,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      flex: 1,
+      padding: 24,
+      justifyContent: 'center',
+    },
+    welcomeText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text_primary,
+      textAlign: 'center',
+      letterSpacing: 1,
+    },
+    logoContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 8,
+      marginBottom: 40,
+    },
+    logoText: {
+      fontSize: 64,
+      fontWeight: '900',
+      color: colors.primary,
+      letterSpacing: -2,
+    },
+    logoEmoji: {
+      fontSize: 48,
+      marginLeft: -8,
+    },
+    featuresContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginTop: 20,
+    },
+    featureCard: {
+      alignItems: 'center',
+      flex: 1,
+      marginHorizontal: 8,
+    },
+    phonePreview: {
+      backgroundColor: colors.pollPurple,
+      borderRadius: 20,
+      padding: 20,
+      width: 140,
+      height: 180,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    phonePreview2: {
+      backgroundColor: colors.background,
+      borderRadius: 20,
+      padding: 20,
+      width: 140,
+      height: 180,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 12,
+      borderWidth: 2,
+      borderColor: colors.primary,
+      borderStyle: 'solid',
+    },
+    featureEmoji: {
+      fontSize: 48,
+    },
+    featureTitle: {
+      color: colors.textLight,
+      fontWeight: '700',
+      fontSize: 12,
+      marginTop: 8,
+      textAlign: 'center',
+    },
+    featureDescription: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text_primary,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    bottomContainer: {
+      padding: 24,
+      paddingBottom: 40,
+    },
+    startButton: {
+      backgroundColor: colors.primary,
+      padding: 18,
+      borderRadius: 30,
+      marginBottom: 16,
+    },
+    startButtonText: {
+      color: colors.textLight,
+      textAlign: 'center',
+      fontSize: 18,
+      fontWeight: '700',
+    },
+    loginButton: {
+      padding: 12,
+      marginBottom: 8,
+    },
+    loginText: {
+      color: colors.text_primary,
+      textAlign: 'center',
+      fontSize: 14,
+    },
+    skipButton: {
+      padding: 8,
+    },
+    skipText: {
+      color: colors.text_secondary,
+      textAlign: 'center',
+      fontSize: 13,
+    },
+  });

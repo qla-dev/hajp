@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Alert, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import colors from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, logout, fetchMyVotes } from '../api';
 
 export default function ProfileScreen({ navigation }) {
@@ -9,6 +9,9 @@ export default function ProfileScreen({ navigation }) {
   const [hypeCount, setHypeCount] = useState(0);
   const [recentHypes, setRecentHypes] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   const loadData = async () => {
     const current = await getCurrentUser();
@@ -61,7 +64,9 @@ export default function ProfileScreen({ navigation }) {
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
         contentInsetAdjustmentBehavior="always"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+        }
       >
         <View style={styles.profileSection}>
           <View style={styles.profileRow}>
@@ -120,8 +125,8 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.userHandle}>@{username}</Text>
 
           <View style={styles.userInfo}>
-            <Text style={styles.userInfoItem}>🎓 Škola: {user?.school || 'Bez škole'}</Text>
-            <Text style={styles.userInfoItem}>📚 Razred: {user?.grade || 'Bez razreda'}</Text>
+            <Text style={styles.userInfoItem}>🔥 Škola: {user?.school || 'Bez škole'}</Text>
+            <Text style={styles.userInfoItem}>🎓 Razred: {user?.grade || 'Bez razreda'}</Text>
           </View>
         </View>
 
@@ -141,6 +146,10 @@ export default function ProfileScreen({ navigation }) {
             ))
           )}
         </View>
+
+        <TouchableOpacity onPress={confirmLogout} style={styles.logoutLink}>
+          <Text style={styles.logoutLinkText}>Odjava</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       <View style={styles.bottomCTA}>
@@ -153,207 +162,219 @@ export default function ProfileScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  contentContainer: {
-    paddingBottom: 0,
-  },
-  profileSection: {
-    paddingVertical: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
-  },
-  profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 20,
-    paddingHorizontal: 20,
-  },
-  profileImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: colors.surface,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  statsColumn: {
-    flex: 1,
-    gap: 12,
-  },
-  statItemRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
-  },
-  statNumber: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#000',
-  },
-  statLabel: {
-    fontSize: 13,
-    color: '#7a7a7a',
-  },
-  coinsBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#d9d9d9',
-  },
-  coinsLabel: {
-    fontSize: 11,
-    color: '#7a7a7a',
-    fontWeight: '600',
-  },
-  coinsAmount: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#000',
-  },
-  shopButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 14,
-  },
-  shopButtonText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  shareButton: {
-    borderWidth: 1,
-    borderColor: '#d9d9d9',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 18,
-    flex: 1,
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-  },
-  shareButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#444',
-  },
-  userDetails: {
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
-  },
-  userName: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#000',
-    textAlign: 'left',
-  },
-  userHandle: {
-    fontSize: 15,
-    color: '#7a7a7a',
-    marginTop: 4,
-    textAlign: 'left',
-  },
-  userInfo: {
-    flexDirection: 'row',
-    marginTop: 10,
-    gap: 12,
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  userInfoItem: {
-    fontSize: 13,
-    color: '#7a7a7a',
-  },
-  section: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
-  },
-  rowSpread: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#000',
-    marginBottom: 12,
-  },
-  flameItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    gap: 12,
-  },
-  flameNumber: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#f97316',
-  },
-  flameEmoji: {
-    fontSize: 22,
-  },
-  flameText: {
-    flex: 1,
-    fontSize: 15,
-    color: '#111',
-    fontWeight: '600',
-  },
-  emptyHype: {
-    fontSize: 14,
-    color: '#7a7a7a',
-  },
-  bottomCTA: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 6,
-    padding: 20,
-    paddingBottom: 10,
-    paddingTop: 10,
-  },
-  ctaButton: {
-    backgroundColor: colors.text_primary,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 18,
-    borderRadius: 30,
-  },
-  ctaIcon: {
-    marginRight: 8,
-  },
-  ctaText: {
-    color: colors.textLight,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    contentContainer: {
+      paddingBottom: 90,
+    },
+    profileSection: {
+      paddingVertical: 20,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    profileRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 20,
+      paddingHorizontal: 20,
+    },
+    profileImage: {
+      width: 110,
+      height: 110,
+      borderRadius: 55,
+      backgroundColor: colors.surface,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    statsColumn: {
+      flex: 1,
+      gap: 12,
+    },
+    statItemRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: 6,
+    },
+    statNumber: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.text_primary,
+    },
+    statLabel: {
+      fontSize: 13,
+      color: colors.text_secondary,
+    },
+    coinsBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      backgroundColor: colors.background,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    coinsLabel: {
+      fontSize: 11,
+      color: colors.text_secondary,
+      fontWeight: '600',
+    },
+    coinsAmount: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.text_primary,
+    },
+    shopButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      borderRadius: 14,
+    },
+    shopButtonText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.textLight,
+    },
+    shareButton: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 18,
+      flex: 1,
+      alignItems: 'center',
+      backgroundColor: colors.background,
+    },
+    shareButtonText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text_primary,
+    },
+    userDetails: {
+      paddingHorizontal: 24,
+      paddingVertical: 20,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    userName: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: colors.text_primary,
+      textAlign: 'left',
+    },
+    userHandle: {
+      fontSize: 15,
+      color: colors.text_secondary,
+      marginTop: 4,
+      textAlign: 'left',
+    },
+    userInfo: {
+      flexDirection: 'row',
+      marginTop: 10,
+      gap: 12,
+      alignItems: 'center',
+      flexWrap: 'wrap',
+    },
+    userInfoItem: {
+      fontSize: 13,
+      color: colors.text_secondary,
+    },
+    section: {
+      padding: 16,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    rowSpread: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 12,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: colors.text_primary,
+      marginBottom: 12,
+    },
+    flameItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      gap: 12,
+    },
+    flameNumber: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    flameEmoji: {
+      fontSize: 22,
+    },
+    flameText: {
+      flex: 1,
+      fontSize: 15,
+      color: colors.text_primary,
+      fontWeight: '600',
+    },
+    emptyHype: {
+      fontSize: 14,
+      color: colors.text_secondary,
+    },
+    bottomCTA: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: colors.surface,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      elevation: 6,
+      padding: 20,
+      paddingBottom: 10,
+      paddingTop: 10,
+      borderTopColor: colors.border,
+      borderTopWidth: 1,
+    },
+    ctaButton: {
+      backgroundColor: colors.primary,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 18,
+      borderRadius: 30,
+    },
+    ctaIcon: {
+      marginRight: 8,
+    },
+    ctaText: {
+      color: colors.textLight,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    logoutLink: {
+      paddingVertical: 18,
+      alignItems: 'center',
+      backgroundColor: colors.background,
+    },
+    logoutLinkText: {
+      color: colors.error,
+      fontWeight: '700',
+    },
+  });

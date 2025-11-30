@@ -1,32 +1,80 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import colors from '../theme/colors';
+import React, { useMemo, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTheme } from '../theme/darkMode';
 import api from '../api';
 
 export default function CreatePollScreen({ navigation }) {
   const [question, setQuestion] = useState('');
-  const [options, setOptions] = useState(['','']);
+  const [options, setOptions] = useState(['', '']);
   const [target_school, setTargetSchool] = useState('');
+
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const onSubmit = async () => {
     const payload = { question, options: options.filter(Boolean), target_school };
-    try { await api.post('/api/polls', payload); navigation.goBack(); } catch {}
+    try {
+      await api.post('/api/polls', payload);
+      navigation.goBack();
+    } catch {}
   };
 
   return (
-    <View style={{ flex: 1, padding: 16, backgroundColor: colors.background }}>
-      <Text style={{ fontSize: 20, fontWeight: '600', color: colors.text_primary }}>Create Poll</Text>
-      <TextInput placeholder="Question" value={question} onChangeText={setQuestion} style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 16 }} />
+    <View style={styles.container}>
+      <Text style={styles.title}>Create Poll</Text>
+      <TextInput
+        placeholder="Question"
+        value={question}
+        onChangeText={setQuestion}
+        placeholderTextColor={colors.text_secondary}
+        style={styles.input}
+      />
       {options.map((opt, i) => (
-        <TextInput key={i} placeholder={`Option ${i+1}`} value={opt} onChangeText={(t)=>{
-          const next = [...options]; next[i]=t; setOptions(next);
-        }} style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 12 }} />
+        <TextInput
+          key={i}
+          placeholder={`Option ${i + 1}`}
+          value={opt}
+          onChangeText={(text) => {
+            const next = [...options];
+            next[i] = text;
+            setOptions(next);
+          }}
+          placeholderTextColor={colors.text_secondary}
+          style={styles.input}
+        />
       ))}
-      <TouchableOpacity onPress={()=> setOptions([...options,''])} style={{ marginTop: 8 }}><Text style={{ color: colors.primary }}>Add option</Text></TouchableOpacity>
-      <TextInput placeholder="Target School" value={target_school} onChangeText={setTargetSchool} style={{ borderWidth: 1, borderColor: colors.surface, padding: 12, borderRadius: 8, marginTop: 12 }} />
-      <TouchableOpacity onPress={onSubmit} style={{ backgroundColor: colors.primary, padding: 16, borderRadius: 8, marginTop: 16 }}>
-        <Text style={{ color: '#fff', textAlign: 'center' }}>Submit</Text>
+      <TouchableOpacity onPress={() => setOptions([...options, ''])} style={styles.addButton}>
+        <Text style={styles.addButtonText}>Add option</Text>
+      </TouchableOpacity>
+      <TextInput
+        placeholder="Target School"
+        value={target_school}
+        onChangeText={setTargetSchool}
+        placeholderTextColor={colors.text_secondary}
+        style={styles.input}
+      />
+      <TouchableOpacity onPress={onSubmit} style={styles.submitButton}>
+        <Text style={styles.submitText}>Submit</Text>
       </TouchableOpacity>
     </View>
   );
 }
+
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: { flex: 1, padding: 16, backgroundColor: colors.background },
+    title: { fontSize: 20, fontWeight: '600', color: colors.text_primary },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      padding: 12,
+      borderRadius: 8,
+      marginTop: 12,
+      color: colors.text_primary,
+    },
+    addButton: { marginTop: 8 },
+    addButtonText: { color: colors.primary, fontWeight: '600' },
+    submitButton: { backgroundColor: colors.primary, padding: 16, borderRadius: 8, marginTop: 16 },
+    submitText: { color: colors.textLight, textAlign: 'center', fontWeight: '700' },
+  });

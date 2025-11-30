@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import colors from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { subscriptionStatus, subscribe } from '../api';
 
 const perks = [
@@ -14,6 +14,8 @@ const perks = [
 
 export default function SubscriptionScreen({ navigation }) {
   const [sub, setSub] = useState(null);
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   const formatDate = (value) => {
     if (!value) return null;
@@ -46,9 +48,7 @@ export default function SubscriptionScreen({ navigation }) {
       <View style={styles.header}>
         <Text style={styles.headerText}>Pretplata</Text>
         <Text style={styles.subheaderText}>
-          {sub
-            ? `Aktivna do ${formatDate(sub.expires_at) || '...'}`
-            : 'Recurring billing. Otkaži kad god.'}
+          {sub ? `Aktivna do ${formatDate(sub.expires_at) || '...'}` : 'Recurring billing. Otkaži kad god.'}
         </Text>
       </View>
 
@@ -87,114 +87,115 @@ export default function SubscriptionScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#0c0b18',
-    padding: 20,
-    justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  headerText: {
-    color: colors.textLight,
-    fontSize: 22,
-    fontWeight: '800',
-  },
-  subheaderText: {
-    color: '#cbd5f5',
-    fontSize: 12,
-    marginTop: 6,
-  },
-  card: {
-    backgroundColor: '#101728',
-    borderRadius: 24,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.2,
-    shadowRadius: 18,
-    elevation: 10,
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'center',
-    gap: 6,
-    marginBottom: 8,
-  },
-  badgeText: {
-    color: colors.accent,
-    fontWeight: '800',
-    letterSpacing: 0.6,
-  },
-  title: {
-    color: colors.textLight,
-    fontSize: 26,
-    fontWeight: '800',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  subtitle: {
-    color: '#cbd5f5',
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 18,
-  },
-  perks: {
-    gap: 10,
-    marginBottom: 20,
-  },
-  perkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  perkText: {
-    color: colors.textLight,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'baseline',
-    marginBottom: 18,
-  },
-  priceValue: {
-    color: colors.textLight,
-    fontSize: 26,
-    fontWeight: '800',
-  },
-  priceUnit: {
-    color: '#d1d5db',
-    fontSize: 14,
-    marginLeft: 6,
-  },
-  ctaButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: 14,
-    borderRadius: 16,
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  ctaText: {
-    color: '#0c0b18',
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  laterButton: {
-    paddingVertical: 8,
-    alignItems: 'center',
-  },
-  laterText: {
-    color: '#cbd5f5',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: isDark ? colors.background : '#0c0b18',
+      padding: 20,
+      justifyContent: 'center',
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    headerText: {
+      color: colors.textLight,
+      fontSize: 22,
+      fontWeight: '800',
+    },
+    subheaderText: {
+      color: '#cbd5f5',
+      fontSize: 12,
+      marginTop: 6,
+    },
+    card: {
+      backgroundColor: isDark ? colors.surface : '#101728',
+      borderRadius: 24,
+      padding: 22,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.2,
+      shadowRadius: 18,
+      elevation: 10,
+    },
+    badge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'center',
+      gap: 6,
+      marginBottom: 8,
+    },
+    badgeText: {
+      color: colors.accent,
+      fontWeight: '800',
+      letterSpacing: 0.6,
+    },
+    title: {
+      color: colors.textLight,
+      fontSize: 26,
+      fontWeight: '800',
+      textAlign: 'center',
+      marginBottom: 4,
+    },
+    subtitle: {
+      color: '#cbd5f5',
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 18,
+    },
+    perks: {
+      gap: 10,
+      marginBottom: 20,
+    },
+    perkRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    perkText: {
+      color: colors.textLight,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    priceRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'baseline',
+      marginBottom: 18,
+    },
+    priceValue: {
+      color: colors.textLight,
+      fontSize: 26,
+      fontWeight: '800',
+    },
+    priceUnit: {
+      color: '#d1d5db',
+      fontSize: 14,
+      marginLeft: 6,
+    },
+    ctaButton: {
+      backgroundColor: colors.primary,
+      paddingVertical: 14,
+      borderRadius: 16,
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    ctaText: {
+      color: '#0c0b18',
+      fontSize: 16,
+      fontWeight: '800',
+      letterSpacing: 0.3,
+    },
+    laterButton: {
+      paddingVertical: 8,
+      alignItems: 'center',
+    },
+    laterText: {
+      color: '#cbd5f5',
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  });

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
-import colors from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getInbox, getCurrentUser } from '../api';
 
 export default function AnonymousInboxScreen() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   useEffect(() => {
     loadInbox();
@@ -80,96 +82,101 @@ export default function AnonymousInboxScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  messagesList: {
-    padding: 16,
-  },
-  messageCard: {
-    flexDirection: 'row',
-    backgroundColor: colors.background,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  messageIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  flameEmoji: {
-    fontSize: 22,
-  },
-  messageContent: {
-    flex: 1,
-  },
-  messageText: {
-    fontSize: 15,
-    color: colors.text_primary,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  messageMetadata: {
-    fontSize: 13,
-    color: colors.text_secondary,
-  },
-  messageTime: {
-    fontSize: 12,
-    color: colors.text_secondary,
-  },
-  centerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: colors.text_secondary,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text_primary,
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: colors.text_secondary,
-    textAlign: 'center',
-  },
-  bottomCTA: {
-    padding: 20,
-    paddingBottom: 30,
-  },
-  ctaButton: {
-    backgroundColor: colors.text_primary,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 18,
-    borderRadius: 30,
-  },
-  ctaIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  ctaText: {
-    color: colors.textLight,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    messagesList: {
+      padding: 16,
+    },
+    messageCard: {
+      flexDirection: 'row',
+      backgroundColor: colors.surface,
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 12,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.08,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    messageIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.background,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    flameEmoji: {
+      fontSize: 22,
+    },
+    messageContent: {
+      flex: 1,
+    },
+    messageText: {
+      fontSize: 15,
+      color: colors.text_primary,
+      fontWeight: '700',
+      marginBottom: 4,
+    },
+    messageMetadata: {
+      fontSize: 13,
+      color: colors.text_secondary,
+    },
+    messageTime: {
+      fontSize: 12,
+      color: colors.text_secondary,
+    },
+    centerContent: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 40,
+    },
+    loadingText: {
+      fontSize: 16,
+      color: colors.text_secondary,
+    },
+    emptyText: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text_primary,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    emptySubtext: {
+      fontSize: 14,
+      color: colors.text_secondary,
+      textAlign: 'center',
+    },
+    bottomCTA: {
+      padding: 20,
+      paddingBottom: 30,
+    },
+    ctaButton: {
+      backgroundColor: colors.primary,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 18,
+      borderRadius: 30,
+    },
+    ctaIcon: {
+      fontSize: 20,
+      marginRight: 8,
+      color: colors.textLight,
+    },
+    ctaText: {
+      color: colors.textLight,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+  });

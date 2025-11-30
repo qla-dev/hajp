@@ -1,8 +1,8 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import colors from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchActiveQuestion, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
 
 const { width } = Dimensions.get('window');
@@ -15,9 +15,11 @@ export default function PollingScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [finished, setFinished] = useState(false);
   const [firstLoad, setFirstLoad] = useState(true);
-  const emojis = useMemo(() => ['ðŸ˜€', 'ðŸ˜Ž', 'ðŸ”¥', 'ðŸŽ‰', 'ðŸš€', 'â­'], []);
+  const emojis = useMemo(() => ['🔥', '🚀', '💎', '🏆', '🎉', '✨'], []);
   const backgrounds = useMemo(() => ['#1d4ed8', '#7c3aed', '#2563eb', '#0ea5e9', '#22c55e', '#f97316'], []);
   const [bgColor, setBgColor] = useState(backgrounds[0]);
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   useEffect(() => {
     loadQuestion();
@@ -90,7 +92,7 @@ export default function PollingScreen({ route, navigation }) {
   };
 
   if (loading) {
-    const loadingLabel = firstLoad ? 'Učitavanje ankete' : 'Učitavanje pitanja';
+    const loadingLabel = firstLoad ? 'Ucitavanje ankete' : 'Ucitavanje pitanja';
     return (
       <View style={[styles.container, styles.center, { backgroundColor: bgColor }]}>
         <ActivityIndicator size="large" color={colors.textLight} />
@@ -163,33 +165,62 @@ export default function PollingScreen({ route, navigation }) {
           <View style={styles.iconWrapperSmall}>
             <Ionicons name="play-skip-forward-outline" size={24} color={colors.textLight} />
           </View>
-          <Text style={styles.actionText}>Preskoči pitanje</Text>
+          <Text style={styles.actionText}>Preskoci pitanje</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  center: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
-  counter: { color: colors.textLight, fontSize: 16, fontWeight: '600', textAlign: 'center', marginTop: 120 },
-  pollContent: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
-  emoji: { fontSize: 80, marginBottom: 20 },
-  question: { color: colors.textLight, fontSize: 24, fontWeight: '600', textAlign: 'center', lineHeight: 32 },
-  optionsContainer: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, justifyContent: 'center', marginBottom: 20 },
-  optionButton: { backgroundColor: 'rgba(255, 255, 255, 0.92)', height: 72, paddingHorizontal: 16, borderRadius: 12, margin: 6, width: (width - 64) / 2, alignItems: 'center', justifyContent: 'center' },
-  optionText: { color: colors.text_primary, fontSize: 15, fontWeight: '600', textAlign: 'center', lineHeight: 20 },
-  bottomActions: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 40, paddingBottom: 40 },
-  actionButton: { alignItems: 'center' },
-  iconWrapperSmall: { height: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
-  actionText: { color: colors.textLight, fontSize: 14, fontWeight: '600' },
-  loadingText: { color: colors.textLight, fontSize: 18, textAlign: 'center', marginTop: 12 },
-  congratsEmoji: { fontSize: 72, marginBottom: 12 },
-  congratsTitle: { color: colors.textLight, fontSize: 26, fontWeight: '700', textAlign: 'center' },
-  congratsSubtitle: { color: colors.textLight, fontSize: 16, textAlign: 'center', marginTop: 6, marginBottom: 20 },
-  backButton: { backgroundColor: 'rgba(255,255,255,0.92)', paddingVertical: 14, paddingHorizontal: 22, borderRadius: 14 },
-  backButtonText: { color: colors.text_primary, fontWeight: '700', fontSize: 16 },
-});
-
-
+const createStyles = (colors, isDark) =>
+  StyleSheet.create({
+    container: { flex: 1 },
+    center: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
+    counter: { color: colors.textLight, fontSize: 16, fontWeight: '600', textAlign: 'center', marginTop: 120 },
+    pollContent: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
+    emoji: { fontSize: 80, marginBottom: 20 },
+    question: { color: colors.textLight, fontSize: 24, fontWeight: '600', textAlign: 'center', lineHeight: 32 },
+    optionsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      paddingHorizontal: 20,
+      justifyContent: 'center',
+      marginBottom: 20,
+    },
+    optionButton: {
+      backgroundColor: isDark ? 'rgba(0,0,0,0.45)' : 'rgba(255, 255, 255, 0.92)',
+      height: 72,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      margin: 6,
+      width: (width - 64) / 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.75)',
+    },
+    optionText: {
+      color: isDark ? colors.textLight : colors.text_primary,
+      fontSize: 15,
+      fontWeight: '600',
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    bottomActions: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 40, paddingBottom: 40 },
+    actionButton: { alignItems: 'center' },
+    iconWrapperSmall: { height: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+    actionText: { color: colors.textLight, fontSize: 14, fontWeight: '600' },
+    loadingText: { color: colors.textLight, fontSize: 18, textAlign: 'center', marginTop: 12 },
+    congratsEmoji: { fontSize: 72, marginBottom: 12 },
+    congratsTitle: { color: colors.textLight, fontSize: 26, fontWeight: '700', textAlign: 'center' },
+    congratsSubtitle: { color: colors.textLight, fontSize: 16, textAlign: 'center', marginTop: 6, marginBottom: 20 },
+    backButton: {
+      backgroundColor: isDark ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.92)',
+      paddingVertical: 14,
+      paddingHorizontal: 22,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.9)',
+    },
+    backButtonText: { color: isDark ? colors.textLight : colors.text_primary, fontWeight: '700', fontSize: 16 },
+  });
