@@ -1,11 +1,25 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
 import colors from '../theme/colors';
+import { logout } from '../api';
 
 export default function SettingsScreen({ navigation }) {
   const [reduceNotifications, setReduceNotifications] = useState(false);
   const [hideTopFlames, setHideTopFlames] = useState(false);
   const [breakEnabled, setBreakEnabled] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'Auth',
+          state: { index: 0, routes: [{ name: 'Welcome' }] },
+        },
+      ],
+    });
+  };
 
   return (
     <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
@@ -40,7 +54,7 @@ export default function SettingsScreen({ navigation }) {
       </View>
 
       <View style={styles.section}>
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>Odjava</Text>
         </TouchableOpacity>
       </View>

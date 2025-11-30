@@ -39,9 +39,6 @@ export default function WelcomeScreen({ navigation }) {
           <Text style={styles.loginText}>Već imaš račun? Prijavi se</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Main')} style={styles.skipButton}>
-          <Text style={styles.skipText}>Preskoči - nastavi kao gost</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );

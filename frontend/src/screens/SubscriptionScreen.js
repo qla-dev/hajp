@@ -47,7 +47,7 @@ export default function SubscriptionScreen({ navigation }) {
         <Text style={styles.headerText}>Pretplata</Text>
         <Text style={styles.subheaderText}>
           {sub
-            ? `Pretplata je aktivna do ${formatDate(sub.expires_at) || '...'}`
+            ? `Aktivna do ${formatDate(sub.expires_at) || '...'}`
             : 'Recurring billing. Otkaži kad god.'}
         </Text>
       </View>

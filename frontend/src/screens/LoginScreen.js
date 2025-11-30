@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../theme/colors';
 import { login } from '../api';
@@ -48,7 +48,8 @@ export default function LoginScreen({ navigation }) {
         />
 
         <TouchableOpacity onPress={onLogin} style={[styles.loginButton, loading && styles.loginButtonDisabled]} disabled={loading}>
-          <Text style={styles.loginButtonText}>{loading ? 'Prijavljujem...' : 'Prijavi se'}</Text>
+          {loading && <ActivityIndicator size="small" color={colors.textLight} style={styles.loginSpinner} />}
+          <Text style={styles.loginButtonText}>{loading ? 'Prijava' : 'Prijavi se'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.registerLink}>
@@ -118,9 +119,15 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 30,
     marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   loginButtonDisabled: {
     opacity: 0.6,
+  },
+  loginSpinner: {
+    marginRight: 8,
   },
   loginButtonText: {
     color: colors.textLight,
