@@ -85,14 +85,14 @@ export default function SettingsScreen({ navigation }) {
       </View>
 
       <View style={styles.section}>
-        <TouchableOpacity style={styles.deleteButton}>
-          <Text style={styles.deleteText}>Obriši nalog</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={confirmLogout}>
+          <Text style={styles.logoutText}>Odjava</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
-        <TouchableOpacity style={styles.logoutButton} onPress={confirmLogout}>
-          <Text style={styles.logoutText}>Odjava</Text>
+        <TouchableOpacity style={styles.deleteButton}>
+          <Text style={styles.deleteText}>Obriši nalog</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -120,18 +120,14 @@ function ThemeOption({ option, selected, onSelect, systemScheme, styles, colors 
       : option.description;
 
   return (
-    <TouchableOpacity
-      style={[styles.themeRow, selected && styles.themeRowActive]}
-      onPress={() => onSelect(option.value)}
-      activeOpacity={0.9}
-    >
+    <TouchableOpacity style={styles.themeRow} onPress={() => onSelect(option.value)} activeOpacity={0.9}>
       <View style={styles.themeTextWrapper}>
         <Text style={styles.settingLabel}>{option.label}</Text>
         <Text style={styles.themeDescription}>{detail}</Text>
       </View>
       <Ionicons
         name={selected ? 'checkmark-circle' : 'ellipse-outline'}
-        size={22}
+        size={30}
         color={selected ? colors.primary : colors.text_secondary}
       />
     </TouchableOpacity>
@@ -202,11 +198,6 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       paddingVertical: 12,
       gap: 12,
-    },
-    themeRowActive: {
-      borderRadius: 10,
-      backgroundColor: 'rgba(255, 107, 53, 0.07)',
-      paddingHorizontal: 8,
     },
     themeTextWrapper: {
       flex: 1,
