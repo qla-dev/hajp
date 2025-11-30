@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../theme/colors';
 import { subscriptionStatus, subscribe } from '../api';
@@ -13,6 +14,16 @@ const perks = [
 
 export default function SubscriptionScreen({ navigation }) {
   const [sub, setSub] = useState(null);
+
+  const formatDate = (value) => {
+    if (!value) return null;
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return null;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}.${month}.${year}`;
+  };
 
   useEffect(() => {
     subscriptionStatus()
@@ -31,17 +42,20 @@ export default function SubscriptionScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.screen}>
+      <StatusBar style="light" />
       <View style={styles.header}>
         <Text style={styles.headerText}>Pretplata</Text>
         <Text style={styles.subheaderText}>
-          {sub ? 'Pretplata je aktivna' : 'Recurring billing. Otkaži kad god.'}
+          {sub
+            ? `Pretplata je aktivna do ${formatDate(sub.expires_at) || '...'}`
+            : 'Recurring billing. Otkaži kad god.'}
         </Text>
       </View>
 
       <View style={styles.card}>
         <View style={styles.badge}>
-          <Ionicons name="flash" size={18} color={colors.accent} />
-          <Text style={styles.badgeText}>GOD MODE</Text>
+          <Ionicons name="diamond" size={18} color={colors.accent} />
+          <Text style={styles.badgeText}>PREMIUM</Text>
         </View>
 
         <Text style={styles.title}>Vidi ko te hajpa</Text>
