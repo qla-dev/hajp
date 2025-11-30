@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Alert, RefreshControl } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import colors from '../theme/colors';
 import { getCurrentUser, logout, fetchMyVotes } from '../api';
 
@@ -105,7 +106,7 @@ export default function ProfileScreen({ navigation }) {
 
       <View style={styles.section}>
         <View style={styles.rowSpread}>
-          <TouchableOpacity style={styles.shareButton}>
+          <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('Share')}>
             <Text style={styles.shareButtonText}>Podijeli profil</Text>
           </TouchableOpacity>
 
@@ -123,11 +124,11 @@ export default function ProfileScreen({ navigation }) {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Top hajpovi</Text>
-        {recentHypes.length === 0 ? (
-          <Text style={styles.emptyHype}>Još nema hajpova</Text>
-        ) : (
-          recentHypes.map((item, idx) => (
-            <View key={item.id || idx} style={styles.flameItem}>
+      {recentHypes.length === 0 ? (
+        <Text style={styles.emptyHype}>Još nema hajpova</Text>
+      ) : (
+        recentHypes.map((item, idx) => (
+          <View key={item.id || idx} style={styles.flameItem}>
               <Text style={styles.flameNumber}>{idx + 1}</Text>
               <Text style={styles.flameEmoji}>🔥</Text>
               <Text style={styles.flameText} numberOfLines={1}>
@@ -138,16 +139,10 @@ export default function ProfileScreen({ navigation }) {
         )}
       </View>
 
-      <View style={styles.actionsSection}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Subscription')}
-          style={[styles.actionButton, { backgroundColor: colors.primary }]}
-        >
-          <Text style={[styles.actionButtonText, { color: colors.textLight }]}>Nadogradi na Premium</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={confirmLogout} style={[styles.actionButton, { backgroundColor: colors.error }]} >
-          <Text style={[styles.actionButtonText, { color: colors.textLight }]}>Odjava</Text>
+      <View style={styles.bottomCTA}>
+        <TouchableOpacity onPress={() => navigation.navigate('Subscription')} style={styles.ctaButton}>
+          <Ionicons name="diamond-outline" size={18} color={colors.textLight} style={{ marginRight: 8 }} />
+          <Text style={styles.ctaText}>Nadogradi na Premium</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -158,6 +153,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingBottom: 80,
   },
   profileSection: {
     paddingVertical: 24,
@@ -335,20 +331,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#7a7a7a',
   },
-  actionsSection: {
-    padding: 20,
-    gap: 12,
-    backgroundColor: '#fff',
+  bottomCTA: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
   },
-  actionButton: {
-    backgroundColor: colors.surface,
-    padding: 16,
-    borderRadius: 12,
+  ctaButton: {
+    backgroundColor: colors.text_primary,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 18,
+    borderRadius: 30,
   },
-  actionButtonText: {
-    textAlign: 'center',
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text_primary,
+  ctaText: {
+    color: colors.textLight,
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

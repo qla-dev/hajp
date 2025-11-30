@@ -291,7 +291,8 @@ const styles = StyleSheet.create({
   },
   bottomCTA: {
     padding: 20,
-    paddingBottom: 30,
+    paddingBottom: 10,
+    paddingTop: 10,
   },
   ctaButton: {
     backgroundColor: colors.text_primary,

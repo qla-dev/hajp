@@ -38,6 +38,12 @@ export default function SettingsScreen({ navigation }) {
           <Text style={styles.deleteText}>Obriši nalog</Text>
         </TouchableOpacity>
       </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity style={styles.logoutButton}>
+          <Text style={styles.logoutText}>Odjava</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -95,6 +101,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deleteText: {
+    color: colors.error,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  logoutButton: {
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  logoutText: {
     color: colors.error,
     fontWeight: '700',
     fontSize: 14,

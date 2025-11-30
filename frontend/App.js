@@ -14,10 +14,10 @@ import CreatePollScreen from './src/screens/CreatePollScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import ShareScreen from './src/screens/ShareScreen';
 import SendAnonymousMessageScreen from './src/screens/SendAnonymousMessageScreen';
 import ShareLinkScreen from './src/screens/ShareLinkScreen';
 import MainTabs from './src/navigation/MainTabs';
-import BasicHeader from './src/components/BasicHeader';
 import colors from './src/theme/colors';
 
 const RootStack = createNativeStackNavigator();
@@ -41,8 +41,8 @@ function MainStackNavigator() {
       screenOptions={{
         headerShown: true,
         headerTitleAlign: 'center',
-        headerTintColor: '#ff0000ff',
-        headerTitleStyle: { backgroundColor:'transparent', color: '#ff0000ff', fontWeight: '700', fontSize: 18 },
+        headerTintColor: colors.text_primary,
+        headerTitleStyle: { color: colors.text_primary, fontWeight: '700', fontSize: 18 },
         animation: 'default',
       }}
     >
@@ -73,7 +73,20 @@ function MainStackNavigator() {
           headerTransparent: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: 'transparent' },
-       }}
+        }}
+      />
+      <MainStack.Screen
+        name="Share"
+        component={ShareScreen}
+        options={{
+          title: 'Podijeli',
+          headerBackTitle: 'Nazad',
+          headerTintColor: colors.text_primary,
+          headerTitleStyle: { color: colors.text_primary, fontWeight: '700' },
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: 'transparent' },
+        }}
       />
       <MainStack.Screen name="SendAnonymousMessage" component={SendAnonymousMessageScreen} />
       <MainStack.Screen name="ShareLink" component={ShareLinkScreen} />
