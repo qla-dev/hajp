@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet, Text, Pressable, TouchableOpacity } from 'react-native';
+import { StyleSheet, Pressable, TouchableOpacity, Text } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import colors from '../theme/colors';
@@ -12,10 +12,10 @@ import HajpoviScreen from '../screens/HajpoviScreen';
 import RankRoomsScreen from '../screens/RankRoomsScreen';
 import RankingScreen from '../screens/RankingScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import BasicHeader from '../components/BasicHeader';
 
 const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
+const ProfileStack = createNativeStackNavigator();
 
 const headerLabelMap = {
   Hajp: 'Sobe',
@@ -35,28 +35,25 @@ function HajpStackNavigator() {
   return (
     <HajpStack.Navigator
       screenOptions={{
-        headerShown: true,
+        headerTransparent: true,
+        headerShadowVisible: false,
         headerTitleAlign: 'center',
+        headerTintColor: colors.text_primary,
+        headerStyle: { backgroundColor: 'transparent' },
       }}
     >
-      <HajpStack.Screen
-        name="Rooms"
-        component={RoomsScreen}
-        options={{ header: () => <BasicHeader title="Sobe" /> }}
-      />
+      <HajpStack.Screen name="Rooms" component={RoomsScreen} options={{ title: 'Sobe' }} />
       <HajpStack.Screen
         name="Polling"
         component={PollingScreen}
         options={{
-          headerTransparent: true,
-          headerTitle: () => <Text style={styles.gasHeaderTitle}>Hajp</Text>,
-          headerTitleAlign: 'center',
+          title: 'Hajp',
           headerTintColor: colors.textLight,
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: 'transparent' },
-          headerBackground: () => <View style={styles.gasHeaderBackground} />,
-          headerBackTitle: 'Sobe',
-          headerBackTitleVisible: true,
+          headerStyle: {
+            backgroundColor: 'transparent',
+            borderBottomColor: 'rgba(255,255,255,0.7)',
+            borderBottomWidth: 1,
+          },
         }}
       />
     </HajpStack.Navigator>
@@ -67,18 +64,58 @@ const RankStack = createNativeStackNavigator();
 
 function RankStackNavigator() {
   return (
-    <RankStack.Navigator screenOptions={{ headerShown: true, headerTitleAlign: 'center' }}>
-      <RankStack.Screen
-        name="RankRooms"
-        component={RankRoomsScreen}
-        options={{ header: () => <BasicHeader title="Sobe" /> }}
-      />
-      <RankStack.Screen
-        name="Ranking"
-        component={RankingScreen}
-        options={{ header: () => <BasicHeader title="Ranking" /> }}
-      />
+    <RankStack.Navigator
+      screenOptions={{
+        headerTransparent: true,
+        headerShadowVisible: false,
+        headerTitleAlign: 'center',
+        headerTintColor: colors.text_primary,
+        headerStyle: { backgroundColor: 'transparent' },
+      }}
+    >
+      <RankStack.Screen name="RankRooms" component={RankRoomsScreen} options={{ title: 'Sobe' }} />
+      <RankStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
     </RankStack.Navigator>
+  );
+}
+
+function ProfileStackNavigator() {
+  return (
+    <ProfileStack.Navigator
+      screenOptions={{
+        headerTransparent: true,
+        headerShadowVisible: false,
+        headerTitleAlign: 'center',
+        headerTintColor: colors.text_primary,
+        headerStyle: { backgroundColor: 'transparent' },
+      }}
+    >
+      <ProfileStack.Screen
+        name="ProfileHome"
+        component={ProfileScreen}
+        options={({ navigation }) => ({
+          title: headerLabelMap.Profile,
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Rank', { screen: 'RankRooms' })}
+              style={styles.glassButton}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.glassButtonLabel}>Sobe</Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Settings')}
+              style={[styles.glassButton, styles.gearButton]}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
+            </TouchableOpacity>
+          ),
+        })}
+      />
+    </ProfileStack.Navigator>
   );
 }
 
@@ -90,7 +127,13 @@ export default function MainTabs() {
         const hideTabBar = route.name === 'Hajp' && focused === 'Polling';
 
         return {
-          header: () => <BasicHeader title={headerLabelMap[route.name] || route.name} />,
+          headerTitle: headerLabelMap[route.name] || route.name,
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerTitleAlign: 'center',
+          headerTintColor: colors.text_primary,
+          headerStyle: { backgroundColor: 'transparent' },
+          headerShown: true,
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.text_secondary,
           tabBarStyle: hideTabBar
@@ -122,22 +165,7 @@ export default function MainTabs() {
       <Tab.Screen name="Hajp" component={HajpStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Rank" component={RankStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Inbox" component={HajpoviScreen} />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={({ navigation }) => ({
-          header: () => (
-            <BasicHeader
-              title={headerLabelMap.Profile}
-              rightComponent={
-                <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.glassButton}>
-                  <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
-                </TouchableOpacity>
-              }
-            />
-          ),
-        })}
-      />
+      <Tab.Screen name="Profile" component={ProfileStackNavigator} options={{ headerShown: false }} />
     </Tab.Navigator>
   );
 }
@@ -166,33 +194,30 @@ function HapticTabButton({ children, onPress, onLongPress, accessibilityState, s
 }
 
 const styles = StyleSheet.create({
-  gasHeaderBackground: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    borderBottomColor: 'rgba(255,255,255,0.3)',
-    borderBottomWidth: 1,
-  },
-  gasHeaderTitle: {
-    color: colors.textLight,
-    fontWeight: '700',
-    fontSize: 18,
-    marginTop: 10,
-  },
   tabButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   glassButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: 'rgba(255,255,255,0.55)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
+    borderColor: 'rgba(255,255,255,0.4)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 2,
+  },
+  gearButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  glassButtonLabel: {
+    color: colors.text_primary,
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
