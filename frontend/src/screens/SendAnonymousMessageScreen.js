@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { sendAnonMessage } from '../api';
+import FormTextInput from '../components/FormTextInput';
 
 export default function SendAnonymousMessageScreen({ route, navigation }) {
   const { inbox_id } = route.params || {};
@@ -21,13 +22,12 @@ export default function SendAnonymousMessageScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Pošalji anonimnu poruku</Text>
-      <TextInput
+      <FormTextInput
         placeholder="Poruka"
         value={message}
         onChangeText={setMessage}
         multiline
         style={styles.input}
-        placeholderTextColor={colors.text_secondary}
       />
       <TouchableOpacity onPress={onSend} style={styles.sendButton}>
         <Text style={styles.sendText}>Pošalji</Text>

@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
+import FormTextInput from '../components/FormTextInput';
 
 export default function EditProfileScreen({ navigation, route }) {
   const user = route.params?.user || {};
@@ -57,7 +58,7 @@ function InputRow({ label, value, styles, colors }) {
   return (
     <View style={styles.inputRow}>
       <Text style={styles.inputLabel}>{label}</Text>
-      <TextInput value={value} editable={false} style={styles.input} placeholderTextColor={colors.text_secondary} />
+      <FormTextInput value={value} editable={false} style={styles.input} />
     </View>
   );
 }

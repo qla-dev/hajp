@@ -1,27 +1,55 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Keyboard, LayoutAnimation, UIManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { register } from '../api';
+import FormTextInput from '../components/FormTextInput';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const genderOptions = [
+  { key: 'girl', label: 'Žensko', icon: 'female-outline' },
+  { key: 'boy', label: 'Muško', icon: 'male-outline' },
+];
+const years = Array.from({ length: 35 }, (_, i) => 16 + i); // 16 through 50
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [school, setSchool] = useState('');
-  const [grade, setGrade] = useState('');
+  const [gender, setGender] = useState('girl');
+  const [year, setYear] = useState(18);
   const [loading, setLoading] = useState(false);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const keyboardOffset = Platform.select({ ios: 0, android: 0 }); // keep zero to avoid extra padding when keyboard opens
+
+  useEffect(() => {
+    const animate = () =>
+      LayoutAnimation.configureNext({
+        duration: 120,
+        update: { type: LayoutAnimation.Types.easeInEaseOut },
+        create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+        delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+      });
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', animate);
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', animate);
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   const onRegister = async () => {
-    if (!name || !email || !password || !school || !grade) {
+    if (!name || !email || !password || !gender || !year) {
       alert('Please fill in all fields');
       return;
     }
     setLoading(true);
     try {
-      await register({ name, email, password, school, grade });
+      await register({ name, email, password, gender, year });
       navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
     } catch (e) {
       alert('Registration failed. Please try again.');
@@ -31,57 +59,77 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={keyboardOffset}
+    >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.content}>
           <Text style={styles.title}>Kreiraj račun</Text>
-          <Text style={styles.subtitle}>Pridruži se Hajpu i glasaj!</Text>
+          <Text style={styles.subtitle}>Pridruži se Hajpu, glasaj i budi dio zajednice!</Text>
 
-          <TextInput
+          <FormTextInput
             placeholder="Ime i prezime"
             value={name}
             onChangeText={setName}
+            autoCapitalize="words"
             style={styles.input}
-            placeholderTextColor={colors.text_secondary}
           />
 
-          <TextInput
+          <FormTextInput
             placeholder="Email"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
             style={styles.input}
-            placeholderTextColor={colors.text_secondary}
           />
 
-          <TextInput
+          <FormTextInput
             placeholder="Lozinka"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={true}
             style={styles.input}
-            placeholderTextColor={colors.text_secondary}
           />
 
-          <TextInput
-            placeholder="Škola"
-            value={school}
-            onChangeText={setSchool}
-            style={styles.input}
-            placeholderTextColor={colors.text_secondary}
-          />
+          <View style={styles.genderRow}>
+            {genderOptions.map((item) => {
+              const active = gender === item.key;
+              return (
+                <TouchableOpacity
+                  key={item.key}
+                  onPress={() => setGender(item.key)}
+                  style={[styles.genderButton, active && styles.genderButtonActive]}
+                >
+                  <View style={[styles.genderBadge, active && styles.genderBadgeActive]}>
+                    <Ionicons name={item.icon} size={16} color={active ? colors.textLight : colors.text_primary} />
+                  </View>
+                  <Text style={[styles.genderText, active && styles.genderTextActive]}>{item.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
 
-          <TextInput
-            placeholder="Razred (npr. 2. razred)"
-            value={grade}
-            onChangeText={setGrade}
-            style={styles.input}
-            placeholderTextColor={colors.text_secondary}
-          />
+        <View style={styles.ageBlock}>
+          <Text style={[styles.label, styles.ageLabel]}>Godine</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.yearScroll} contentContainerStyle={styles.yearRow}>
+            {years.map((y) => {
+              const active = year === y;
+              return (
+                <TouchableOpacity key={y} onPress={() => setYear(y)} style={[styles.yearChip, active && styles.yearChipActive]}>
+                  <Text style={[styles.yearText, active && styles.yearTextActive]}>{y}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
 
+        <View style={styles.content}>
           <TouchableOpacity onPress={onRegister} style={[styles.registerButton, loading && styles.registerButtonDisabled]} disabled={loading}>
-            <Text style={styles.registerButtonText}>{loading ? 'Kreiram račun...' : 'Kreiraj račun'}</Text>
+            <Text style={styles.registerButtonText}>{loading ? 'Kreiranje računa' : 'Kreiraj račun'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginLink}>
@@ -102,7 +150,7 @@ export default function RegisterScreen({ navigation }) {
                 <Text style={styles.socialText}>Google</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.socialButton} onPress={() => alert('Apple prijava uskoro')}>
-                <Ionicons name="logo-apple" size={22} color="#000" />
+                <Ionicons name="logo-apple" size={22} color={colors.text_primary} />
                 <Text style={styles.socialText}>Apple</Text>
               </TouchableOpacity>
             </View>
@@ -150,6 +198,89 @@ const createStyles = (colors) =>
       marginBottom: 16,
       fontSize: 16,
       color: colors.text_primary,
+    },
+    label: {
+      marginBottom: 8,
+      marginTop: 4,
+      color: colors.text_secondary,
+      fontWeight: '600',
+    },
+    genderRow: {
+      flexDirection: 'row',
+      gap: 12,
+      marginBottom: 12,
+    },
+    genderButton: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 14,
+      paddingVertical: 14,
+      paddingHorizontal: 12,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: 8,
+    },
+    genderButtonActive: {
+      borderColor: colors.primary,
+      backgroundColor: colors.surface,
+    },
+    genderBadge: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.border,
+    },
+    genderBadgeActive: {
+      backgroundColor: colors.primary,
+    },
+    genderText: {
+      fontWeight: '700',
+      color: colors.text_primary,
+    },
+    genderTextActive: {
+      color: colors.primary,
+    },
+    ageBlock: {
+      width: '100%',
+      paddingHorizontal: 0,
+      marginBottom: 16,
+    },
+    ageLabel: {
+      paddingHorizontal: 24,
+    },
+    yearScroll: {
+      width: '100%',
+    },
+    yearRow: {
+      paddingVertical: 6,
+      paddingLeft: 24,
+      paddingRight: 0,
+      gap: 6,
+    },
+    yearChip: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      marginRight: 6,
+      backgroundColor: colors.surface,
+    },
+    yearChipActive: {
+      borderColor: colors.primary,
+      backgroundColor: colors.surface,
+    },
+    yearText: {
+      fontWeight: '700',
+      color: colors.text_primary,
+    },
+    yearTextActive: {
+      color: colors.primary,
     },
     registerButton: {
       backgroundColor: colors.primary,

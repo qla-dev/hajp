@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard, LayoutAnimation, UIManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { login } from '../api';
+import FormTextInput from '../components/FormTextInput';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -10,6 +15,23 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const keyboardOffset = Platform.select({ ios: -20, android: 0 }); // tweak this value to move content when keyboard shows
+
+  useEffect(() => {
+    const animate = () =>
+      LayoutAnimation.configureNext({
+        duration: 120,
+        update: { type: LayoutAnimation.Types.easeInEaseOut },
+        create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+        delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+      });
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', animate);
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', animate);
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   const onLogin = async () => {
     if (!email || !password) return;
@@ -25,28 +47,30 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={keyboardOffset}
+    >
       <View style={styles.content}>
         <Text style={styles.title}>Prijava</Text>
         <Text style={styles.subtitle}>Dobrodošao nazad u Hajp!</Text>
 
-        <TextInput
+        <FormTextInput
           placeholder="Email"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
           style={styles.input}
-          placeholderTextColor={colors.text_secondary}
         />
 
-        <TextInput
+        <FormTextInput
           placeholder="Lozinka"
           value={password}
           onChangeText={setPassword}
           secureTextEntry={true}
           style={styles.input}
-          placeholderTextColor={colors.text_secondary}
         />
 
         <TouchableOpacity onPress={onLogin} style={[styles.loginButton, loading && styles.loginButtonDisabled]} disabled={loading}>
@@ -72,7 +96,7 @@ export default function LoginScreen({ navigation }) {
               <Text style={styles.socialText}>Google</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.socialButton} onPress={() => alert('Apple prijava uskoro')}>
-              <Ionicons name="logo-apple" size={22} color="#000" />
+              <Ionicons name="logo-apple" size={22} color={colors.text_primary} />
               <Text style={styles.socialText}>Apple</Text>
             </TouchableOpacity>
           </View>

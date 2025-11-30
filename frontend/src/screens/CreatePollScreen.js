@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/darkMode';
 import api from '../api';
+import FormTextInput from '../components/FormTextInput';
 
 export default function CreatePollScreen({ navigation }) {
   const [question, setQuestion] = useState('');
@@ -22,15 +23,14 @@ export default function CreatePollScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Poll</Text>
-      <TextInput
+      <FormTextInput
         placeholder="Question"
         value={question}
         onChangeText={setQuestion}
-        placeholderTextColor={colors.text_secondary}
         style={styles.input}
       />
       {options.map((opt, i) => (
-        <TextInput
+        <FormTextInput
           key={i}
           placeholder={`Option ${i + 1}`}
           value={opt}
@@ -39,18 +39,16 @@ export default function CreatePollScreen({ navigation }) {
             next[i] = text;
             setOptions(next);
           }}
-          placeholderTextColor={colors.text_secondary}
           style={styles.input}
         />
       ))}
       <TouchableOpacity onPress={() => setOptions([...options, ''])} style={styles.addButton}>
         <Text style={styles.addButtonText}>Add option</Text>
       </TouchableOpacity>
-      <TextInput
+      <FormTextInput
         placeholder="Target School"
         value={target_school}
         onChangeText={setTargetSchool}
-        placeholderTextColor={colors.text_secondary}
         style={styles.input}
       />
       <TouchableOpacity onPress={onSubmit} style={styles.submitButton}>
