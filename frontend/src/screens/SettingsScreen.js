@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { THEME_MODES } from '../theme/colors';
@@ -30,6 +30,13 @@ export default function SettingsScreen({ navigation }) {
         },
       ],
     });
+  };
+
+  const confirmLogout = () => {
+    Alert.alert('Odjava', 'Da li želite da se odjavite?', [
+      { text: 'Otkaži', style: 'cancel' },
+      { text: 'Odjavi me', style: 'destructive', onPress: handleLogout },
+    ]);
   };
 
   const handleThemeChange = (value) => {
@@ -84,7 +91,7 @@ export default function SettingsScreen({ navigation }) {
       </View>
 
       <View style={styles.section}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <TouchableOpacity style={styles.logoutButton} onPress={confirmLogout}>
           <Text style={styles.logoutText}>Odjava</Text>
         </TouchableOpacity>
       </View>

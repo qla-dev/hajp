@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchActiveQuestion, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
 
@@ -13,6 +14,7 @@ export default function PollingScreen({ route, navigation }) {
   const [total, setTotal] = useState(0);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshingQuestion, setRefreshingQuestion] = useState(false);
   const [finished, setFinished] = useState(false);
   const [firstLoad, setFirstLoad] = useState(true);
   const emojis = useMemo(() => ['🔥', '🚀', '💎', '🏆', '🎉', '✨'], []);
@@ -20,6 +22,7 @@ export default function PollingScreen({ route, navigation }) {
   const [bgColor, setBgColor] = useState(backgrounds[0]);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const headerHeight = useHeaderHeight();
 
   useEffect(() => {
     loadQuestion();
@@ -28,7 +31,11 @@ export default function PollingScreen({ route, navigation }) {
 
   const loadQuestion = async () => {
     if (!roomId) return;
-    setLoading(true);
+    if (firstLoad) {
+      setLoading(true);
+    } else {
+      setRefreshingQuestion(true);
+    }
     try {
       const { data } = await fetchActiveQuestion(roomId);
       const incomingTotal = data?.total ?? 0;
@@ -55,6 +62,7 @@ export default function PollingScreen({ route, navigation }) {
     }
     setFirstLoad(false);
     setLoading(false);
+    setRefreshingQuestion(false);
   };
 
   const handleVote = async (option) => {
@@ -91,7 +99,7 @@ export default function PollingScreen({ route, navigation }) {
     await loadQuestion();
   };
 
-  if (loading) {
+  if (loading && firstLoad) {
     const loadingLabel = firstLoad ? 'Ucitavanje ankete' : 'Ucitavanje pitanja';
     return (
       <View style={[styles.container, styles.center, { backgroundColor: bgColor }]}>
@@ -136,38 +144,51 @@ export default function PollingScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
+      <View style={[styles.progressTrack, { top: headerHeight }]}>
+        <View style={[styles.progressFill, { width: `${total ? Math.min(Math.max((index || 0) / (total || 1), 0), 1) * 100 : 0}%` }]} />
+      </View>
       <Text style={styles.counter}>
         {index || 1} od {total || 0}
       </Text>
 
       <View style={styles.pollContent}>
-        <Text style={styles.emoji}>{emoji}</Text>
-        <Text style={styles.question}>{question.question}</Text>
+        {refreshingQuestion ? (
+          <>
+            <ActivityIndicator size="large" color={colors.textLight} />
+            <Text style={styles.loadingText}>Ucitavanje pitanja</Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.emoji}>{emoji}</Text>
+            <Text style={styles.question}>{question.question}</Text>
+          </>
+        )}
       </View>
 
       <View style={styles.optionsContainer}>
         {normalizedOptions.map((option, idx) => (
-          <TouchableOpacity key={idx} onPress={() => handleVote(option.value)} style={styles.optionButton}>
+          <TouchableOpacity key={idx} onPress={() => handleVote(option.value)} style={styles.optionButton} disabled={refreshingQuestion}>
             <Text style={styles.optionText}>{option.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
       <View style={styles.bottomActions}>
-        <TouchableOpacity onPress={handleShuffle} style={styles.actionButton}>
+        <TouchableOpacity onPress={handleShuffle} style={styles.actionButton} disabled={refreshingQuestion}>
           <View style={styles.iconWrapperSmall}>
             <Ionicons name="shuffle-outline" size={26} color={colors.textLight} />
           </View>
           <Text style={styles.actionText}>Novi odgovori</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleSkip} style={styles.actionButton}>
+        <TouchableOpacity onPress={handleSkip} style={styles.actionButton} disabled={refreshingQuestion}>
           <View style={styles.iconWrapperSmall}>
             <Ionicons name="play-skip-forward-outline" size={24} color={colors.textLight} />
           </View>
-          <Text style={styles.actionText}>Preskoci pitanje</Text>
+          <Text style={styles.actionText}>Preskoči pitanje</Text>
         </TouchableOpacity>
       </View>
+
     </View>
   );
 }
@@ -175,6 +196,18 @@ export default function PollingScreen({ route, navigation }) {
 const createStyles = (colors, isDark) =>
   StyleSheet.create({
     container: { flex: 1 },
+    progressTrack: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      height: 3,
+      backgroundColor: 'rgba(255,255,255,0.35)',
+      zIndex: 1,
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: '#FFFFFF',
+    },
     center: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
     counter: { color: colors.textLight, fontSize: 16, fontWeight: '600', textAlign: 'center', marginTop: 120 },
     pollContent: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },

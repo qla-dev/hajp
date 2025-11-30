@@ -73,6 +73,7 @@ function MainStackNavigator() {
         component={ShareScreen}
         options={{
           title: 'Podijeli',
+          headerBackTitle: 'Nazad',
         }}
       />
       <MainStack.Screen name="SendAnonymousMessage" component={SendAnonymousMessageScreen} options={{ title: 'Anonimna poruka' }} />

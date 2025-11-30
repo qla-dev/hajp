@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Alert, RefreshControl } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { getCurrentUser, logout, fetchMyVotes } from '../api';
+import { getCurrentUser, fetchMyVotes } from '../api';
 
 export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
@@ -34,26 +34,6 @@ export default function ProfileScreen({ navigation }) {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: 'Auth',
-          state: { index: 0, routes: [{ name: 'Welcome' }] },
-        },
-      ],
-    });
-  };
-
-  const confirmLogout = () => {
-    Alert.alert('Odjava', 'Da li želite da se odjavite?', [
-      { text: 'Otkaži', style: 'cancel' },
-      { text: 'Odjavi me', style: 'destructive', onPress: handleLogout },
-    ]);
   };
 
   const username = user?.name ? user.name.toLowerCase().replace(' ', '') : 'gost';
@@ -147,9 +127,6 @@ export default function ProfileScreen({ navigation }) {
           )}
         </View>
 
-        <TouchableOpacity onPress={confirmLogout} style={styles.logoutLink}>
-          <Text style={styles.logoutLinkText}>Odjava</Text>
-        </TouchableOpacity>
       </ScrollView>
 
       <View style={styles.bottomCTA}>
@@ -366,15 +343,6 @@ const createStyles = (colors) =>
     ctaText: {
       color: colors.textLight,
       fontSize: 16,
-      fontWeight: '700',
-    },
-    logoutLink: {
-      paddingVertical: 18,
-      alignItems: 'center',
-      backgroundColor: colors.background,
-    },
-    logoutLinkText: {
-      color: colors.error,
       fontWeight: '700',
     },
   });
