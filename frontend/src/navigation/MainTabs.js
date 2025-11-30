@@ -122,22 +122,22 @@ export default function MainTabs() {
       <Tab.Screen name="Hajp" component={HajpStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Rank" component={RankStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Inbox" component={HajpoviScreen} />
-        <Tab.Screen
-          name="Profile"
-          component={ProfileScreen}
-          options={({ navigation }) => ({
-            header: () => (
-              <BasicHeader
-                title={headerLabelMap.Profile}
-                rightComponent={
-                  <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-                    <Ionicons name="settings-outline" size={22} color={colors.text_primary} />
-                  </TouchableOpacity>
-                }
-              />
-            ),
-          })}
-        />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={({ navigation }) => ({
+          header: () => (
+            <BasicHeader
+              title={headerLabelMap.Profile}
+              rightComponent={
+                <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.glassButton}>
+                  <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
+                </TouchableOpacity>
+              }
+            />
+          ),
+        })}
+      />
     </Tab.Navigator>
   );
 }
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   gasHeaderBackground: {
     flex: 1,
     backgroundColor: 'transparent',
-    borderBottomColor: 'rgba(255,255,255,0.7)',
+    borderBottomColor: 'rgba(255,255,255,0.3)',
     borderBottomWidth: 1,
   },
   gasHeaderTitle: {
@@ -182,5 +182,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  glassButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
   },
 });

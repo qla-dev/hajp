@@ -54,7 +54,7 @@ function MainStackNavigator() {
         component={EditProfileScreen}
         options={{
           title: 'Uredi profil',
-          headerBackTitle: 'Sobe',
+          headerBackTitle: 'Nazad',
           headerTintColor: colors.text_primary,
           headerTitleStyle: { color: colors.text_primary, fontWeight: '700' },
           headerTransparent: true,
@@ -67,7 +67,7 @@ function MainStackNavigator() {
         component={SettingsScreen}
         options={{
           title: 'Podešavanja',
-          headerBackTitle: 'Sobe',
+          headerBackTitle: 'Nazad',
           headerTintColor: colors.text_primary,
           headerTitleStyle: { color: colors.text_primary, fontWeight: '700' },
           headerTransparent: true,
