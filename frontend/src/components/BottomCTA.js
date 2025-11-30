@@ -1,14 +1,21 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 
 export default function BottomCTA({ label, onPress, iconName, emoji, fixed = false }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
 
+  const Container = fixed ? BlurView : View;
+
   return (
-    <View style={[styles.container, fixed && styles.containerFixed]}>
+    <Container
+      intensity={fixed ? 24 : 0}
+      tint={isDark ? 'dark' : 'light'}
+      style={[styles.container, fixed && styles.containerFixed]}
+    >
       <TouchableOpacity style={styles.button} onPress={onPress}>
         {iconName ? (
           <Ionicons name={iconName} size={20} color={colors.textLight} style={styles.icon} />
@@ -17,7 +24,7 @@ export default function BottomCTA({ label, onPress, iconName, emoji, fixed = fal
         ) : null}
         <Text style={styles.label}>{label}</Text>
       </TouchableOpacity>
-    </View>
+    </Container>
   );
 }
 
@@ -26,7 +33,7 @@ const createStyles = (colors, isDark) =>
     container: {
       padding: 20,
       paddingBottom: 10,
-      paddingTop: 10,
+      paddingTop: 0,
       backgroundColor: 'transparent',
     },
     containerFixed: {
@@ -34,7 +41,7 @@ const createStyles = (colors, isDark) =>
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: 'rgba(255,255,255,0)',
     },
     button: {
       backgroundColor: colors.primary,
