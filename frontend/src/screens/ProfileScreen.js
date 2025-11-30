@@ -64,6 +64,7 @@ export default function ProfileScreen({ navigation }) {
             />
 
             <View style={styles.statsColumn}>
+              <Text style={styles.userName}>{user?.name || 'Gost'}</Text>
               <View style={styles.statsRow}>
                 <View style={styles.statItemRow}>
                   <Text style={styles.statNumber}>176</Text>
@@ -87,8 +88,14 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </View>
         </View>
+             <View style={styles.userDetails}>
+          <View style={styles.userInfo}>
+            <Text style={styles.userInfoItem}>🔥 Škola: {user?.school || 'Bez škole'}</Text>
+            <Text style={styles.userInfoItem}>🎓 Razred: {user?.grade || 'Bez razreda'}</Text>
+          </View>
+        </View>
 
-        <View style={styles.section}>
+        <View style={styles.section2}>
           <View style={styles.rowSpread}>
             <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('EditProfile')}>
               <Text style={styles.shareButtonText}>Uredi profil</Text>
@@ -100,15 +107,7 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </View>
 
-        <View style={styles.userDetails}>
-          <Text style={styles.userName}>{user?.name || 'Gost'}</Text>
-          <Text style={styles.userHandle}>@{username}</Text>
-
-          <View style={styles.userInfo}>
-            <Text style={styles.userInfoItem}>🔥 Škola: {user?.school || 'Bez škole'}</Text>
-            <Text style={styles.userInfoItem}>🎓 Razred: {user?.grade || 'Bez razreda'}</Text>
-          </View>
-        </View>
+   
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Top hajpovi</Text>
@@ -256,7 +255,7 @@ const createStyles = (colors) =>
     },
     userInfo: {
       flexDirection: 'row',
-      marginTop: 10,
+      marginTop: 0,
       gap: 12,
       alignItems: 'center',
       flexWrap: 'wrap',
@@ -266,6 +265,12 @@ const createStyles = (colors) =>
       color: colors.text_secondary,
     },
     section: {
+      padding: 16,
+      backgroundColor: colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.transparent,
+    },
+    section2: {
       padding: 16,
       backgroundColor: colors.background,
       borderBottomWidth: 1,
