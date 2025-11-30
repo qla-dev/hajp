@@ -33,7 +33,7 @@ const createStyles = (colors, isDark) =>
     container: {
       padding: 20,
       paddingBottom: 10,
-      paddingTop: 0,
+      paddingTop: 10,
       backgroundColor: 'transparent',
     },
     containerFixed: {
