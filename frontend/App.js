@@ -1,6 +1,5 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
@@ -42,37 +41,27 @@ function MainStackNavigator() {
         headerShown: true,
         headerTitleAlign: 'center',
         headerTintColor: colors.text_primary,
-        headerTitleStyle: { color: colors.text_primary, fontWeight: '700', fontSize: 18 },
+        headerTransparent: true,
+        headerShadowVisible: false,
+        headerStyle: { backgroundColor: 'transparent' },
         animation: 'default',
       }}
     >
       <MainStack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
       <MainStack.Screen name="Subscription" component={SubscriptionScreen} options={{ headerShown: false }} />
-      <MainStack.Screen name="Profile" component={ProfileScreen} />
+      <MainStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil' }} />
       <MainStack.Screen
         name="EditProfile"
         component={EditProfileScreen}
         options={{
           title: 'Uredi profil',
-          headerBackTitle: 'Nazad',
-          headerTintColor: colors.text_primary,
-          headerTitleStyle: { color: colors.text_primary, fontWeight: '700' },
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: 'transparent' },
         }}
       />
       <MainStack.Screen
         name="Settings"
         component={SettingsScreen}
         options={{
-          title: 'Podešavanja',
-          headerBackTitle: 'Nazad',
-          headerTintColor: colors.text_primary,
-          headerTitleStyle: { color: colors.text_primary, fontWeight: '700' },
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: 'transparent' },
+          title: 'Podesavanja',
         }}
       />
       <MainStack.Screen
@@ -80,18 +69,12 @@ function MainStackNavigator() {
         component={ShareScreen}
         options={{
           title: 'Podijeli',
-          headerBackTitle: 'Nazad',
-          headerTintColor: colors.text_primary,
-          headerTitleStyle: { color: colors.text_primary, fontWeight: '700' },
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: 'transparent' },
         }}
       />
-      <MainStack.Screen name="SendAnonymousMessage" component={SendAnonymousMessageScreen} />
-      <MainStack.Screen name="ShareLink" component={ShareLinkScreen} />
-      <MainStack.Screen name="CreatePoll" component={CreatePollScreen} options={{ headerShown: false }} />
-      <MainStack.Screen name="PollDetail" component={PollDetailScreen} options={{ headerShown: false }} />
+      <MainStack.Screen name="SendAnonymousMessage" component={SendAnonymousMessageScreen} options={{ title: 'Anonimna poruka' }} />
+      <MainStack.Screen name="ShareLink" component={ShareLinkScreen} options={{ title: 'Link' }} />
+      <MainStack.Screen name="CreatePoll" component={CreatePollScreen} options={{ title: 'Kreiraj anketu' }} />
+      <MainStack.Screen name="PollDetail" component={PollDetailScreen} options={{ title: 'Detalji ankete' }} />
     </MainStack.Navigator>
   );
 }
@@ -109,12 +92,3 @@ export default function App() {
     </GluestackUIProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  gasHeaderBackground: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    borderBottomColor: 'rgba(0,0,0,0.05)',
-    borderBottomWidth: 1,
-  },
-});
