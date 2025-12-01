@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { getCurrentUser, fetchMyVotes } from '../api';
+import { getCurrentUser, fetchMyVotes, fetchUserRooms } from '../api';
 import BottomCTA from '../components/BottomCTA';
 
 export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [hypeCount, setHypeCount] = useState(0);
   const [recentHypes, setRecentHypes] = useState([]);
+  const [roomSummary, setRoomSummary] = useState({ total: 0, rooms: [] });
   const [refreshing, setRefreshing] = useState(false);
 
   const { colors } = useTheme();
@@ -24,6 +25,12 @@ export default function ProfileScreen({ navigation }) {
       setHypeCount(0);
       setRecentHypes([]);
     }
+    try {
+      const { data } = await fetchUserRooms();
+      setRoomSummary({ total: data?.total || 0, rooms: data?.rooms || [] });
+    } catch {
+      setRoomSummary({ total: 0, rooms: [] });
+    }
   };
 
   useEffect(() => {
@@ -37,6 +44,12 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const username = user?.name ? user.name.toLowerCase().replace(' ', '') : 'gost';
+  const displayedRooms = (roomSummary.rooms || []).slice(0, 3);
+  const remainingRooms = Math.max((roomSummary.total || 0) - displayedRooms.length, 0);
+  const roomLine =
+    displayedRooms.length > 0
+      ? `Član ${displayedRooms.join(', ')}${remainingRooms > 0 ? ` i još ${remainingRooms} soba` : ''}`
+      : 'Nisi član nijedne sobe';
 
   return (
     <View style={styles.screen}>
@@ -88,10 +101,27 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </View>
         </View>
-             <View style={styles.userDetails}>
-          <View style={styles.userInfo}>
-            <Text style={styles.userInfoItem}>🔥 Škola: {user?.school || 'Bez škole'}</Text>
-            <Text style={styles.userInfoItem}>🎓 Razred: {user?.grade || 'Bez razreda'}</Text>
+        <View style={styles.userDetails}>
+          <View style={styles.roomRow}>
+            <View style={styles.roomAvatars}>
+              {[0, 1, 2].map((idx) => {
+                const name = displayedRooms[idx];
+                const label = name ? name.trim().charAt(0).toUpperCase() : '?';
+                const isVisible = Boolean(name);
+                return (
+                  <View
+                    key={idx}
+                    style={[
+                      styles.roomAvatar,
+                      { marginLeft: idx === 0 ? 0 : -12, opacity: isVisible ? 1 : 0.4 },
+                    ]}
+                  >
+                    <Text style={styles.roomAvatarText}>{label}</Text>
+                  </View>
+                );
+              })}
+            </View>
+            <Text style={styles.roomSummaryText}>{roomLine}</Text>
           </View>
         </View>
 
@@ -263,6 +293,37 @@ const createStyles = (colors) =>
     userInfoItem: {
       fontSize: 13,
       color: colors.text_secondary,
+    },
+    roomRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+    },
+    roomAvatars: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    roomAvatar: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.secondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: colors.background,
+    },
+    roomAvatarText: {
+      fontSize: 16,
+      fontWeight: '800',
+      color: colors.textLight,
+    },
+    roomSummaryText: {
+      flex: 1,
+      fontSize: 14,
+      color: colors.text_primary,
+      fontWeight: '600',
     },
     section: {
       padding: 16,

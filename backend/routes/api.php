@@ -33,13 +33,29 @@ Route::post('/anonymous/message', [AnonInboxController::class, 'createMessage'])
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', fn (Request $request) => $request->user());
-    Route::post('/questions/{question}/vote', [QuestionController::class, 'vote']);
-    Route::post('/questions/{question}/skip', [QuestionController::class, 'skip']);
-    Route::get('/my/votes', [QuestionController::class, 'myVotes']);
-    Route::get('/rooms/{room}/questions/active', [RoomController::class, 'activeQuestion']);
-    Route::get('/subscription/status', [SubscriptionController::class, 'status']);
-    Route::post('/subscription/subscribe', [SubscriptionController::class, 'subscribe']);
+
+    Route::prefix('user')->group(function () {
+        Route::get('/', fn (Request $request) => $request->user());
+        Route::get('/rooms', [RoomController::class, 'userRooms']);
+    });
+
+    Route::prefix('questions')->group(function () {
+        Route::post('/{question}/vote', [QuestionController::class, 'vote']);
+        Route::post('/{question}/skip', [QuestionController::class, 'skip']);
+    });
+
+    Route::prefix('my')->group(function () {
+        Route::get('/votes', [QuestionController::class, 'myVotes']);
+    });
+
+    Route::prefix('rooms')->group(function () {
+        Route::get('/{room}/questions/active', [RoomController::class, 'activeQuestion']);
+    });
+
+    Route::prefix('subscription')->group(function () {
+        Route::get('/status', [SubscriptionController::class, 'status']);
+        Route::post('/subscribe', [SubscriptionController::class, 'subscribe']);
+    });
 });
 
 // Simple unauthenticated test endpoint

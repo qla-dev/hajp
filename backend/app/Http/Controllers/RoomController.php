@@ -14,6 +14,22 @@ class RoomController extends Controller
         return Room::select('id', 'name', 'type', 'is_18_over')->get();
     }
 
+    public function userRooms(Request $request)
+    {
+        $roomsQuery = $request->user()
+            ->rooms()
+            ->select('rooms.id', 'rooms.name')
+            ->orderByDesc('room_members.created_at');
+
+        $total = (clone $roomsQuery)->count();
+        $roomNames = (clone $roomsQuery)->limit(3)->pluck('name')->values();
+
+        return response()->json([
+            'total' => $total,
+            'rooms' => $roomNames,
+        ]);
+    }
+
     public function activeQuestion(Request $request, Room $room)
     {
         $user = $request->user();
