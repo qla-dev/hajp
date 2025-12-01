@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground, Dimensions, Alert, Modal, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground, Dimensions, Alert, FlatList } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, baseURL } from '../api';
+import ShareInstructionModal from '../components/ShareInstructionModal';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.72;
@@ -174,39 +175,12 @@ export default function ShareScreen() {
         </View>
       </ScrollView>
 
-      <Modal visible={showShareModal} transparent animationType="fade" onRequestClose={() => setShowShareModal(false)}>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <TouchableOpacity style={styles.modalIconButton}>
-                <Text style={styles.modalIcon}>📸</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalIconButton}>
-                <Text style={styles.modalIcon}>👻</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalIconButton}>
-                <Text style={styles.modalIcon}>💬</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.modalAvatarWrapper}>
-              {avatarUri ? (
-                <Image source={{ uri: avatarUri }} style={styles.modalAvatar} />
-              ) : (
-                <View style={[styles.modalAvatar, styles.avatarPlaceholder]}>
-                  <Text style={styles.avatarInitial}>{avatarInitial}</Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.modalBody}>
-              <Text style={styles.modalTitle}>Podijeli link</Text>
-              <Text style={styles.modalSubtitle}>Kako dodati link na priču</Text>
-              <TouchableOpacity style={styles.modalPrimaryButton} onPress={() => setShowShareModal(false)}>
-                <Text style={styles.modalPrimaryButtonText}>Next Step</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ShareInstructionModal
+        visible={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        avatarUri={avatarUri}
+        avatarInitial={avatarInitial}
+      />
     </View>
   );
 }
@@ -348,72 +322,4 @@ const createStyles = (colors) =>
       fontWeight: '800',
       fontSize: 16,
     },
-    modalBackdrop: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.45)',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 20,
-    },
-    modalCard: {
-      width: '100%',
-      backgroundColor: colors.surface,
-      borderRadius: 24,
-      padding: 16,
-      alignItems: 'center',
-      gap: 16,
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      gap: 12,
-      marginTop: 4,
-    },
-    modalIconButton: {
-      backgroundColor: colors.background,
-      borderRadius: 14,
-      paddingVertical: 10,
-      paddingHorizontal: 14,
-    },
-    modalIcon: {
-      fontSize: 18,
-    },
-    modalAvatarWrapper: {
-      width: 94,
-      height: 94,
-      borderRadius: 47,
-      overflow: 'hidden',
-      backgroundColor: colors.secondary,
-    },
-    modalAvatar: {
-      width: '100%',
-      height: '100%',
-    },
-    modalBody: {
-      width: '100%',
-      alignItems: 'center',
-      gap: 10,
-    },
-    modalTitle: {
-      fontSize: 18,
-      fontWeight: '800',
-      color: colors.text_primary,
-    },
-    modalSubtitle: {
-      fontSize: 13,
-      color: colors.text_secondary,
-    },
-    modalPrimaryButton: {
-      backgroundColor: colors.primary,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 16,
-      width: '100%',
-      alignItems: 'center',
-      marginTop: 8,
-    },
-    modalPrimaryButtonText: {
-      color: colors.textLight,
-      fontWeight: '800',
-    },
   });
-
