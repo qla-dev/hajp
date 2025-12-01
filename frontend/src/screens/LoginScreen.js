@@ -10,7 +10,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { colors } = useTheme();
@@ -34,10 +34,10 @@ export default function LoginScreen({ navigation }) {
   }, []);
 
   const onLogin = async () => {
-    if (!email || !password) return;
+    if (!identifier || !password) return;
     setLoading(true);
     try {
-      await login({ email, password });
+      await login({ email: identifier, password });
       navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
     } catch (e) {
       alert('Login failed. Please check your credentials.');
@@ -57,9 +57,9 @@ export default function LoginScreen({ navigation }) {
         <Text style={styles.subtitle}>Dobrodošao nazad u Hajp!</Text>
 
         <FormTextInput
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
+          placeholder="Email ili username"
+          value={identifier}
+          onChangeText={setIdentifier}
           autoCapitalize="none"
           keyboardType="email-address"
           style={styles.input}

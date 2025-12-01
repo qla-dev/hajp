@@ -14,9 +14,8 @@ class TestUserSeeder extends Seeder
             ['email' => 'demo@example.com'],
             [
                 'name' => 'Demo User',
+                'username' => 'demo',
                 'password' => Hash::make('password123'),
-                'school' => 'Demo High School',
-                'grade' => '12th Grade',
                 'profile_photo' => null,
                 'is_subscribed' => false,
             ]

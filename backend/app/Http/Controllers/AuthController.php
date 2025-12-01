@@ -13,19 +13,17 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
+            'username' => 'required|string|max:50|unique:users,username',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'school' => 'required|string',
-            'grade' => 'required|string',
             'sex' => 'nullable|string|max:10',
         ]);
 
         $user = User::create([
             'name' => $data['name'],
+            'username' => $data['username'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'school' => $data['school'],
-            'grade' => $data['grade'],
             'sex' => $data['sex'] ?? null,
         ]);
 
@@ -36,11 +34,14 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $data = $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $data['email'])->first();
+        $identifier = $data['email'];
+        $user = User::where('email', $identifier)
+            ->orWhere('username', $identifier)
+            ->first();
         if (!$user || !Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages(['email' => ['The provided credentials are incorrect.']]);
         }

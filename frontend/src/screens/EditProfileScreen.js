@@ -14,6 +14,7 @@ const years = Array.from({ length: 35 }, (_, i) => 16 + i); // 16 through 50
 
 const normalizeUser = (user) => ({
   name: user?.name || '',
+  username: user?.username || '',
   email: user?.email || '',
   sex: user?.sex || '',
   grade: user?.grade ? Number(user.grade) || 18 : 18,
@@ -39,7 +40,7 @@ export default function EditProfileScreen({ navigation, route }) {
   const styles = useThemedStyles(createStyles);
   const avatarTextColor = encodeURIComponent(colors.textLight.replace('#', ''));
 
-  const isDirty = ['name', 'email', 'sex', 'grade'].some((key) => form[key] !== initialValues[key]);
+  const isDirty = ['name', 'email', 'sex'].some((key) => form[key] !== initialValues[key]);
 
   const applyUser = useCallback((userData) => {
     const normalized = normalizeUser(userData);
@@ -82,7 +83,7 @@ export default function EditProfileScreen({ navigation, route }) {
         name: form.name.trim(),
         email: form.email.trim(),
         sex: form.sex ? form.sex.trim() : null,
-        grade: form.grade ? String(form.grade) : null,
+        // grade removed from backend; keep only editable fields
       };
       const { data } = await updateCurrentUser(payload);
       applyUser(data);
@@ -158,11 +159,20 @@ export default function EditProfileScreen({ navigation, route }) {
           style={[styles.saveButton, (!isDirty || saving || loading) && styles.saveButtonDisabled]}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          {saving ? <ActivityIndicator size="small" color={colors.text_primary} /> : <Text style={styles.saveButtonText}>Spasi</Text>}
+          {saving ? <ActivityIndicator size="small" color={colors.primary} /> : <Text style={styles.saveButtonText}>Spasi</Text>}
         </TouchableOpacity>
       ),
     });
   }, [colors.text_primary, isDirty, loading, navigation, onSave, saving, styles]);
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.fullscreenLoader]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.loadingText}>Ucitavanje informacija</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
@@ -183,17 +193,17 @@ export default function EditProfileScreen({ navigation, route }) {
           />
           <TouchableOpacity style={styles.cameraBadge} onPress={onPickPhoto} activeOpacity={0.9} disabled={uploadingPhoto}>
             {uploadingPhoto ? (
-              <ActivityIndicator size="small" color={colors.text_primary} />
+              <ActivityIndicator size="small" color={colors.primary} />
             ) : (
               <Ionicons name="camera" size={18} color={colors.text_primary} />
             )}
           </TouchableOpacity>
         </View>
-        <Text style={styles.avatarNote}>Formati slika do 3 MB</Text>
+        <Text style={styles.avatarNote}>Formati slika do 3 MB. Ova slika će biti javno dostupna.</Text>
       </View>
 
       <View style={styles.formSection}>
-        <Text style={[styles.label, styles.labelSpacing]}>Osnovni podaci</Text>
+        <Text style={styles.formSectionLabel}>Osnovni podaci</Text>
         <FormTextInput
           placeholder="Ime i prezime"
           value={form.name}
@@ -201,6 +211,12 @@ export default function EditProfileScreen({ navigation, route }) {
           style={styles.input}
           editable={!saving}
           autoCapitalize="words"
+        />
+        <FormTextInput
+          placeholder="Korisnicko ime"
+          value={form.username}
+          editable={false}
+          style={[styles.input, styles.disabledInput]}
         />
         <FormTextInput
           placeholder="Email"
@@ -230,7 +246,9 @@ export default function EditProfileScreen({ navigation, route }) {
             );
           })}
         </View>
+      </View>
 
+      <View style={styles.yearSection}>
         <Text style={[styles.label, styles.labelSpacing]}>Godine</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.yearScroll} contentContainerStyle={styles.yearRow}>
           {years.map((y) => {
@@ -247,13 +265,14 @@ export default function EditProfileScreen({ navigation, route }) {
             );
           })}
         </ScrollView>
-        {loading && (
-          <View style={styles.loadingRow}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={styles.loadingText}>Ucitavanje profila...</Text>
-          </View>
-        )}
       </View>
+
+      {loading && (
+        <View style={styles.loadingRow}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={styles.loadingText}>Ucitavanje profila...</Text>
+        </View>
+      )}
 
       {/* <Text style={styles.sectionLabel}>Podesavanja naloga</Text>
       <View style={styles.formSection}>
@@ -399,11 +418,12 @@ const createStyles = (colors) =>
       marginTop: 18,
     },
     formSection: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.transparent,
       paddingHorizontal: 16,
       paddingVertical: 16,
+      paddingBottom: 0,
       borderTopWidth: 1,
-      borderBottomWidth: 1,
+      borderBottomWidth: 0,
       borderColor: colors.border,
       gap: 12,
     },
@@ -417,6 +437,9 @@ const createStyles = (colors) =>
       fontSize: 15,
       color: colors.text_primary,
     },
+    disabledInput: {
+      opacity: 0.7,
+    },
     sectionLabel: {
       paddingHorizontal: 16,
       paddingTop: 16,
@@ -427,7 +450,7 @@ const createStyles = (colors) =>
     },
     formSectionLabel: {
       alignSelf: 'flex-start',
-      paddingTop: 6,
+      paddingTop: 10,
       paddingBottom: 6,
       fontSize: 13,
       color: colors.text_secondary,
@@ -464,5 +487,21 @@ const createStyles = (colors) =>
     loadingText: {
       color: colors.text_secondary,
       fontSize: 13,
+      marginTop: 8,
+    },
+    fullscreenLoader: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    yearSection: {
+      backgroundColor: colors.transparent,
+      paddingLeft: 16,
+      paddingRight: 0,
+      paddingVertical: 12,
+      paddingBottom: 26,
+      borderBottomWidth: 0,
+      borderTopWidth: 0,
+      borderColor: colors.border,
+      gap: 8,
     },
   });

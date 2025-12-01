@@ -25,8 +25,6 @@ class DemoDataSeeder extends Seeder
             'Learning Prep School',
         ];
 
-        $grades = ['9th Grade', '10th Grade', '11th Grade', '12th Grade'];
-
         $users = [];
         $firstNames = ['Emma', 'Olivia', 'Ava', 'Sophia', 'Isabella', 'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn',
             'Liam', 'Noah', 'Oliver', 'Elijah', 'James', 'William', 'Benjamin', 'Lucas', 'Henry', 'Alexander',
@@ -42,15 +40,11 @@ class DemoDataSeeder extends Seeder
 
         foreach ($firstNames as $index => $firstName) {
             $lastName = $lastNames[$index];
-            $school = $schools[array_rand($schools)];
-            $grade = $grades[array_rand($grades)];
-
             $user = User::create([
                 'name' => $firstName . ' ' . $lastName,
+                'username' => strtolower($firstName . $lastName . $index),
                 'email' => strtolower($firstName . '.' . $lastName . '@school.com'),
                 'password' => Hash::make('password123'),
-                'school' => $school,
-                'grade' => $grade,
                 'profile_photo' => null,
                 'is_subscribed' => rand(0, 1) === 1,
             ]);
@@ -70,20 +64,21 @@ class DemoDataSeeder extends Seeder
             $users[] = $user;
         }
 
-        // Rooms per school
+        // Rooms (using school names as room labels)
+        $roomNames = $schools;
         $rooms = [];
-        foreach ($schools as $schoolName) {
-            $rooms[$schoolName] = Room::create([
-                'name' => $schoolName,
-                'type' => 'school',
+        foreach ($roomNames as $roomName) {
+            $rooms[$roomName] = Room::create([
+                'name' => $roomName,
+                'type' => 'public',
                 'is_18_over' => false,
             ]);
         }
 
-        foreach ($users as $user) {
-            if (isset($rooms[$user->school])) {
-                $rooms[$user->school]->users()->syncWithoutDetaching([$user->id]);
-            }
+        // assign users to rooms evenly
+        foreach ($users as $index => $user) {
+            $room = $rooms[$roomNames[$index % count($roomNames)]];
+            $room->users()->syncWithoutDetaching([$user->id]);
         }
 
         // Seed questions and polls
@@ -110,7 +105,7 @@ class DemoDataSeeder extends Seeder
             ['question' => 'Most likely to brighten your day', 'emoji' => '☀️'],
         ];
 
-        foreach ($rooms as $schoolName => $room) {
+        foreach ($rooms as $room) {
             $creator = $users[array_rand($users)];
             $poll = Poll::create([
                 'room_id' => $room->id,
@@ -118,8 +113,8 @@ class DemoDataSeeder extends Seeder
             ]);
 
             foreach ($pollQuestions as $pollData) {
-                $schoolUsers = array_filter($users, fn($u) => $u->school === $schoolName);
-                $optionUsers = collect($schoolUsers)->shuffle()->take(4);
+                $roomUserIds = $room->users()->pluck('users.id');
+                $optionUsers = User::whereIn('id', $roomUserIds)->inRandomOrder()->take(4)->get();
 
                 if ($optionUsers->count() >= 2) {
                     $question = Question::create([

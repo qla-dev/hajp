@@ -126,7 +126,7 @@ export default function HajpoviScreen({ navigation }) {
     if (loading) {
       return (
         <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={colors.text_secondary} />
+          <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Učitavanje</Text>
         </View>
       );

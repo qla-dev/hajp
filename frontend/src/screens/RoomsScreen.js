@@ -35,7 +35,7 @@ export default function RoomsScreen({ navigation }) {
     <View style={styles.container}>
       {loading ? (
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color={colors.text_secondary} />
+        <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Učitavam sobe</Text>
         </View>
       ) : (

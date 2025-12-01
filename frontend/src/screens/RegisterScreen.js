@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Keyboard, LayoutAnimation, UIManager } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Keyboard, LayoutAnimation, UIManager, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { register } from '../api';
@@ -17,6 +17,7 @@ const years = Array.from({ length: 35 }, (_, i) => 16 + i); // 16 through 50
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [gender, setGender] = useState('girl');
@@ -43,13 +44,13 @@ export default function RegisterScreen({ navigation }) {
   }, []);
 
   const onRegister = async () => {
-    if (!name || !email || !password || !gender || !year) {
+    if (!name || !username || !email || !password || !gender || !year) {
       alert('Please fill in all fields');
       return;
     }
     setLoading(true);
     try {
-      await register({ name, email, password, gender, year });
+      await register({ name, username, email, password, gender, year });
       navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
     } catch (e) {
       alert('Registration failed. Please try again.');
@@ -69,20 +70,28 @@ export default function RegisterScreen({ navigation }) {
           <Text style={styles.title}>Kreiraj račun</Text>
           <Text style={styles.subtitle}>Pridruži se Hajpu, glasaj i budi dio zajednice!</Text>
 
-          <FormTextInput
-            placeholder="Ime i prezime"
-            value={name}
-            onChangeText={setName}
-            autoCapitalize="words"
-            style={styles.input}
-          />
+        <FormTextInput
+          placeholder="Ime i prezime"
+          value={name}
+          onChangeText={setName}
+          autoCapitalize="words"
+          style={styles.input}
+        />
 
-          <FormTextInput
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
+        <FormTextInput
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+          style={styles.input}
+        />
+
+        <FormTextInput
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
             style={styles.input}
           />
 

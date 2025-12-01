@@ -15,9 +15,8 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => 'sometimes|string|max:255',
             'email' => ['sometimes', 'email', Rule::unique('users', 'email')->ignore($user->id)],
+            'username' => ['sometimes', 'string', 'max:50', Rule::unique('users', 'username')->ignore($user->id)],
             'sex' => 'sometimes|nullable|string|max:10',
-            'school' => 'sometimes|nullable|string|max:255',
-            'grade' => 'sometimes|nullable|string|max:255',
             'profile_photo' => 'sometimes|nullable|url',
         ]);
 

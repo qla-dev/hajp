@@ -65,7 +65,9 @@ export default function ProfileScreen({ navigation }) {
   const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
 
   useEffect(() => {
-    const title = user?.name
+    const title = user?.username
+      ? `@${user.username}`
+      : user?.name
       ? `@${user.name.replace(/\s+/g, '').toLowerCase()}`
       : 'Profil';
     navigation.setOptions?.({ title });

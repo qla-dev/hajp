@@ -19,7 +19,7 @@ const ProfileStack = createNativeStackNavigator();
 const HajpoviStack = createNativeStackNavigator();
 
 const headerLabelMap = {
-  Hajp: 'Sobe',
+  Hajp: 'Ankete',
   Inbox: 'Hajpovi',
   Rank: 'Rank',
   Profile: 'Profil',
@@ -45,7 +45,7 @@ function HajpStackNavigator() {
         headerStyle: { backgroundColor: 'transparent' },
       }}
     >
-      <HajpStack.Screen name="Rooms" component={RoomsScreen} options={{ title: 'Sobe' }} />
+      <HajpStack.Screen name="Rooms" component={RoomsScreen} options={{ title: 'Ankete' }} />
       <HajpStack.Screen
         name="Polling"
         component={PollingScreen}
@@ -247,3 +247,4 @@ const createStyles = (colors, isDark) =>
       fontWeight: '700',
     },
   });
+
