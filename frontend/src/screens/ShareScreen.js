@@ -78,6 +78,17 @@ export default function ShareScreen() {
     return null;
   }, [user?.profile_photo]);
 
+  const avatarInitial = useMemo(() => {
+    const name = (user?.name || '').trim();
+    if (!name) {
+      return 'K';
+    }
+    const parts = name.split(/\s+/).filter(Boolean);
+    const first = parts[0]?.charAt(0) || '';
+    const last = parts[1]?.charAt(0) || '';
+    return (first + last).toUpperCase() || 'K';
+  }, [user?.name]);
+
   const onCopyLink = () => {
     Alert.alert('Link kopiran!', shareLink);
     setShowShareModal(true);
@@ -99,14 +110,13 @@ export default function ShareScreen() {
               <ImageBackground source={{ uri: item.background }} style={styles.bigCard} imageStyle={styles.cardImage}>
                 <View style={styles.cardOverlay}>
                   <View style={styles.avatarWrapper}>
-                    <Image
-                      source={{
-                        uri:
-                          avatarUri ||
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'Korisnik')}&size=200&background=888&color=fff`,
-                      }}
-                      style={styles.avatar}
-                    />
+                    {avatarUri ? (
+                      <Image source={{ uri: avatarUri }} style={styles.avatar} />
+                    ) : (
+                      <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                        <Text style={styles.avatarInitial}>{avatarInitial}</Text>
+                      </View>
+                    )}
                   </View>
                   <Text style={styles.cardTitle}>{item.title}</Text>
                 </View>
@@ -160,14 +170,13 @@ export default function ShareScreen() {
               </TouchableOpacity>
             </View>
             <View style={styles.modalAvatarWrapper}>
-              <Image
-                source={{
-                  uri:
-                    avatarUri ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'Korisnik')}&size=200&background=666&color=fff`,
-                }}
-                style={styles.modalAvatar}
-              />
+              {avatarUri ? (
+                <Image source={{ uri: avatarUri }} style={styles.modalAvatar} />
+              ) : (
+                <View style={[styles.modalAvatar, styles.avatarPlaceholder]}>
+                  <Text style={styles.avatarInitial}>{avatarInitial}</Text>
+                </View>
+              )}
             </View>
             <View style={styles.modalBody}>
               <Text style={styles.modalTitle}>Podijeli link</Text>
@@ -219,13 +228,22 @@ const createStyles = (colors) =>
       width: 74,
       height: 74,
       borderRadius: 37,
-      borderWidth: 2,
-      borderColor: colors.background,
       overflow: 'hidden',
+      backgroundColor: colors.secondary,
     },
     avatar: {
       width: '100%',
       height: '100%',
+    },
+    avatarPlaceholder: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.secondary,
+    },
+    avatarInitial: {
+      color: colors.textLight,
+      fontWeight: '700',
+      fontSize: 20,
     },
     cardTitle: {
       color: colors.textLight,
@@ -333,8 +351,7 @@ const createStyles = (colors) =>
       height: 94,
       borderRadius: 47,
       overflow: 'hidden',
-      borderWidth: 2,
-      borderColor: colors.background,
+      backgroundColor: colors.secondary,
     },
     modalAvatar: {
       width: '100%',
