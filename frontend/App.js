@@ -12,6 +12,7 @@ import SubscriptionScreen from './src/screens/SubscriptionScreen';
 import CreatePollScreen from './src/screens/CreatePollScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
+import SetupProfileScreen from './src/screens/SetupProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import ShareScreen from './src/screens/ShareScreen';
 import SendAnonymousMessageScreen from './src/screens/SendAnonymousMessageScreen';
@@ -29,6 +30,7 @@ function AuthStackNavigator() {
       <AuthStack.Screen name="Welcome" component={WelcomeScreen} />
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
+      <AuthStack.Screen name="SetupProfile" component={SetupProfileScreen} />
     </AuthStack.Navigator>
   );
 }

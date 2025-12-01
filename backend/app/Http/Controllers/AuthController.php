@@ -17,6 +17,15 @@ class AuthController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
             'sex' => 'nullable|string|max:10',
+        ], [
+            'name.required' => 'Ime je obavezno.',
+            'username.required' => 'Korisničko ime je obavezno.',
+            'username.unique' => 'Korisničko ime je zauzeto.',
+            'email.required' => 'Email je obavezan.',
+            'email.email' => 'Unesi ispravan email.',
+            'email.unique' => 'Email je već iskorišten.',
+            'password.required' => 'Lozinka je obavezna.',
+            'password.min' => 'Lozinka mora imati najmanje 6 karaktera.',
         ]);
 
         $user = User::create([
@@ -28,7 +37,11 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('api')->plainTextToken;
-        return response()->json(['user' => $user, 'token' => $token]);
+        return response()->json([
+            'user' => $user,
+            'token' => $token,
+            'message' => 'Uspjesna registracija i prijava',
+        ]);
     }
 
     public function login(Request $request)
@@ -36,6 +49,9 @@ class AuthController extends Controller
         $data = $request->validate([
             'email' => 'required|string',
             'password' => 'required|string',
+        ], [
+            'email.required' => 'Unesi email ili korisničko ime.',
+            'password.required' => 'Unesi lozinku.',
         ]);
 
         $identifier = $data['email'];
@@ -43,7 +59,7 @@ class AuthController extends Controller
             ->orWhere('username', $identifier)
             ->first();
         if (!$user || !Hash::check($data['password'], $user->password)) {
-            throw ValidationException::withMessages(['email' => ['The provided credentials are incorrect.']]);
+            throw ValidationException::withMessages(['email' => ['Pogrešni pristupni podaci.']]);
         }
         $token = $user->createToken('api')->plainTextToken;
         return response()->json(['user' => $user, 'token' => $token]);

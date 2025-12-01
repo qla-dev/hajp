@@ -10,7 +10,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export const register = (payload) => api.post('/api/register', payload);
+export const register = async (payload) => {
+  const { data } = await api.post('/api/register', payload);
+  if (data?.token) {
+    global.__HAJP_TOKEN__ = data.token;
+  }
+  return data;
+};
 export const login = async (payload) => {
   const { data } = await api.post('/api/login', payload);
   global.__HAJP_TOKEN__ = data.token;

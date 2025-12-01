@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Keyboard, LayoutAnimation, UIManager, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Keyboard, LayoutAnimation, UIManager, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { register } from '../api';
@@ -23,6 +23,7 @@ export default function RegisterScreen({ navigation }) {
   const [gender, setGender] = useState('girl');
   const [year, setYear] = useState(18);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const keyboardOffset = Platform.select({ ios: 0, android: 0 }); // keep zero to avoid extra padding when keyboard opens
@@ -43,17 +44,37 @@ export default function RegisterScreen({ navigation }) {
     };
   }, []);
 
+  const clearError = (key) => {
+    setErrors((prev) => {
+      if (!prev?.[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
   const onRegister = async () => {
     if (!name || !username || !email || !password || !gender || !year) {
-      alert('Please fill in all fields');
+      Alert.alert('Greška', 'Popuni sva polja.');
       return;
     }
     setLoading(true);
+    setErrors({});
     try {
-      await register({ name, username, email, password, gender, year });
-      navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+      const data = await register({ name, username, email, password, gender, year });
+      const message = data?.message || 'Uspjesna registracija i prijava';
+      Alert.alert('Registracija', message, [
+        {
+          text: 'OK',
+          onPress: () => navigation.reset({ index: 0, routes: [{ name: 'SetupProfile' }] }),
+        },
+      ]);
     } catch (e) {
-      alert('Registration failed. Please try again.');
+      const apiErrors = e?.response?.data?.errors || {};
+      setErrors(apiErrors);
+      const flattened = Object.values(apiErrors || {}).flat();
+      const msg = flattened.length ? flattened.join('\n') : e?.response?.data?.message || 'Registracija nije uspjela. Pokušaj ponovo.';
+      Alert.alert('Greška', msg);
     } finally {
       setLoading(false);
     }
@@ -73,35 +94,51 @@ export default function RegisterScreen({ navigation }) {
         <FormTextInput
           placeholder="Ime i prezime"
           value={name}
-          onChangeText={setName}
+          onChangeText={(text) => {
+            clearError('name');
+            setName(text);
+          }}
           autoCapitalize="words"
           style={styles.input}
         />
+        {!!errors?.name && <Text style={styles.errorText}>{errors.name[0]}</Text>}
 
         <FormTextInput
           placeholder="Username"
           value={username}
-          onChangeText={setUsername}
+          onChangeText={(text) => {
+            clearError('username');
+            setUsername(text);
+          }}
           autoCapitalize="none"
           style={styles.input}
         />
+        {!!errors?.username && <Text style={styles.errorText}>{errors.username[0]}</Text>}
 
         <FormTextInput
           placeholder="Email"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => {
+            clearError('email');
+            setEmail(text);
+          }}
           autoCapitalize="none"
           keyboardType="email-address"
             style={styles.input}
           />
+        {!!errors?.email && <Text style={styles.errorText}>{errors.email[0]}</Text>}
 
           <FormTextInput
             placeholder="Lozinka"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              clearError('password');
+              setPassword(text);
+            }}
             secureTextEntry={true}
             style={styles.input}
           />
+        {!!errors?.password && <Text style={styles.errorText}>{errors.password[0]}</Text>}
 
           <View style={styles.genderRow}>
             {genderOptions.map((item) => {
@@ -138,8 +175,10 @@ export default function RegisterScreen({ navigation }) {
 
         <View style={styles.content}>
           <TouchableOpacity onPress={onRegister} style={[styles.registerButton, loading && styles.registerButtonDisabled]} disabled={loading}>
-            {loading && <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 8 }} />}
-            <Text style={styles.registerButtonText}>{loading ? 'Kreiranje računa' : 'Kreiraj račun'}</Text>
+            <View style={styles.registerButtonRow}>
+              {loading && <ActivityIndicator size="small" color="#FFFFFF" style={styles.registerSpinner} />}
+              <Text style={styles.registerButtonText}>{loading ? 'Kreiranje' : 'Kreiraj račun'}</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginLink}>
@@ -307,6 +346,14 @@ const createStyles = (colors) =>
       fontSize: 16,
       fontWeight: '700',
     },
+    registerButtonRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    registerSpinner: {
+      marginRight: 8,
+    },
     loginLink: {
       marginTop: 20,
       padding: 12,
@@ -363,5 +410,11 @@ const createStyles = (colors) =>
       marginLeft: 8,
       fontWeight: '700',
       color: colors.text_primary,
+    },
+    errorText: {
+      color: colors.error,
+      marginTop: -10,
+      marginBottom: 12,
+      fontSize: 12,
     },
   });

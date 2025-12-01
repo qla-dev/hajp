@@ -12,13 +12,24 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        $data = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => ['sometimes', 'email', Rule::unique('users', 'email')->ignore($user->id)],
-            'username' => ['sometimes', 'string', 'max:50', Rule::unique('users', 'username')->ignore($user->id)],
-            'sex' => 'sometimes|nullable|string|max:10',
-            'profile_photo' => 'sometimes|nullable|url',
-        ]);
+        $data = $request->validate(
+            [
+                'name' => 'sometimes|string|max:255',
+                'email' => ['sometimes', 'email', Rule::unique('users', 'email')->ignore($user->id)],
+                'username' => ['sometimes', 'string', 'max:50', Rule::unique('users', 'username')->ignore($user->id)],
+                'sex' => 'sometimes|nullable|string|max:10',
+                'profile_photo' => 'sometimes|nullable|url',
+            ],
+            [
+                'name.max' => 'Ime može imati najviše 255 karaktera.',
+                'email.email' => 'Unesi ispravan email.',
+                'email.unique' => 'Email je već iskorišten.',
+                'username.unique' => 'Korisničko ime je zauzeto.',
+                'username.max' => 'Korisničko ime može imati najviše 50 karaktera.',
+                'sex.max' => 'Pol može imati najviše 10 karaktera.',
+                'profile_photo.url' => 'Link za profilnu sliku nije ispravan.',
+            ]
+        );
 
         $user->fill($data);
         $user->save();
