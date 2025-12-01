@@ -50,6 +50,7 @@ export default function ProfileScreen({ navigation }) {
     displayedRooms.length > 0
       ? `Član ${displayedRooms.join(', ')}${remainingRooms > 0 ? ` i još ${remainingRooms} soba` : ''}`
       : 'Nisi član nijedne sobe';
+  const coinBalance = user?.coins ?? 58;
 
   return (
     <View style={styles.screen}>
@@ -61,6 +62,28 @@ export default function ProfileScreen({ navigation }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
+          <View style={styles.coinRow}>
+          <TouchableOpacity style={styles.coinCard} onPress={() => navigation.navigate('Subscription')}>
+            <View style={styles.coinStack}>
+              <View style={[styles.coinGlow, styles.coinGlowLarge]} />
+              <View style={[styles.coin, styles.coinBack]} />
+              <View style={[styles.coin, styles.coinMid]} />
+              <View style={[styles.coin, styles.coinFront]}>
+                <Text style={styles.coinSymbol}>Hajp</Text>
+              </View>
+              <View style={[styles.sparkle, styles.sparkleOne]} />
+              <View style={[styles.sparkle, styles.sparkleTwo]} />
+            </View>
+            <View style={styles.coinTextBlock}>
+              <Text style={styles.coinLabel}>HAJP COIN</Text>
+              <Text style={styles.coinAmount}>{coinBalance}</Text>
+              <Text style={styles.coinSub}>Tapni za shop</Text>
+            </View>
+            <View style={styles.coinPill}>
+              <Text style={styles.coinPillText}>Shop</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
         <View style={styles.profileSection}>
           <View style={styles.profileRow}>
             <Image
@@ -88,19 +111,11 @@ export default function ProfileScreen({ navigation }) {
                   <Text style={styles.statLabel}>hajpova</Text>
                 </View>
               </View>
-
-              <View style={styles.coinsBox}>
-                <View>
-                  <Text style={styles.coinsLabel}>NOVČIĆI</Text>
-                  <Text style={styles.coinsAmount}>58</Text>
-                </View>
-                <TouchableOpacity style={styles.shopButton}>
-                  <Text style={styles.shopButtonText}>SHOP</Text>
-                </TouchableOpacity>
-              </View>
             </View>
           </View>
         </View>
+      
+
         <View style={styles.userDetails}>
           <View style={styles.roomRow}>
             <View style={styles.roomAvatars}>
@@ -217,37 +232,121 @@ const createStyles = (colors) =>
       fontSize: 13,
       color: colors.text_secondary,
     },
-    coinsBox: {
+    coinCard: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
-      backgroundColor: colors.background,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      borderRadius: 18,
+      gap: 14,
+      backgroundColor: colors.surface,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderRadius: 20,
       borderWidth: 1,
       borderColor: colors.border,
+      shadowColor: colors.primary,
+      shadowOpacity: 0.2,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 6,
     },
-    coinsLabel: {
-      fontSize: 11,
-      color: colors.text_secondary,
-      fontWeight: '600',
+    coinStack: {
+      width: 64,
+      height: 64,
+      justifyContent: 'center',
+      alignItems: 'center',
+      transform: [{ translateX: 5 }, { translateY: -5 }],
     },
-    coinsAmount: {
-      fontSize: 22,
-      fontWeight: '700',
-      color: colors.text_primary,
+    coin: {
+      position: 'absolute',
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      borderWidth: 2,
+      borderColor: colors.primaryDark,
+      justifyContent: 'center',
+      alignItems: 'center',
+      transform: [{ translateX: -2 }, { translateY: 3 }],
     },
-    shopButton: {
+    coinBack: {
+      backgroundColor: colors.accent,
+      transform: [{ translateX: -10 }, { translateY: 10 }],
+      opacity: 0,
+    },
+    coinMid: {
+      backgroundColor: colors.accent,
+      transform: [{ translateX: -6 }, { translateY: 6 }],
+      opacity: 0.8,
+    },
+    coinFront: {
       backgroundColor: colors.primary,
-      paddingHorizontal: 14,
-      paddingVertical: 6,
-      borderRadius: 14,
+      zIndex: 2,
     },
-    shopButtonText: {
+    coinSymbol: {
+      color: colors.textLight,
+      fontSize: 15,
+      fontWeight: '800',
+    },
+    coinGlow: {
+      position: 'absolute',
+      width: 70,
+      height: 70,
+      borderRadius: 35,
+      backgroundColor: colors.primary,
+      opacity: 0.15,
+      zIndex: 0,
+    },
+    coinGlowLarge: {
+      width: 80,
+      height: 80,
+      borderRadius: 45,
+      opacity: 0.1,
+      transform: [{ translateX: -5 }, { translateY: 5 }],
+    },
+    sparkle: {
+      position: 'absolute',
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: colors.textLight,
+      opacity: 0.7,
+    },
+    sparkleOne: {
+      top: 10,
+      right: 6,
+    },
+    sparkleTwo: {
+      bottom: 12,
+      left: 4,
+    },
+    coinTextBlock: {
+      flex: 1,
+      gap: 2,
+    },
+    coinLabel: {
       fontSize: 12,
       fontWeight: '700',
+      color: colors.text_secondary,
+      letterSpacing: 1,
+    },
+    coinAmount: {
+      fontSize: 26,
+      fontWeight: '800',
+      color: colors.text_primary,
+    },
+    coinSub: {
+      fontSize: 12,
+      color: colors.text_secondary,
+    },
+    coinPill: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      backgroundColor: colors.primary,
+      borderRadius: 14,
+    },
+    coinPillText: {
       color: colors.textLight,
+      fontWeight: '800',
+      fontSize: 13,
+      letterSpacing: 0.5,
     },
     shareButton: {
       borderWidth: 1,
@@ -263,6 +362,14 @@ const createStyles = (colors) =>
       fontSize: 15,
       fontWeight: '600',
       color: colors.text_primary,
+    },
+    coinRow: {
+      paddingHorizontal: 20,
+      paddingVertical: 18,
+      backgroundColor: colors.background,
+      borderBottomWidth: 1,
+      borderTopWidth: 0,
+      borderColor: colors.border,
     },
     userDetails: {
       paddingHorizontal: 24,
