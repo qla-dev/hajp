@@ -44,7 +44,7 @@ export const darkColors = {
   // Core brand
   primary: '#FF6B35',
   primaryDark: '#FF824F',
-  secondary: '#C084FC',
+  secondary: '#9B59B6',
   accent: '#FFE66D',
 
   // Backgrounds
@@ -59,12 +59,12 @@ export const darkColors = {
   // Poll/Card colors
   pollBlue: '#60A5FA',
   pollPink: '#F472B6',
-  pollPurple: '#C084FC',
+  pollPurple: '#9B59B6',
   pollTeal: '#2DD4BF',
   pollOrange: '#FF8A4C',
 
   // Profile
-  profilePurple: '#C084FC',
+  profilePurple: '#9B59B6',
 
   // Text
   text_primary: '#F4F5F7',

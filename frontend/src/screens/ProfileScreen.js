@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, RefreshControl, Animated } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, fetchMyVotes, fetchUserRooms } from '../api';
 import BottomCTA from '../components/BottomCTA';
@@ -10,6 +10,7 @@ export default function ProfileScreen({ navigation }) {
   const [recentHypes, setRecentHypes] = useState([]);
   const [roomSummary, setRoomSummary] = useState({ total: 0, rooms: [] });
   const [refreshing, setRefreshing] = useState(false);
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -51,6 +52,26 @@ export default function ProfileScreen({ navigation }) {
       ? `Član ${displayedRooms.join(', ')}${remainingRooms > 0 ? ` i još ${remainingRooms} soba` : ''}`
       : 'Nisi član nijedne sobe';
   const coinBalance = user?.coins ?? 58;
+  const avatarTextColor = encodeURIComponent(colors.textLight.replace('#', ''));
+  const glowScale = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
+  const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.25] });
+  const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
+
+  useEffect(() => {
+    const title = user?.name
+      ? `@${user.name.replace(/\s+/g, '').toLowerCase()}`
+      : 'Profil';
+    navigation.setOptions?.({ title });
+  }, [navigation, user]);
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, { toValue: 1, duration: 1600, useNativeDriver: true }),
+        Animated.timing(glowAnim, { toValue: 0, duration: 1600, useNativeDriver: true }),
+      ]),
+    ).start();
+  }, [glowAnim]);
 
   return (
     <View style={styles.screen}>
@@ -65,12 +86,24 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.coinRow}>
           <TouchableOpacity style={styles.coinCard} onPress={() => navigation.navigate('Subscription')}>
             <View style={styles.coinStack}>
-              <View style={[styles.coinGlow, styles.coinGlowLarge]} />
+              <Animated.View
+                style={[
+                  styles.coinGlow,
+                  styles.coinGlowLarge,
+                  { transform: [...glowBaseTransform, { scale: glowScale }], opacity: glowOpacity },
+                ]}
+              />
               <View style={[styles.coin, styles.coinBack]} />
               <View style={[styles.coin, styles.coinMid]} />
               <View style={[styles.coin, styles.coinFront]}>
                 <Text style={styles.coinSymbol}>Hajp</Text>
               </View>
+              <Animated.View
+                style={[
+                  styles.coinGlow,
+                  { transform: [...glowBaseTransform, { scale: glowScale }], opacity: glowOpacity },
+                ]}
+              />
               <View style={[styles.sparkle, styles.sparkleOne]} />
               <View style={[styles.sparkle, styles.sparkleTwo]} />
             </View>
@@ -94,7 +127,8 @@ export default function ProfileScreen({ navigation }) {
                     (user?.name || 'Korisnik') +
                     '&size=200&background=' +
                     encodeURIComponent(colors.profilePurple.replace('#', '')) +
-                    '&color=ffffff',
+                    '&color=' +
+                    avatarTextColor,
               }}
               style={styles.profileImage}
             />
@@ -299,7 +333,6 @@ const createStyles = (colors) =>
       height: 80,
       borderRadius: 45,
       opacity: 0.1,
-      transform: [{ translateX: -5 }, { translateY: 5 }],
     },
     sparkle: {
       position: 'absolute',
@@ -311,7 +344,9 @@ const createStyles = (colors) =>
     },
     sparkleOne: {
       top: 10,
-      right: 6,
+      right: 10,
+      zIndex: 2,
+      opacity: 0.3,
     },
     sparkleTwo: {
       bottom: 12,

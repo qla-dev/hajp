@@ -7,6 +7,7 @@ export default function EditProfileScreen({ navigation, route }) {
   const user = route.params?.user || {};
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const avatarTextColor = encodeURIComponent(colors.textLight.replace('#', ''));
 
   return (
     <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
@@ -19,7 +20,8 @@ export default function EditProfileScreen({ navigation, route }) {
                 (user.name || 'Korisnik') +
                 '&size=200&background=' +
                 encodeURIComponent(colors.profilePurple.replace('#', '')) +
-                '&color=ffffff',
+                '&color=' +
+                avatarTextColor,
           }}
           style={styles.avatar}
         />

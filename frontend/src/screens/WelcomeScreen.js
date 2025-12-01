@@ -80,6 +80,7 @@ const createStyles = (colors) =>
     logoEmoji: {
       fontSize: 48,
       marginLeft: -8,
+      color: colors.secondary,
     },
     featuresContainer: {
       flexDirection: 'row',
@@ -116,6 +117,7 @@ const createStyles = (colors) =>
     },
     featureEmoji: {
       fontSize: 48,
+      color: colors.primary,
     },
     featureTitle: {
       color: colors.textLight,
