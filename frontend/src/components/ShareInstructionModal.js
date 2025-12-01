@@ -1,11 +1,14 @@
-import React, { useMemo, useState } from 'react';
-import { Modal, View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Dimensions } from 'react-native';
+import React, { useMemo, useRef, useState } from 'react';
+import { Modal, View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Dimensions, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 
 const { width } = Dimensions.get('window');
+const CARD_WIDTH = width * 0.9;
+const SLIDE_PADDING = 16;
+const SLIDE_WIDTH = CARD_WIDTH - SLIDE_PADDING * 2;
 
 const SHARE_STEPS = {
   instagram: [
@@ -37,88 +40,139 @@ const PLATFORM_TABS = [
 export default function ShareInstructionModal({ visible, onClose, avatarUri, avatarInitial }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const pagerRef = useRef(null);
   const [activePlatform, setActivePlatform] = useState('instagram');
   const [stepIndex, setStepIndex] = useState(0);
 
   const steps = SHARE_STEPS[activePlatform] || SHARE_STEPS.instagram;
   const current = steps[stepIndex] || steps[0];
+  const isLastStep = stepIndex === steps.length - 1;
+  const activeTabIcon = PLATFORM_TABS.find((t) => t.key === activePlatform)?.icon || 'share-social';
 
   const handlePlatform = (key) => {
     setActivePlatform(key);
     setStepIndex(0);
     Haptics.selectionAsync().catch(() => {});
+    pagerRef.current?.scrollToIndex?.({ index: 0, animated: true });
   };
 
   const handleNext = () => {
     const next = (stepIndex + 1) % steps.length;
     setStepIndex(next);
     Haptics.selectionAsync().catch(() => {});
+    pagerRef.current?.scrollToIndex?.({ index: next, animated: true });
   };
 
   if (!visible) return null;
 
+  const handleStepPress = (idx) => {
+    setStepIndex(idx);
+    pagerRef.current?.scrollToIndex?.({ index: idx, animated: true });
+    Haptics.selectionAsync().catch(() => {});
+  };
+
+  const onScrollEnd = (e) => {
+    const offsetX = e.nativeEvent.contentOffset.x;
+    const newIndex = Math.round((offsetX - SLIDE_PADDING) / SLIDE_WIDTH);
+    if (newIndex !== stepIndex) {
+      setStepIndex(newIndex);
+      Haptics.selectionAsync().catch(() => {});
+    }
+  };
+
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
-      <BlurView intensity={50} tint="dark" style={styles.backdrop}>
-        <View style={styles.card}>
-          <View style={styles.tabRow}>
-            <View style={styles.tabGroup}>
-              {PLATFORM_TABS.map((tab) => {
-                const active = tab.key === activePlatform;
-                return (
-                  <TouchableOpacity key={tab.key} onPress={() => handlePlatform(tab.key)} style={[styles.tabButton, active && styles.tabButtonActive]}>
-                    <Ionicons name={tab.icon} size={22} color={active ? colors.text_primary : colors.text_secondary} />
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name="close" size={22} color={colors.text_primary} />
-            </TouchableOpacity>
-          </View>
+      <BlurView intensity={60} tint="dark" style={styles.backdrop}>
+        <TouchableOpacity style={styles.backdropTouchable} activeOpacity={1} onPress={onClose} />
 
+        <TouchableOpacity onPress={onClose} style={styles.closeFloating} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+          <Ionicons name="close" size={34} color="#fff" />
+        </TouchableOpacity>
+
+        <View style={styles.tabsFloating}>
+          <View style={styles.tabRow}>
+            {PLATFORM_TABS.map((tab) => {
+              const active = tab.key === activePlatform;
+              return (
+                <TouchableOpacity
+                  key={tab.key}
+                  onPress={() => handlePlatform(tab.key)}
+                  style={[styles.tabButton, active && styles.tabButtonActive]}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name={tab.icon} size={22} color={active ? colors.text_primary : colors.text_secondary} />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.card}>
           <ScrollView contentContainerStyle={styles.content}>
             <Text style={styles.title}>{current.title}</Text>
             <View style={styles.stepRow}>
               {steps.map((_, idx) => {
                 const active = idx === stepIndex;
                 return (
-                  <View key={idx} style={[styles.stepCircle, active && styles.stepCircleActive]}>
+                  <TouchableOpacity key={idx} onPress={() => handleStepPress(idx)} style={[styles.stepCircle, active && styles.stepCircleActive]}>
                     <Text style={[styles.stepNumber, active && styles.stepNumberActive]}>{idx + 1}</Text>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
             </View>
             <Text style={styles.body}>{current.body}</Text>
-            <View style={styles.preview}>
-              {current.image ? (
-                <Image source={{ uri: current.image }} style={styles.previewImage} />
-              ) : (
-                <View style={[styles.previewImage, styles.previewPlaceholder]}>
-                  <Text style={styles.previewInitial}>{avatarInitial}</Text>
+            <FlatList
+              ref={pagerRef}
+              data={steps}
+              keyExtractor={(_, idx) => `${activePlatform}-${idx}`}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={onScrollEnd}
+              snapToAlignment="start"
+              snapToOffsets={steps.map((_, idx) => SLIDE_PADDING + SLIDE_WIDTH * idx)}
+              decelerationRate="fast"
+              getItemLayout={(_, idx) => ({
+                length: SLIDE_WIDTH,
+                offset: SLIDE_PADDING + SLIDE_WIDTH * idx,
+                index: idx,
+              })}
+              contentContainerStyle={styles.sliderContent}
+              renderItem={({ item }) => (
+                <View style={[styles.previewSlide]}>
+                  {item.image ? (
+                    <Image source={{ uri: item.image }} style={styles.previewImage} />
+                  ) : (
+                    <View style={[styles.previewImage, styles.previewPlaceholder]}>
+                      <Text style={styles.previewInitial}>{avatarInitial}</Text>
+                    </View>
+                  )}
+                  <View style={styles.previewAvatar}>
+                    {avatarUri ? (
+                      <Image source={{ uri: avatarUri }} style={{ width: '100%', height: '100%' }} />
+                    ) : (
+                      <View style={[styles.previewAvatar, styles.previewPlaceholder]}>
+                        <Text style={styles.previewInitial}>{avatarInitial}</Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
               )}
-              <View style={styles.previewAvatar}>
-                {avatarUri ? (
-                  <Image source={{ uri: avatarUri }} style={{ width: '100%', height: '100%' }} />
-                ) : (
-                  <View style={[styles.previewAvatar, styles.previewPlaceholder]}>
-                    <Text style={styles.previewInitial}>{avatarInitial}</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          </ScrollView>
+            />
 
-          <TouchableOpacity
-            style={[
-              styles.nextButton,
-              stepIndex === steps.length - 1 ? styles.nextButtonPrimary : styles.nextButtonSecondary,
-            ]}
-            onPress={handleNext}
-          >
-            <Text style={styles.nextText}>Sljedeći korak</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.nextButton,
+                isLastStep ? styles.nextButtonPrimary : styles.nextButtonSecondary,
+              ]}
+              onPress={handleNext}
+            >
+              <View style={styles.nextRow}>
+                {isLastStep && <Ionicons name={activeTabIcon} size={18} color={colors.textLight} style={styles.nextIcon} />}
+                <Text style={styles.nextText}>{isLastStep ? 'Podijeli' : 'Sljedeći korak'}</Text>
+              </View>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
       </BlurView>
     </Modal>
@@ -132,8 +186,23 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
+    tabsFloating: {
+      width: CARD_WIDTH,
+      marginBottom: 10,
+      alignItems: 'center',
+      backgroundColor: 'transparent',
+    },
+    closeFloating: {
+      position: 'absolute',
+      top: 60,
+      right: 34,
+      zIndex: 20,
+    },
+    backdropTouchable: {
+      ...StyleSheet.absoluteFillObject,
+    },
     card: {
-      width: width * 0.9,
+      width: CARD_WIDTH,
       backgroundColor: colors.surface,
       borderRadius: 28,
       padding: 16,
@@ -147,31 +216,25 @@ const createStyles = (colors) =>
     tabRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 12,
-    },
-    tabGroup: {
-      flexDirection: 'row',
-      alignItems: 'center',
       justifyContent: 'center',
-      flex: 1,
-      gap: 8,
+      gap: 12,
     },
     tabButton: {
-      backgroundColor: colors.background,
+      backgroundColor: 'transparent',
       borderRadius: 16,
       paddingVertical: 10,
       paddingHorizontal: 14,
-      marginRight: 0,
+      borderWidth: 1,
+      borderColor: 'transparent',
     },
     tabButtonActive: {
       backgroundColor: colors.surface,
-      borderWidth: 1,
       borderColor: colors.primary,
     },
     closeButton: {
-      marginLeft: 'auto',
       padding: 8,
+      marginLeft: 8,
+      display: 'none',
     },
     content: {
       alignItems: 'center',
@@ -213,8 +276,11 @@ const createStyles = (colors) =>
       textAlign: 'center',
       paddingHorizontal: 16,
     },
-    preview: {
-      width: '100%',
+    sliderContent: {
+      paddingHorizontal: SLIDE_PADDING,
+    },
+    previewSlide: {
+      width: SLIDE_WIDTH,
       borderRadius: 20,
       overflow: 'hidden',
       backgroundColor: colors.background,
@@ -239,22 +305,24 @@ const createStyles = (colors) =>
     },
     previewAvatar: {
       position: 'absolute',
-      bottom: 12,
-      left: 12,
-      width: 52,
-      height: 52,
-      borderRadius: 26,
+      width: 72,
+      height: 72,
+      borderRadius: 36,
       borderWidth: 2,
       borderColor: colors.surface,
       overflow: 'hidden',
       backgroundColor: colors.secondary,
+      alignSelf: 'center',
+      top: '50%',
+      marginTop: -36,
     },
     nextButton: {
       paddingVertical: 14,
-      borderRadius: 16,
+      borderRadius: 20,
       marginTop: 12,
       alignItems: 'center',
       backgroundColor: 'transparent',
+      width: '100%',
     },
     nextButtonSecondary: {
       backgroundColor: colors.secondary,
@@ -266,5 +334,14 @@ const createStyles = (colors) =>
       color: colors.textLight,
       fontWeight: '800',
       fontSize: 16,
+    },
+    nextRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    },
+    nextIcon: {
+      marginRight: 4,
     },
   });
