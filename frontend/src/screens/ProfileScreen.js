@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, RefreshControl, Animated } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, fetchMyVotes, fetchUserRooms } from '../api';
@@ -15,7 +15,7 @@ export default function ProfileScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const current = await getCurrentUser();
     setUser(current);
     try {
@@ -32,11 +32,11 @@ export default function ProfileScreen({ navigation }) {
     } catch {
       setRoomSummary({ total: 0, rooms: [] });
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -176,7 +176,7 @@ export default function ProfileScreen({ navigation }) {
 
         <View style={styles.section2}>
           <View style={styles.rowSpread}>
-            <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('EditProfile')}>
+            <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('EditProfile', { user, onSaved: loadData })}>
               <Text style={styles.shareButtonText}>Uredi profil</Text>
             </TouchableOpacity>
 

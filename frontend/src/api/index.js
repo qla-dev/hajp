@@ -32,6 +32,7 @@ export const getCurrentUser = async () => {
   const { data } = await api.get('/api/user');
   return data;
 };
+export const updateCurrentUser = (payload) => api.put('/api/user', payload);
 export const logout = () => api.post('/api/logout');
 
 export default api;

@@ -8,6 +8,7 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\AnonInboxController;
+use App\Http\Controllers\UserController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -37,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('user')->group(function () {
         Route::get('/', fn (Request $request) => $request->user());
         Route::get('/rooms', [RoomController::class, 'userRooms']);
+        Route::match(['put', 'patch'], '/', [UserController::class, 'update']);
     });
 
     Route::prefix('questions')->group(function () {
