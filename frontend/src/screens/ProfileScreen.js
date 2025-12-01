@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, RefreshControl, Animated } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, fetchMyVotes, fetchUserRooms } from '../api';
 import BottomCTA from '../components/BottomCTA';
@@ -37,6 +38,12 @@ export default function ProfileScreen({ navigation }) {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData]),
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -176,7 +183,7 @@ export default function ProfileScreen({ navigation }) {
 
         <View style={styles.section2}>
           <View style={styles.rowSpread}>
-            <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('EditProfile', { user, onSaved: loadData })}>
+            <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('EditProfile', { user })}>
               <Text style={styles.shareButtonText}>Uredi profil</Text>
             </TouchableOpacity>
 

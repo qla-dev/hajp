@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', fn (Request $request) => $request->user());
         Route::get('/rooms', [RoomController::class, 'userRooms']);
         Route::match(['put', 'patch'], '/', [UserController::class, 'update']);
+        Route::post('/photo', [UserController::class, 'uploadPhoto']);
     });
 
     Route::prefix('questions')->group(function () {

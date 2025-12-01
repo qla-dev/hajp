@@ -33,6 +33,8 @@ export const getCurrentUser = async () => {
   return data;
 };
 export const updateCurrentUser = (payload) => api.put('/api/user', payload);
+export const uploadProfilePhoto = (formData) =>
+  api.post('/api/user/photo', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const logout = () => api.post('/api/logout');
 
 export default api;

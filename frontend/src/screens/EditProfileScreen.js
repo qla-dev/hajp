@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import FormTextInput from '../components/FormTextInput';
-import { getCurrentUser, updateCurrentUser } from '../api';
+import { getCurrentUser, updateCurrentUser, uploadProfilePhoto } from '../api';
 
 const genderOptions = [
-  { key: 'girl', label: 'Žensko', icon: 'female-outline' },
-  { key: 'boy', label: 'Muško', icon: 'male-outline' },
+  { key: 'girl', label: 'Zensko', icon: 'female-outline' },
+  { key: 'boy', label: 'Musko', icon: 'male-outline' },
 ];
 const years = Array.from({ length: 35 }, (_, i) => 16 + i); // 16 through 50
 
@@ -21,11 +22,11 @@ const normalizeUser = (user) => ({
 
 export default function EditProfileScreen({ navigation, route }) {
   const passedUser = route.params?.user;
-  const onSaved = route.params?.onSaved;
   const [form, setForm] = useState(() => normalizeUser(passedUser));
   const [initialValues, setInitialValues] = useState(() => normalizeUser(passedUser));
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const avatarTextColor = encodeURIComponent(colors.textLight.replace('#', ''));
@@ -77,16 +78,68 @@ export default function EditProfileScreen({ navigation, route }) {
       };
       const { data } = await updateCurrentUser(payload);
       applyUser(data);
-      if (onSaved) {
-        await onSaved();
-      }
-      Alert.alert('Svaka čast!', 'Uspješno spašene izmjene na tvom nalogu', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      Alert.alert('Uspjesno', 'Promjene su sacuvane.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
     } catch (e) {
-      alert('Nastala je greška. Pokušaj ponovo.');
+      Alert.alert('Greska', 'Nismo mogli sacuvati promjene. Pokusaj ponovo.');
     } finally {
       setSaving(false);
     }
-  }, [applyUser, form.email, form.name, form.sex, isDirty, navigation, onSaved, saving]);
+  }, [applyUser, form.email, form.name, form.sex, isDirty, navigation, saving]);
+
+  const onPickPhoto = useCallback(async () => {
+    if (uploadingPhoto) return;
+
+    const ensurePermission = async () => {
+      const current = await ImagePicker.getMediaLibraryPermissionsAsync();
+      let status = current.status;
+      if (status !== 'granted' && status !== 'limited') {
+        const req = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        status = req.status;
+      }
+      return status === 'granted' || status === 'limited';
+    };
+
+    const hasPermission = await ensurePermission();
+    if (!hasPermission) {
+      Alert.alert('Dozvola potrebna', 'Odobri pristup galeriji kako bi promijenio avatar.');
+      return;
+    }
+
+    let result;
+    try {
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        selectionLimit: 1,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+    } catch (err) {
+      console.warn('Image picker error', err);
+      Alert.alert('Galerija', err?.message || 'Nismo mogli otvoriti galeriju. Provjeri dozvole i pokusaj ponovo.');
+      return;
+    }
+
+    if (result?.canceled || !result?.assets?.length) return;
+
+    const asset = result.assets[0];
+    const uri = asset.uri;
+    const mimeType = asset.mimeType || 'image/jpeg';
+    const filename = asset.fileName || `avatar.${mimeType.split('/')[1] || 'jpg'}`;
+
+    const formData = new FormData();
+    formData.append('photo', { uri, name: filename, type: mimeType });
+
+    setUploadingPhoto(true);
+    try {
+      const { data } = await uploadProfilePhoto(formData);
+      applyUser(data);
+    } catch (e) {
+      Alert.alert('Greska', 'Nismo mogli prenijeti sliku. Pokusaj ponovo.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }, [applyUser, uploadingPhoto]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -106,22 +159,29 @@ export default function EditProfileScreen({ navigation, route }) {
   return (
     <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
       <View style={styles.avatarWrapper}>
-        <Image
-          source={{
-            uri:
-              form.profile_photo ||
-              'https://ui-avatars.com/api/?name=' +
-                (form.name || 'Korisnik') +
-                '&size=200&background=' +
-                encodeURIComponent(colors.profilePurple.replace('#', '')) +
-                '&color=' +
-                avatarTextColor,
-          }}
-          style={styles.avatar}
-        />
-        <View style={styles.cameraBadge}>
-          <Text style={styles.cameraIcon}>dY",</Text>
+        <View style={styles.avatarContainer}>
+          <Image
+            source={{
+              uri:
+                form.profile_photo ||
+                'https://ui-avatars.com/api/?name=' +
+                  (form.name || 'Korisnik') +
+                  '&size=200&background=' +
+                  encodeURIComponent(colors.profilePurple.replace('#', '')) +
+                  '&color=' +
+                  avatarTextColor,
+            }}
+            style={styles.avatar}
+          />
+          <TouchableOpacity style={styles.cameraBadge} onPress={onPickPhoto} activeOpacity={0.9} disabled={uploadingPhoto}>
+            {uploadingPhoto ? (
+              <ActivityIndicator size="small" color={colors.text_primary} />
+            ) : (
+              <Ionicons name="camera" size={18} color={colors.text_primary} />
+            )}
+          </TouchableOpacity>
         </View>
+        <Text style={styles.avatarNote}>Formati slika do 3 MB</Text>
       </View>
 
       <View style={styles.formSection}>
@@ -206,11 +266,54 @@ const createStyles = (colors) =>
       flex: 1,
       backgroundColor: colors.background,
     },
+    avatarWrapper: {
+      alignItems: 'center',
+      paddingVertical: 16,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderColor: colors.border,
+    },
+    avatarContainer: {
+      width: 140,
+      height: 140,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    avatar: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: colors.surface,
+    },
+    cameraBadge: {
+      position: 'absolute',
+      bottom: 6,
+      right: 16,
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: colors.background,
+      shadowColor: colors.primary,
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 4,
+    },
+    avatarNote: {
+      marginTop: 8,
+      fontSize: 12,
+      color: colors.text_secondary,
+    },
     label: {
       marginBottom: 4,
       color: colors.text_secondary,
       fontWeight: '600',
       fontSize: 13,
+      paddingHorizontal: 2,
     },
     genderRow: {
       flexDirection: 'row',
@@ -282,27 +385,6 @@ const createStyles = (colors) =>
     },
     ageLabel: {
       marginTop: 8,
-    },
-    avatarWrapper: {
-      alignItems: 'center',
-      paddingVertical: 16,
-      backgroundColor: colors.surface,
-      borderBottomWidth: 1,
-      borderColor: colors.border,
-    },
-    avatar: {
-      width: 120,
-      height: 120,
-      borderRadius: 60,
-      backgroundColor: colors.surface,
-    },
-    cameraBadge: {
-      position: 'absolute',
-      bottom: 12,
-      right: 20,
-    },
-    cameraIcon: {
-      fontSize: 20,
     },
     formSection: {
       backgroundColor: colors.surface,

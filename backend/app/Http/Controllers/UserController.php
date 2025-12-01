@@ -25,4 +25,20 @@ class UserController extends Controller
 
         return response()->json($user);
     }
+
+    public function uploadPhoto(Request $request)
+    {
+        $request->validate([
+            'photo' => 'required|image|max:3072', // 3 MB
+        ]);
+
+        $user = $request->user();
+        $path = $request->file('photo')->store('profile_photos', 'public');
+        $url = asset('storage/' . $path);
+
+        $user->profile_photo = $url;
+        $user->save();
+
+        return response()->json($user);
+    }
 }
