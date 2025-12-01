@@ -60,6 +60,15 @@ class UserController extends Controller
         $user->profile_photo = $relativePath;
         $user->save();
 
-        return response()->json($user);
+        return response()->json(['user' => $user, 'message' => 'Profilna slika je ažurirana.']);
+    }
+
+    public function removePhoto(Request $request)
+    {
+        $user = $request->user();
+        $user->profile_photo = null;
+        $user->save();
+
+        return response()->json(['user' => $user, 'message' => 'Profilna slika je uklonjena.']);
     }
 }

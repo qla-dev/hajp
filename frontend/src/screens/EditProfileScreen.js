@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import FormTextInput from '../components/FormTextInput';
-import { getCurrentUser, updateCurrentUser, uploadProfilePhoto, baseURL } from '../api';
+import { getCurrentUser, updateCurrentUser, uploadProfilePhoto, removeProfilePhoto, baseURL } from '../api';
 
 const genderOptions = [
   { key: 'girl', label: 'Žensko', icon: 'female-outline' },
@@ -142,13 +142,24 @@ export default function EditProfileScreen({ navigation, route }) {
     setUploadingPhoto(true);
     try {
       const { data } = await uploadProfilePhoto(formData);
-      applyUser(data);
+      applyUser(data.user || data);
+      Alert.alert('Uspjeh', data.message || 'Profilna slika je ažurirana.');
     } catch (e) {
       Alert.alert('Greska', 'Nismo mogli prenijeti sliku. Pokusaj ponovo.');
     } finally {
       setUploadingPhoto(false);
     }
   }, [applyUser, uploadingPhoto]);
+
+  const onRemovePhoto = useCallback(async () => {
+    try {
+      const { data } = await removeProfilePhoto();
+      applyUser(data.user || data);
+      Alert.alert('Uspjeh', data.message || 'Profilna slika je uklonjena.');
+    } catch (e) {
+      Alert.alert('Greska', 'Nismo mogli ukloniti sliku. Pokusaj ponovo.');
+    }
+  }, [applyUser]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -200,10 +211,13 @@ export default function EditProfileScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
         <Text style={styles.avatarNote}>Formati slika do 3 MB. Ova slika će biti javno dostupna.</Text>
+        <TouchableOpacity style={styles.removePhotoButton} onPress={onRemovePhoto} disabled={uploadingPhoto || saving}>
+          <Text style={styles.removePhotoText}>Ukloni profilnu sliku</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.formSection}>
-        <Text style={styles.formSectionLabel}>Osnovni podaci</Text>
+        <Text style={[styles.label, styles.labelSpacing]}>Osnovni podaci</Text>
         <FormTextInput
           placeholder="Korisnicko ime"
           value={form.username}
@@ -335,6 +349,17 @@ const createStyles = (colors) =>
       fontSize: 12,
       color: colors.text_secondary,
     },
+    removePhotoButton: {
+      marginTop: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    removePhotoText: {
+      color: colors.error,
+      fontWeight: '700',
+      fontSize: 13,
+      textDecorationLine: 'underline',
+    },
     label: {
       marginBottom: 4,
       color: colors.text_secondary,
@@ -390,6 +415,7 @@ const createStyles = (colors) =>
     },
     yearRow: {
       paddingVertical: 0,
+      paddingTop: 4,
       paddingLeft: 0,
       paddingRight: 0,
       gap: 6,

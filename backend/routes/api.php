@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/rooms', [RoomController::class, 'userRooms']);
         Route::match(['put', 'patch'], '/', [UserController::class, 'update']);
         Route::post('/photo', [UserController::class, 'uploadPhoto']);
+        Route::delete('/photo', [UserController::class, 'removePhoto']);
     });
 
     Route::prefix('questions')->group(function () {
