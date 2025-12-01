@@ -17,7 +17,7 @@ const topics = [
   },
   {
     key: 'threewords',
-    title: 'Opisi me u 3 riječi',
+    title: 'Opiši me u 3 riječi',
     topic: '3words',
     background: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=60',
   },
