@@ -15,7 +15,13 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:50|unique:users,username',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
+            'password' => [
+                'required',
+                'string',
+                'min:6',
+                'regex:/^(?=.*[A-Z])(?=.*\d).{6,}$/',
+                'confirmed',
+            ],
             'sex' => 'nullable|string|max:10',
         ], [
             'name.required' => 'Ime je obavezno.',
@@ -26,6 +32,8 @@ class AuthController extends Controller
             'email.unique' => 'Email je već iskorišten.',
             'password.required' => 'Lozinka je obavezna.',
             'password.min' => 'Lozinka mora imati najmanje 6 karaktera.',
+            'password.regex' => 'Lozinka mora imati najmanje jedno veliko slovo i jedan broj.',
+            'password.confirmed' => 'Lozinka i potvrda moraju biti iste.',
         ]);
 
         $user = User::create([

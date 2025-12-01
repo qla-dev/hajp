@@ -12,6 +12,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 export default function LoginScreen({ navigation }) {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -40,7 +41,10 @@ export default function LoginScreen({ navigation }) {
       await login({ email: identifier, password });
       navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
     } catch (e) {
-      alert('Login failed. Please check your credentials.');
+      const apiErrors = e?.response?.data?.errors || {};
+      const flattened = Object.values(apiErrors || {}).flat();
+      const msg = flattened.length ? flattened.join('\n') : e?.response?.data?.message || 'Pogrešni pristupni podaci.';
+      alert(msg);
     } finally {
       setLoading(false);
     }
@@ -65,13 +69,22 @@ export default function LoginScreen({ navigation }) {
           style={styles.input}
         />
 
-        <FormTextInput
-          placeholder="Lozinka"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={true}
-          style={styles.input}
-        />
+        <View style={styles.passwordWrapper}>
+          <FormTextInput
+            placeholder="Lozinka"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            style={[styles.input, styles.passwordInput]}
+          />
+          <TouchableOpacity
+            onPress={() => setShowPassword((prev) => !prev)}
+            style={styles.eyeButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={colors.text_secondary} />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity onPress={onLogin} style={[styles.loginButton, loading && styles.loginButtonDisabled]} disabled={loading}>
           {loading && <ActivityIndicator size="small" color="#FFFFFF" style={styles.loginSpinner} />}
@@ -140,6 +153,21 @@ const createStyles = (colors) =>
       marginBottom: 16,
       fontSize: 16,
       color: colors.text_primary,
+    },
+    passwordWrapper: {
+      position: 'relative',
+    },
+    passwordInput: {
+      paddingRight: 44,
+    },
+    eyeButton: {
+      position: 'absolute',
+      right: 12,
+      top: 14,
+      height: 24,
+      width: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     loginButton: {
       backgroundColor: colors.primary,

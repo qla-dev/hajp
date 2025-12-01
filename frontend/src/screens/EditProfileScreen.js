@@ -205,18 +205,18 @@ export default function EditProfileScreen({ navigation, route }) {
       <View style={styles.formSection}>
         <Text style={styles.formSectionLabel}>Osnovni podaci</Text>
         <FormTextInput
+          placeholder="Korisnicko ime"
+          value={form.username}
+          editable={false}
+          style={[styles.input, styles.disabledInput]}
+        />
+        <FormTextInput
           placeholder="Ime i prezime"
           value={form.name}
           onChangeText={(text) => onChange('name', text)}
           style={styles.input}
           editable={!saving}
           autoCapitalize="words"
-        />
-        <FormTextInput
-          placeholder="Korisnicko ime"
-          value={form.username}
-          editable={false}
-          style={[styles.input, styles.disabledInput]}
         />
         <FormTextInput
           placeholder="Email"

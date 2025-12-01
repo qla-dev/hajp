@@ -20,6 +20,9 @@ export default function RegisterScreen({ navigation }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [gender, setGender] = useState('girl');
   const [year, setYear] = useState(18);
   const [loading, setLoading] = useState(false);
@@ -54,14 +57,31 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const onRegister = async () => {
-    if (!name || !username || !email || !password || !gender || !year) {
+    if (!name || !username || !email || !password || !confirmPassword || !gender || !year) {
       Alert.alert('Greška', 'Popuni sva polja.');
+      return;
+    }
+    const passwordPattern = /^(?=.*[A-Z])(?=.*\d).{6,}$/;
+    if (!passwordPattern.test(password)) {
+      Alert.alert('Greška', 'Lozinka mora imati najmanje 6 karaktera, jedno veliko slovo i jedan broj.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Greška', 'Lozinke se ne podudaraju.');
       return;
     }
     setLoading(true);
     setErrors({});
     try {
-      const data = await register({ name, username, email, password, gender, year });
+      const data = await register({
+        name,
+        username,
+        email,
+        password,
+        password_confirmation: confirmPassword,
+        sex: gender,
+        year,
+      });
       const message = data?.message || 'Uspješna registracija i prijava';
       Alert.alert('Registracija', message, [
         {
@@ -92,18 +112,6 @@ export default function RegisterScreen({ navigation }) {
           <Text style={styles.subtitle}>Pridruži se Hajpu, glasaj i budi dio zajednice!</Text>
 
         <FormTextInput
-          placeholder="Ime i prezime"
-          value={name}
-          onChangeText={(text) => {
-            clearError('name');
-            setName(text);
-          }}
-          autoCapitalize="words"
-          style={styles.input}
-        />
-        {!!errors?.name && <Text style={styles.errorText}>{errors.name[0]}</Text>}
-
-        <FormTextInput
           placeholder="Username"
           value={username}
           onChangeText={(text) => {
@@ -114,6 +122,18 @@ export default function RegisterScreen({ navigation }) {
           style={styles.input}
         />
         {!!errors?.username && <Text style={styles.errorText}>{errors.username[0]}</Text>}
+
+        <FormTextInput
+          placeholder="Ime i prezime"
+          value={name}
+          onChangeText={(text) => {
+            clearError('name');
+            setName(text);
+          }}
+          autoCapitalize="words"
+          style={styles.input}
+        />
+        {!!errors?.name && <Text style={styles.errorText}>{errors.name[0]}</Text>}
 
         <FormTextInput
           placeholder="Email"
@@ -128,6 +148,7 @@ export default function RegisterScreen({ navigation }) {
           />
         {!!errors?.email && <Text style={styles.errorText}>{errors.email[0]}</Text>}
 
+        <View style={styles.passwordWrapper}>
           <FormTextInput
             placeholder="Lozinka"
             value={password}
@@ -135,10 +156,38 @@ export default function RegisterScreen({ navigation }) {
               clearError('password');
               setPassword(text);
             }}
-            secureTextEntry={true}
-            style={styles.input}
+            secureTextEntry={!showPassword}
+            style={[styles.input, styles.passwordInput]}
           />
+          <TouchableOpacity
+            onPress={() => setShowPassword((prev) => !prev)}
+            style={styles.eyeButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={colors.text_secondary} />
+          </TouchableOpacity>
+        </View>
         {!!errors?.password && <Text style={styles.errorText}>{errors.password[0]}</Text>}
+
+        <View style={styles.passwordWrapper}>
+          <FormTextInput
+            placeholder="Ponovi lozinku"
+            value={confirmPassword}
+            onChangeText={(text) => {
+              clearError('password');
+              setConfirmPassword(text);
+            }}
+            secureTextEntry={!showConfirmPassword}
+            style={[styles.input, styles.passwordInput]}
+          />
+          <TouchableOpacity
+            onPress={() => setShowConfirmPassword((prev) => !prev)}
+            style={styles.eyeButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={20} color={colors.text_secondary} />
+          </TouchableOpacity>
+        </View>
 
           <View style={styles.genderRow}>
             {genderOptions.map((item) => {
@@ -247,6 +296,21 @@ const createStyles = (colors) =>
       marginBottom: 16,
       fontSize: 16,
       color: colors.text_primary,
+    },
+    passwordWrapper: {
+      position: 'relative',
+    },
+    passwordInput: {
+      paddingRight: 44,
+    },
+    eyeButton: {
+      position: 'absolute',
+      right: 12,
+      top: 14,
+      height: 24,
+      width: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     label: {
       marginBottom: 8,
