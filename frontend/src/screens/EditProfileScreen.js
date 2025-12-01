@@ -86,9 +86,9 @@ export default function EditProfileScreen({ navigation, route }) {
       };
       const { data } = await updateCurrentUser(payload);
       applyUser(data);
-      Alert.alert('Uspjesno', 'Promjene su sacuvane.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      Alert.alert('Svaka čast!', 'Promjene su sačuvane na tvom nalogu', [{ text: 'OK', onPress: () => navigation.goBack() }]);
     } catch (e) {
-      Alert.alert('Greska', 'Nismo mogli sacuvati promjene. Pokusaj ponovo.');
+      Alert.alert('Greška', 'Nismo mogli sačuvati promjene. Pokušaj ponovo.');
     } finally {
       setSaving(false);
     }
