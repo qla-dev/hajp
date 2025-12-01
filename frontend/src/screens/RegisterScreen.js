@@ -62,10 +62,10 @@ export default function RegisterScreen({ navigation }) {
     setErrors({});
     try {
       const data = await register({ name, username, email, password, gender, year });
-      const message = data?.message || 'Uspjesna registracija i prijava';
+      const message = data?.message || 'Uspješna registracija i prijava';
       Alert.alert('Registracija', message, [
         {
-          text: 'OK',
+          text: 'Nastavi',
           onPress: () => navigation.reset({ index: 0, routes: [{ name: 'SetupProfile' }] }),
         },
       ]);
