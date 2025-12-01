@@ -43,5 +43,7 @@ export const uploadProfilePhoto = (formData) =>
   api.post('/api/user/photo', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const removeProfilePhoto = () => api.delete('/api/user/photo');
 export const logout = () => api.post('/api/logout');
+export const fetchFriendSuggestions = () => api.get('/api/friends/suggestions');
+export const fetchFriends = () => api.get('/api/friends');
 
 export default api;

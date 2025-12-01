@@ -12,21 +12,26 @@ import HajpoviScreen from '../screens/HajpoviScreen';
 import RankRoomsScreen from '../screens/RankRoomsScreen';
 import RankingScreen from '../screens/RankingScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import FriendsScreen from '../screens/FriendsScreen';
+import FriendsConnectionsScreen from '../screens/FriendsConnectionsScreen';
 
 const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
 const HajpoviStack = createNativeStackNavigator();
+const FriendsStack = createNativeStackNavigator();
 
 const headerLabelMap = {
   Hajp: 'Ankete',
   Inbox: 'Hajpovi',
   Rank: 'Rank',
+  Friends: 'Prijatelji',
   Profile: 'Profil',
 };
 
 const iconMap = {
   Hajp: { active: 'home', inactive: 'home-outline' },
+  Friends: { active: 'people', inactive: 'people-outline' },
   Rank: { active: 'trophy', inactive: 'trophy-outline' },
   Inbox: { active: 'flame', inactive: 'flame-outline' },
   Profile: { active: 'person', inactive: 'person-outline' },
@@ -145,6 +150,25 @@ function HajpoviStackNavigator() {
   );
 }
 
+function FriendsStackNavigator() {
+  const { colors } = useTheme();
+
+  return (
+    <FriendsStack.Navigator
+      screenOptions={{
+        headerTransparent: true,
+        headerShadowVisible: false,
+        headerTitleAlign: 'center',
+        headerTintColor: colors.text_primary,
+        headerStyle: { backgroundColor: 'transparent' },
+      }}
+    >
+      <FriendsStack.Screen name="FriendsHome" component={FriendsScreen} options={{ title: headerLabelMap.Friends }} />
+      <FriendsStack.Screen name="FriendsConnections" component={FriendsConnectionsScreen} options={{ title: 'Prijatelji' }} />
+    </FriendsStack.Navigator>
+  );
+}
+
 export default function MainTabs() {
   const { colors } = useTheme();
 
@@ -191,6 +215,7 @@ export default function MainTabs() {
       }}
     >
       <Tab.Screen name="Hajp" component={HajpStackNavigator} options={{ headerShown: false }} />
+      <Tab.Screen name="Friends" component={FriendsStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Rank" component={RankStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Inbox" component={HajpoviStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Profile" component={ProfileStackNavigator} options={{ headerShown: false }} />

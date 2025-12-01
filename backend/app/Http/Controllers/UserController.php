@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class UserController extends Controller
 {
@@ -70,5 +72,48 @@ class UserController extends Controller
         $user->save();
 
         return response()->json(['user' => $user, 'message' => 'Profilna slika je uklonjena.']);
+    }
+
+    public function friendSuggestions(Request $request)
+    {
+        $user = $request->user();
+
+        $suggestions = User::query()
+            ->where('id', '!=', $user->id)
+            ->inRandomOrder()
+            ->limit(12)
+            ->get(['id', 'name', 'username', 'profile_photo', 'sex']);
+
+        return response()->json(['data' => $suggestions]);
+    }
+
+    public function friends(Request $request)
+    {
+        $userId = $request->user()->id;
+
+        $friends = DB::table('friendships')
+            ->join('users as u1', function ($join) use ($userId) {
+                $join->on('friendships.auth_user_id', '=', 'u1.id');
+            })
+            ->join('users as u2', function ($join) use ($userId) {
+                $join->on('friendships.user_id', '=', 'u2.id');
+            })
+            ->where(function ($query) use ($userId) {
+                $query->where('friendships.auth_user_id', $userId)->orWhere('friendships.user_id', $userId);
+            })
+            ->selectRaw(
+                'friendships.id,
+                CASE WHEN friendships.auth_user_id = ? THEN u2.id ELSE u1.id END as friend_id,
+                CASE WHEN friendships.auth_user_id = ? THEN u2.name ELSE u1.name END as name,
+                CASE WHEN friendships.auth_user_id = ? THEN u2.username ELSE u1.username END as username,
+                CASE WHEN friendships.auth_user_id = ? THEN u2.profile_photo ELSE u1.profile_photo END as profile_photo,
+                friendships.created_at',
+                [$userId, $userId, $userId, $userId]
+            )
+            ->orderByDesc('friendships.created_at')
+            ->limit(50)
+            ->get();
+
+        return response()->json(['data' => $friends]);
     }
 }

@@ -60,6 +60,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/status', [SubscriptionController::class, 'status']);
         Route::post('/subscribe', [SubscriptionController::class, 'subscribe']);
     });
+
+    Route::prefix('friends')->group(function () {
+        Route::get('/suggestions', [UserController::class, 'friendSuggestions']);
+        Route::get('/', [UserController::class, 'friends']);
+    });
 });
 
 // Simple unauthenticated test endpoint
