@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, RefreshControl, Animated } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { getCurrentUser, fetchMyVotes, fetchUserRooms } from '../api';
+import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL } from '../api';
 import BottomCTA from '../components/BottomCTA';
 
 export default function ProfileScreen({ navigation }) {
@@ -80,6 +80,14 @@ export default function ProfileScreen({ navigation }) {
     ).start();
   }, [glowAnim]);
 
+  const resolveAvatar = (photo) => {
+    if (!photo) return null;
+    if (/^https?:\/\//i.test(photo)) return photo;
+    const cleanBase = (baseURL || '').replace(/\/+$/, '');
+    const cleanPath = photo.replace(/^\/+/, '');
+    return `${cleanBase}/${cleanPath}`;
+  };
+
   return (
     <View style={styles.screen}>
       <ScrollView
@@ -129,7 +137,7 @@ export default function ProfileScreen({ navigation }) {
             <Image
               source={{
                 uri:
-                  user?.profile_photo ||
+                  resolveAvatar(user?.profile_photo, user?.name) ||
                   'https://ui-avatars.com/api/?name=' +
                     (user?.name || 'Korisnik') +
                     '&size=200&background=' +

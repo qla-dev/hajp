@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\File;
 
 class UserController extends Controller
 {
@@ -33,10 +34,20 @@ class UserController extends Controller
         ]);
 
         $user = $request->user();
-        $path = $request->file('photo')->store('profile_photos', 'public');
-        $url = asset('storage/' . $path);
+        $file = $request->file('photo');
+        $publicDir = public_path('assets/images/avatar');
 
-        $user->profile_photo = $url;
+        File::ensureDirectoryExists($publicDir);
+
+        $extension = $file->getClientOriginalExtension() ?: 'jpg';
+        $filename = uniqid('avatar_') . '.' . $extension;
+
+        // Save directly to public/assets/images/avatar
+        $file->move($publicDir, $filename);
+
+        $relativePath = '/assets/images/avatar/' . $filename;
+
+        $user->profile_photo = $relativePath;
         $user->save();
 
         return response()->json($user);

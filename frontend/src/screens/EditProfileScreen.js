@@ -4,11 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import FormTextInput from '../components/FormTextInput';
-import { getCurrentUser, updateCurrentUser, uploadProfilePhoto } from '../api';
+import { getCurrentUser, updateCurrentUser, uploadProfilePhoto, baseURL } from '../api';
 
 const genderOptions = [
-  { key: 'girl', label: 'Zensko', icon: 'female-outline' },
-  { key: 'boy', label: 'Musko', icon: 'male-outline' },
+  { key: 'girl', label: 'Žensko', icon: 'female-outline' },
+  { key: 'boy', label: 'Muško', icon: 'male-outline' },
 ];
 const years = Array.from({ length: 35 }, (_, i) => 16 + i); // 16 through 50
 
@@ -19,6 +19,14 @@ const normalizeUser = (user) => ({
   grade: user?.grade ? Number(user.grade) || 18 : 18,
   profile_photo: user?.profile_photo || '',
 });
+
+const resolveAvatar = (photo) => {
+  if (!photo) return null;
+  if (/^https?:\/\//i.test(photo)) return photo;
+  const cleanBase = (baseURL || '').replace(/\/+$/, '');
+  const cleanPath = photo.replace(/^\/+/, '');
+  return `${cleanBase}/${cleanPath}`;
+};
 
 export default function EditProfileScreen({ navigation, route }) {
   const passedUser = route.params?.user;
@@ -163,7 +171,7 @@ export default function EditProfileScreen({ navigation, route }) {
           <Image
             source={{
               uri:
-                form.profile_photo ||
+                resolveAvatar(form.profile_photo, form.name) ||
                 'https://ui-avatars.com/api/?name=' +
                   (form.name || 'Korisnik') +
                   '&size=200&background=' +
@@ -185,7 +193,7 @@ export default function EditProfileScreen({ navigation, route }) {
       </View>
 
       <View style={styles.formSection}>
-        <Text style={styles.formSectionLabel}>Osnovni podaci</Text>
+        <Text style={[styles.label, styles.labelSpacing]}>Osnovni podaci</Text>
         <FormTextInput
           placeholder="Ime i prezime"
           value={form.name}
@@ -203,7 +211,7 @@ export default function EditProfileScreen({ navigation, route }) {
           autoCapitalize="none"
           keyboardType="email-address"
         />
-        <Text style={styles.label}>Pol</Text>
+        <Text style={[styles.label, styles.labelSpacing]}>Pol</Text>
         <View style={styles.genderRow}>
           {genderOptions.map((item) => {
             const active = form.sex === item.key;
@@ -223,7 +231,7 @@ export default function EditProfileScreen({ navigation, route }) {
           })}
         </View>
 
-        <Text style={[styles.label, styles.ageLabel]}>Godine</Text>
+        <Text style={[styles.label, styles.labelSpacing]}>Godine</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.yearScroll} contentContainerStyle={styles.yearRow}>
           {years.map((y) => {
             const active = form.grade === y;
@@ -247,7 +255,7 @@ export default function EditProfileScreen({ navigation, route }) {
         )}
       </View>
 
-      <Text style={styles.sectionLabel}>Podesavanja naloga</Text>
+      {/* <Text style={styles.sectionLabel}>Podesavanja naloga</Text>
       <View style={styles.formSection}>
         <TouchableOpacity style={styles.listRow}>
           <Text style={styles.listRowText}>Vrati kupovine</Text>
@@ -255,7 +263,7 @@ export default function EditProfileScreen({ navigation, route }) {
         <TouchableOpacity style={styles.listRow}>
           <Text style={styles.listRowText}>Upravljaj nalogom</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </ScrollView>
   );
 }
@@ -269,8 +277,8 @@ const createStyles = (colors) =>
     avatarWrapper: {
       alignItems: 'center',
       paddingVertical: 16,
-      backgroundColor: colors.surface,
-      borderBottomWidth: 1,
+      backgroundColor: colors.transparent,
+      borderBottomWidth: 0,
       borderColor: colors.border,
     },
     avatarContainer: {
@@ -315,6 +323,10 @@ const createStyles = (colors) =>
       fontSize: 13,
       paddingHorizontal: 2,
     },
+    labelSpacing: {
+      marginTop: 6,
+      marginBottom: 6,
+    },
     genderRow: {
       flexDirection: 'row',
       gap: 12,
@@ -358,7 +370,7 @@ const createStyles = (colors) =>
       width: '100%',
     },
     yearRow: {
-      paddingVertical: 6,
+      paddingVertical: 0,
       paddingLeft: 0,
       paddingRight: 0,
       gap: 6,
@@ -384,7 +396,7 @@ const createStyles = (colors) =>
       color: colors.primary,
     },
     ageLabel: {
-      marginTop: 8,
+      marginTop: 18,
     },
     formSection: {
       backgroundColor: colors.surface,
@@ -415,8 +427,8 @@ const createStyles = (colors) =>
     },
     formSectionLabel: {
       alignSelf: 'flex-start',
-      paddingTop: 4,
-      paddingBottom: 4,
+      paddingTop: 6,
+      paddingBottom: 6,
       fontSize: 13,
       color: colors.text_secondary,
       fontWeight: '700',
