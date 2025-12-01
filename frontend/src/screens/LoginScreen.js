@@ -74,7 +74,7 @@ export default function LoginScreen({ navigation }) {
         />
 
         <TouchableOpacity onPress={onLogin} style={[styles.loginButton, loading && styles.loginButtonDisabled]} disabled={loading}>
-          {loading && <ActivityIndicator size="small" color={colors.textLight} style={styles.loginSpinner} />}
+          {loading && <ActivityIndicator size="small" color="#FFFFFF" style={styles.loginSpinner} />}
           <Text style={styles.loginButtonText}>{loading ? 'Prijava' : 'Prijavi se'}</Text>
         </TouchableOpacity>
 

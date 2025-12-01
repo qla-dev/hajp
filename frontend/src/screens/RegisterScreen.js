@@ -138,6 +138,7 @@ export default function RegisterScreen({ navigation }) {
 
         <View style={styles.content}>
           <TouchableOpacity onPress={onRegister} style={[styles.registerButton, loading && styles.registerButtonDisabled]} disabled={loading}>
+            {loading && <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 8 }} />}
             <Text style={styles.registerButtonText}>{loading ? 'Kreiranje računa' : 'Kreiraj račun'}</Text>
           </TouchableOpacity>
 
