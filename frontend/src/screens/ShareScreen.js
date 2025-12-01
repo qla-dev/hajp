@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground, Dimensions, Alert, Modal, FlatList } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, baseURL } from '../api';
 
@@ -89,12 +91,23 @@ export default function ShareScreen() {
     return (first + last).toUpperCase() || 'K';
   }, [user?.name]);
 
-  const onCopyLink = () => {
-    Alert.alert('Link kopiran!', shareLink);
-    setShowShareModal(true);
+  const onCopyLink = async () => {
+    try {
+      Haptics.selectionAsync().catch(() => {});
+      await Clipboard.setStringAsync(shareLink);
+      Alert.alert('Link kopiran!', shareLink, [
+        {
+          text: 'OK',
+          onPress: () => setShowShareModal(true),
+        },
+      ]);
+    } catch {
+      Alert.alert('Greška', 'Nismo mogli kopirati link.');
+    }
   };
 
   const onShare = () => {
+    Haptics.selectionAsync().catch(() => {});
     setShowShareModal(true);
   };
 
@@ -143,14 +156,20 @@ export default function ShareScreen() {
           <Text style={styles.stepTitle}>Korak 1: Kopiraj svoj link</Text>
           <Text style={styles.linkLabel}>{shareLink}</Text>
           <TouchableOpacity style={styles.copyButton} onPress={onCopyLink}>
-            <Text style={styles.copyText}>🔗 kopiraj link</Text>
+            <View style={styles.copyContent}>
+              <Ionicons name="link" size={18} color={colors.primary} style={styles.iconMargin} />
+              <Text style={styles.copyText}>Kopiraj link</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
         <View style={styles.stepCard}>
           <Text style={styles.stepTitle}>Korak 2: Podijeli link u story</Text>
           <TouchableOpacity style={styles.shareButton} onPress={onShare}>
-            <Text style={styles.shareButtonText}>Podijeli!</Text>
+            <View style={styles.shareContent}>
+              <Ionicons name="share-social" size={18} color={colors.textLight} style={styles.iconMargin} />
+              <Text style={styles.shareButtonText}>Podijeli!</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -300,6 +319,14 @@ const createStyles = (colors) =>
       paddingVertical: 12,
       alignItems: 'center',
     },
+    copyContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconMargin: {
+      marginRight: 8,
+    },
     copyText: {
       color: colors.primary,
       fontWeight: '800',
@@ -309,8 +336,12 @@ const createStyles = (colors) =>
       marginTop: 12,
       borderRadius: 22,
       paddingVertical: 14,
-      alignItems: 'center',
       backgroundColor: colors.primary,
+    },
+    shareContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     shareButtonText: {
       color: colors.textLight,
@@ -385,3 +416,4 @@ const createStyles = (colors) =>
       fontWeight: '800',
     },
   });
+
