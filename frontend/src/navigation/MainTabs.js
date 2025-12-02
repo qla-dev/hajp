@@ -25,7 +25,7 @@ const headerLabelMap = {
   Hajp: 'Ankete',
   Inbox: 'Hajpovi',
   Rank: 'Rank',
-  Friends: 'Prijatelji',
+  Friends: 'Mreža',
   Profile: 'Profil',
 };
 
