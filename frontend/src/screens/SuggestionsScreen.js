@@ -102,7 +102,7 @@ export default function SuggestionsScreen({ navigation }) {
 
       <View style={styles.promoCard}>
         <Text style={styles.promoTitle}>Zip - brza slagalica</Text>
-        <Text style={styles.promoSubtitle}>Riječi za manje od 60s</Text>
+        <Text style={styles.promoSubtitle}>Riješi za manje od 60s</Text>
         <TouchableOpacity style={styles.secondaryButton}>
           <Text style={styles.secondaryButtonText}>Riješi</Text>
         </TouchableOpacity>
@@ -134,36 +134,48 @@ export default function SuggestionsScreen({ navigation }) {
           }}
         >
           {suggestions.map((item) => (
-            <Animated.View
+            <TouchableOpacity
               key={item.id || item.username || item.name}
-              style={[styles.card, fadeValues[item.id] && { opacity: fadeValues[item.id] }]}
+              activeOpacity={0.9}
+              onPress={() => {
+                const friendId = item.friend_id || item.id;
+                if (!friendId) return;
+                navigation.navigate('FriendProfile', {
+                  isMine: false,
+                  userId: friendId,
+                });
+              }}
             >
-              <View style={styles.cardHeader}>
-                {renderAvatar(item)}
-              </View>
-              <Text style={styles.cardName}>{item.name || item.username}</Text>
-              {item.username ? <Text style={styles.cardSubtitle}>@{item.username}</Text> : null}
-              <Text style={styles.cardMutual}>Predloženi prijatelj</Text>
-              <TouchableOpacity
-                style={styles.primaryGhostButton}
-                disabled={pendingId === item.id}
-                onPress={() => handleConnect(item)}
+              <Animated.View
+                style={[styles.card, fadeValues[item.id] && { opacity: fadeValues[item.id] }]}
               >
-                <View style={styles.connectRow}>
-                  {pendingId === item.id && (
-                    <ActivityIndicator size="small" color={colors.primary} style={styles.connectSpinner} />
-                  )}
-                  <Text style={styles.primaryGhostButtonText}>Poveži se</Text>
+                <View style={styles.cardHeader}>
+                  {renderAvatar(item)}
                 </View>
-              </TouchableOpacity>
-            </Animated.View>
+                <Text style={styles.cardName}>{item.name || item.username}</Text>
+                {item.username ? <Text style={styles.cardSubtitle}>@{item.username}</Text> : null}
+                <Text style={styles.cardMutual}>Predlo_eni prijatelj</Text>
+                <TouchableOpacity
+                  style={styles.primaryGhostButton}
+                  disabled={pendingId === item.id}
+                  onPress={() => handleConnect(item)}
+                >
+                  <View style={styles.connectRow}>
+                    {pendingId === item.id && (
+                      <ActivityIndicator size="small" color={colors.primary} style={styles.connectSpinner} />
+                    )}
+                    <Text style={styles.primaryGhostButtonText}>Poveži se</Text>
+                  </View>
+                </TouchableOpacity>
+              </Animated.View>
+            </TouchableOpacity>
           ))}
           {suggestions.length === 0 && (
             <View style={styles.emptyCard}>
               <Text style={styles.cardName}>Nema preporuka</Text>
-              <Text style={styles.cardMutual}>Osvježi da dobiješ nove prijedloge.</Text>
+              <Text style={styles.cardMutual}>Osvje_i da dobije­ nove prijedloge.</Text>
               <TouchableOpacity style={styles.primaryGhostButton} onPress={loadSuggestions}>
-                <Text style={styles.primaryGhostButtonText}>Osvježi</Text>
+                <Text style={styles.primaryGhostButtonText}>Osvje_i</Text>
               </TouchableOpacity>
             </View>
           )}
