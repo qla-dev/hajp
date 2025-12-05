@@ -13,6 +13,7 @@ export default function ProfileScreen({ navigation, route }) {
   const [friendsCount, setFriendsCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [friendStatus, setFriendStatus] = useState({ exists: false, approved: null });
+  const [friendStatusLoading, setFriendStatusLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const glowAnim = useRef(new Animated.Value(0)).current;
 
@@ -47,6 +48,7 @@ export default function ProfileScreen({ navigation, route }) {
   const loadOtherProfile = useCallback(
     async (userId) => {
       if (!userId) return;
+      setFriendStatusLoading(true);
       try {
         const [{ data: userRes }, { data: roomsRes }, { data: friendsRes }, { data: statusRes }] = await Promise.all([
           fetchUserProfile(userId),
@@ -69,6 +71,8 @@ export default function ProfileScreen({ navigation, route }) {
         setFriendStatus({ exists: false, approved: null });
         setHypeCount(0);
         setRecentHypes([]);
+      } finally {
+        setFriendStatusLoading(false);
       }
     },
     [],
@@ -118,9 +122,10 @@ export default function ProfileScreen({ navigation, route }) {
   const glowScale = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.25] });
   const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
+  const isFriendActionLoading = connecting || friendStatusLoading;
 
   const handleConnectPress = async () => {
-    if (!isOtherProfile || !route?.params?.userId || connecting) return;
+    if (!isOtherProfile || !route?.params?.userId || isFriendActionLoading) return;
     if (friendStatus.exists && friendStatus.approved === 1) return;
 
     setConnecting(true);
@@ -293,9 +298,9 @@ export default function ProfileScreen({ navigation, route }) {
             : [styles.shareButton, styles.connectButton]
         }
         onPress={handleConnectPress}
-        disabled={connecting || (friendStatus.exists && friendStatus.approved === 1)}
+        disabled={isFriendActionLoading || (friendStatus.exists && friendStatus.approved === 1)}
       >
-        {connecting ? (
+        {isFriendActionLoading ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
             <ActivityIndicator size="small" color={colors.primary} />
             <Text style={[styles.shareButtonText, styles.connectButtonText]}>Učitavanje</Text>
