@@ -102,16 +102,17 @@ class UserController extends Controller
             ->join('users as u2', function ($join) use ($userId) {
                 $join->on('friendships.user_id', '=', 'u2.id');
             })
-            ->where(function ($query) use ($userId) {
-                $query->where('friendships.auth_user_id', $userId)->orWhere('friendships.user_id', $userId);
-            })
-            ->selectRaw(
-                'friendships.id,
-                CASE WHEN friendships.auth_user_id = ? THEN u2.id ELSE u1.id END as friend_id,
-                CASE WHEN friendships.auth_user_id = ? THEN u2.name ELSE u1.name END as name,
-                CASE WHEN friendships.auth_user_id = ? THEN u2.username ELSE u1.username END as username,
-                CASE WHEN friendships.auth_user_id = ? THEN u2.profile_photo ELSE u1.profile_photo END as profile_photo,
-                friendships.created_at',
+        ->where(function ($query) use ($userId) {
+            $query->where('friendships.auth_user_id', $userId)->orWhere('friendships.user_id', $userId);
+        })
+        ->where('friendships.approved', 1)
+        ->selectRaw(
+            'friendships.id,
+            CASE WHEN friendships.auth_user_id = ? THEN u2.id ELSE u1.id END as friend_id,
+            CASE WHEN friendships.auth_user_id = ? THEN u2.name ELSE u1.name END as name,
+            CASE WHEN friendships.auth_user_id = ? THEN u2.username ELSE u1.username END as username,
+            CASE WHEN friendships.auth_user_id = ? THEN u2.profile_photo ELSE u1.profile_photo END as profile_photo,
+            friendships.created_at',
                 [$userId, $userId, $userId, $userId]
             )
             ->orderByDesc('friendships.created_at')
@@ -132,9 +133,7 @@ class UserController extends Controller
             ->join('users as u2', function ($join) use ($userId) {
                 $join->on('friendships.user_id', '=', 'u2.id');
             })
-            ->where(function ($query) use ($userId) {
-                $query->where('friendships.auth_user_id', $userId)->orWhere('friendships.user_id', $userId);
-            })
+            ->where('friendships.auth_user_id', $userId)
             ->where('friendships.approved', 0)
             ->selectRaw(
                 'friendships.id,
@@ -294,12 +293,10 @@ class UserController extends Controller
     public function approveFriend(Request $request, User $user)
     {
         $authUser = $request->user();
-        $low = min($authUser->id, $user->id);
-        $high = max($authUser->id, $user->id);
 
         $updated = DB::table('friendships')
-            ->where('auth_user_id', $low)
-            ->where('user_id', $high)
+            ->where('auth_user_id', $authUser->id)
+            ->where('user_id', $user->id)
             ->where('approved', 0)
             ->update([
                 'approved' => 1,

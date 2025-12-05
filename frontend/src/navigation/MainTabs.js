@@ -224,10 +224,9 @@ function FriendsStackNavigator() {
           return {
             title,
             headerBackVisible: true,
-            headerBackTitle: mode === 'requests' ? 'Nazad' : 'Nazad',
+            headerBackTitle: 'Nazad',
           };
         }}
-        initialParams={{ fromProfile: true }}
       />
       <FriendsStack.Screen
         name="FriendProfile"

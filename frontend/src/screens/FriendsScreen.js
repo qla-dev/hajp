@@ -82,6 +82,16 @@ export default function FriendsScreen({ navigation, route }) {
     );
   };
 
+  const formatStatusDate = (value) => {
+    if (!value) return null;
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return null;
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const year = parsed.getFullYear();
+    return `${day}.${month}.${year}`;
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.searchRow}>
@@ -137,6 +147,7 @@ export default function FriendsScreen({ navigation, route }) {
             const subtitle = item.title || item.headline || item.bio || '';
             const connectedAt = item.connected_at || item.created_at || null;
             const friendId = item.friend_id || item.id;
+            const statusDate = formatStatusDate(connectedAt);
 
             const fromProfile = route?.params?.fromProfile;
 
@@ -159,7 +170,11 @@ export default function FriendsScreen({ navigation, route }) {
                   <Text style={styles.name}>{name}</Text>
                   {item.username ? <Text style={styles.subtitle}>@{item.username}</Text> : null}
                   {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-                  {connectedAt ? <Text style={styles.meta}>Povezano {connectedAt}</Text> : null}
+                  {statusDate ? (
+                    <Text style={styles.meta}>
+                      {isRequestList ? 'Zahtjev poslan' : 'Povezano'} {statusDate}
+                    </Text>
+                  ) : null}
                 </View>
                 {isRequestList ? (
                   <TouchableOpacity
