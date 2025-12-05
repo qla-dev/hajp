@@ -192,16 +192,16 @@ class UserController extends Controller
 
     public function friendshipStatus(Request $request, User $user)
     {
-        $authUser = $request->user();
-        $authId = $authUser->id;
+        $authId = $request->user()->id;
         $otherId = $user->id;
 
-        $low = min($authId, $otherId);
-        $high = max($authId, $otherId);
-
         $friendship = DB::table('friendships')
-            ->where('auth_user_id', $low)
-            ->where('user_id', $high)
+            ->where(function ($query) use ($authId, $otherId) {
+                $query->where('auth_user_id', $authId)->where('user_id', $otherId);
+            })
+            ->orWhere(function ($query) use ($authId, $otherId) {
+                $query->where('auth_user_id', $otherId)->where('user_id', $authId);
+            })
             ->first();
 
         if (!$friendship) {
