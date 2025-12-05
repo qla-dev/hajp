@@ -200,7 +200,7 @@ export default function ProfileScreen({ navigation, route }) {
             />
 
             <View style={styles.statsColumn}>
-              <Text style={styles.userName}>{user?.name || 'Gost'}</Text>
+              <Text style={styles.userName}>{user?.name || ''}</Text>
               <View style={styles.statsRow}>
                 <TouchableOpacity
                   style={styles.statItemRow}
