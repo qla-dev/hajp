@@ -8,12 +8,12 @@ import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import RoomsScreen from '../screens/RoomsScreen';
 import PollingScreen from '../screens/PollingScreen';
-import HajpoviScreen from '../screens/HajpoviScreen';
-import RankRoomsScreen from '../screens/RankRoomsScreen';
-import RankingScreen from '../screens/RankingScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import HajpoviScreen from '../screens/HajpoviScreen'];
+import RankRoomsScreen from '../screens/RankRoomsScreen'];
+import RankingScreen from '../screens/RankingScreen'];
+import ProfileScreen from '../screens/ProfileScreen'];
+import SuggestionsScreen from '../screens/SuggestionsScreen';
 import FriendsScreen from '../screens/FriendsScreen';
-import FriendsConnectionsScreen from '../screens/FriendsConnectionsScreen';
 
 const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
@@ -163,8 +163,15 @@ function FriendsStackNavigator() {
         headerStyle: { backgroundColor: 'transparent' },
       }}
     >
-      <FriendsStack.Screen name="FriendsHome" component={FriendsScreen} options={{ title: headerLabelMap.Friends }} />
-      <FriendsStack.Screen name="FriendsConnections" component={FriendsConnectionsScreen} options={{ title: 'Prijatelji' }} />
+      <FriendsStack.Screen name="Suggestions" component={SuggestionsScreen} options={{ title: 'Sugestije' }} />
+      <FriendsStack.Screen
+        name="Friends"
+        component={FriendsScreen}
+        options={{
+          title: 'Prijatelji',
+          headerBackTitle: 'Sugestije',
+        }}
+      />
     </FriendsStack.Navigator>
   );
 }
@@ -209,7 +216,15 @@ export default function MainTabs() {
           tabBarIcon: ({ focused: isFocused, color, size }) => {
             const icons = iconMap[route.name] || iconMap.Hajp;
             const iconName = isFocused ? icons.active : icons.inactive;
-            return <Ionicons name={iconName} size={size} color={color} />;
+              // Bigger size only for Friends
+  const customSize = route.name === "Friends" ? size + 9 : size;
+
+  // Thicker stroke only for Friends
+  const stroke = route.name === "Friends" ? 5.2 : 5.3;
+            return <Ionicons  name={iconName}
+      size={customSize}
+      color={color}
+      strokeWidth={stroke} />;
           },
         };
       }}

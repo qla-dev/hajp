@@ -1,139 +1,108 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  TextInput,
-  RefreshControl,
-  ActivityIndicator,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, RefreshControl } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchFriendSuggestions } from '../api';
+import { fetchFriends } from '../api';
 
-export default function FriendsScreen({ navigation }) {
+export default function FriendsScreen() {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
-  const [suggestions, setSuggestions] = useState([]);
+  const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
 
-  const loadSuggestions = useCallback(async () => {
+  const loadFriends = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await fetchFriendSuggestions();
-      setSuggestions(data?.data || []);
+      const { data } = await fetchFriends();
+      setFriends(data?.data || data || []);
     } catch {
-      setSuggestions([]);
+      setFriends([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadSuggestions();
-  }, [loadSuggestions]);
+    loadFriends();
+  }, [loadFriends]);
+
+  const filteredFriends = friends.filter((item) => {
+    const query = search.trim().toLowerCase();
+    if (!query) return true;
+    const name = (item.name || '').toLowerCase();
+    const username = (item.username || '').toLowerCase();
+    return name.includes(query) || username.includes(query);
+  });
 
   const renderAvatar = (item) => {
     if (item.profile_photo) {
-      return <Image source={{ uri: item.profile_photo }} style={styles.cardAvatar} />;
+      return <Image source={{ uri: item.profile_photo }} style={styles.avatar} />;
     }
-    const initials = (item.name || item.username || 'Korisnik')
+    const label = item.name || item.username || 'Korisnik';
+    const initials = label
       .split(' ')
       .map((part) => part.charAt(0).toUpperCase())
       .slice(0, 2)
       .join('');
     return (
-      <View style={[styles.cardAvatar, styles.avatarFallback]}>
+      <View style={[styles.avatar, styles.avatarFallback]}>
         <Text style={styles.avatarFallbackText}>{initials}</Text>
       </View>
     );
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentInsetAdjustmentBehavior="always"
-      refreshControl={
-        <RefreshControl refreshing={loading} onRefresh={loadSuggestions} tintColor={colors.primary} colors={[colors.primary]} />
-      }
-    >
-      <View style={styles.searchRow}>
-        <TextInput placeholder="Pretraga" placeholderTextColor={colors.text_secondary} style={styles.searchInput} />
-        <TouchableOpacity style={styles.iconPill}>
-          <Ionicons name="chatbubbles-outline" size={18} color={colors.text_primary} />
-        </TouchableOpacity>
-      </View>
+    <View style={styles.container}>
+      <FlatList
+        data={filteredFriends}
+        keyExtractor={(item, index) => String(item.id || item.username || item.name || index)}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={loadFriends} tintColor={colors.primary} colors={[colors.primary]} />
+        }
+        ListHeaderComponent={
+          <View style={styles.searchRow}>
+            <TextInput
+              placeholder="Pretraga"
+              placeholderTextColor={colors.text_secondary}
+              style={styles.searchInput}
+              value={search}
+              onChangeText={setSearch}
+            />
+            <View style={styles.iconPill} />
+          </View>
+        }
+        renderItem={({ item }) => {
+          const name = item.name || item.username || 'Korisnik';
+          const subtitle = item.title || item.headline || item.bio || '';
+          const connectedAt = item.connected_at || item.created_at || null;
 
-      <View style={styles.tabsRow}>
-        <TouchableOpacity style={[styles.tabButton, styles.tabActive]}>
-          <Text style={[styles.tabText, styles.tabTextActive]}>Rast</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabButton}>
-          <Text style={styles.tabText}>Nadoknadi</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Pozivnice</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('FriendsConnections')}>
-          <Text style={styles.sectionLink}>Prikaži sve →</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.promoCard}>
-        <Text style={styles.promoTitle}>Zip - brza slagalica</Text>
-        <Text style={styles.promoSubtitle}>Riješi za manje od 60s</Text>
-        <TouchableOpacity style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>Riješi</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Mreža</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('FriendsConnections')}>
-          <Text style={styles.sectionLink}>Upravljaj mrežom →</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.subheading}>Preporuke na osnovu aktivnosti</Text>
-
-      {loading ? (
-        <View style={styles.loaderRow}>
-          <ActivityIndicator color={colors.primary} />
-        </View>
-      ) : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cardsRow}>
-          {suggestions.map((item) => (
-            <View key={item.id || item.username || item.name} style={styles.card}>
-              <View style={styles.cardHeader}>
-                {renderAvatar(item)}
-                <TouchableOpacity>
-                  <Ionicons name="close" size={18} color={colors.text_secondary} />
-                </TouchableOpacity>
+          return (
+            <View style={styles.row}>
+              {renderAvatar(item)}
+              <View style={styles.info}>
+                <Text style={styles.name}>{name}</Text>
+                {item.username ? <Text style={styles.subtitle}>@{item.username}</Text> : null}
+                {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+                {connectedAt ? <Text style={styles.meta}>Povezano {connectedAt}</Text> : null}
               </View>
-              <Text style={styles.cardName}>{item.name || item.username}</Text>
-              {item.username ? <Text style={styles.cardSubtitle}>@{item.username}</Text> : null}
-              <Text style={styles.cardMutual}>Preporučeno za tebe</Text>
-              <TouchableOpacity style={styles.primaryGhostButton}>
-                <Text style={styles.primaryGhostButtonText}>Poveži se</Text>
+              <TouchableOpacity style={styles.messageButton}>
+                <Text style={styles.messageIcon}>✉</Text>
               </TouchableOpacity>
             </View>
-          ))}
-          {suggestions.length === 0 && (
-            <View style={styles.emptyCard}>
-              <Text style={styles.cardName}>Nema preporuka</Text>
-              <Text style={styles.cardMutual}>Osvježi da dobiješ nove prijedloge.</Text>
-              <TouchableOpacity style={styles.primaryGhostButton} onPress={loadSuggestions}>
-                <Text style={styles.primaryGhostButtonText}>Osvježi</Text>
-              </TouchableOpacity>
+          );
+        }}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          !loading && (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyTitle}>Još nemaš prijatelja</Text>
+              <Text style={styles.emptySubtitle}>Poveži se sa preporukama na ekranu Mreža.</Text>
             </View>
-          )}
-        </ScrollView>
-      )}
-    </ScrollView>
+          )
+        }
+      />
+    </View>
   );
 }
 
@@ -143,10 +112,15 @@ const createStyles = (colors) =>
       flex: 1,
       backgroundColor: colors.background,
     },
+    listContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+    },
     searchRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 16,
+      paddingHorizontal: 16,
+      paddingBottom: 8,
       gap: 10,
     },
     searchInput: {
@@ -167,118 +141,46 @@ const createStyles = (colors) =>
       borderWidth: 1,
       borderColor: colors.border,
     },
-    tabsRow: {
+    row: {
       flexDirection: 'row',
-      justifyContent: 'space-around',
-      paddingHorizontal: 16,
-      marginBottom: 12,
-    },
-    tabButton: {
-      flex: 1,
       alignItems: 'center',
       paddingVertical: 10,
-      borderBottomWidth: 2,
-      borderBottomColor: 'transparent',
-    },
-    tabActive: {
-      borderBottomColor: colors.primary,
-    },
-    tabText: {
-      color: colors.text_secondary,
-      fontWeight: '700',
-    },
-    tabTextActive: {
-      color: colors.text_primary,
-    },
-    sectionHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: '800',
-      color: colors.text_primary,
-    },
-    sectionLink: {
-      color: colors.primary,
-      fontWeight: '700',
-    },
-    promoCard: {
-      backgroundColor: colors.surface,
-      marginHorizontal: 16,
-      borderRadius: 14,
-      padding: 16,
-      borderWidth: 1,
-      borderColor: colors.border,
-      gap: 6,
-    },
-    promoTitle: {
-      color: colors.text_primary,
-      fontWeight: '800',
-      fontSize: 16,
-    },
-    promoSubtitle: {
-      color: colors.text_secondary,
-      fontSize: 13,
-    },
-    secondaryButton: {
-      alignSelf: 'flex-start',
-      backgroundColor: colors.background,
-      borderRadius: 12,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    secondaryButtonText: {
-      color: colors.text_primary,
-      fontWeight: '700',
-    },
-    subheading: {
-      paddingHorizontal: 16,
-      paddingTop: 12,
-      paddingBottom: 6,
-      color: colors.text_primary,
-      fontWeight: '700',
-    },
-    cardsRow: {
-      paddingHorizontal: 16,
       gap: 12,
-      paddingBottom: 12,
     },
-    card: {
-      width: 220,
-      backgroundColor: colors.surface,
-      borderRadius: 16,
-      padding: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      gap: 6,
-    },
-    emptyCard: {
-      width: 220,
-      backgroundColor: colors.surface,
-      borderRadius: 16,
-      padding: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      gap: 6,
-      justifyContent: 'center',
-      alignItems: 'flex-start',
-    },
-    cardHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    cardAvatar: {
-      width: 64,
-      height: 64,
-      borderRadius: 32,
+    avatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
       backgroundColor: colors.secondary,
+    },
+    info: {
+      flex: 1,
+      gap: 2,
+    },
+    name: {
+      fontWeight: '800',
+      color: colors.text_primary,
+    },
+    subtitle: {
+      color: colors.text_secondary,
+    },
+    meta: {
+      color: colors.text_secondary,
+      fontSize: 12,
+    },
+    messageButton: {
+      padding: 8,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    messageIcon: {
+      fontSize: 16,
+      color: colors.text_secondary,
+    },
+    separator: {
+      height: 1,
+      backgroundColor: colors.border,
     },
     avatarFallback: {
       justifyContent: 'center',
@@ -289,32 +191,23 @@ const createStyles = (colors) =>
       fontWeight: '800',
       fontSize: 18,
     },
-    cardName: {
+    emptyState: {
+      paddingVertical: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 32,
+    },
+    emptyTitle: {
       fontWeight: '800',
-      color: colors.text_primary,
       fontSize: 16,
+      color: colors.text_primary,
+      marginBottom: 6,
+      textAlign: 'center',
     },
-    cardSubtitle: {
+    emptySubtitle: {
       color: colors.text_secondary,
-    },
-    cardMutual: {
-      color: colors.text_secondary,
-      fontSize: 12,
-    },
-    primaryGhostButton: {
-      marginTop: 4,
-      paddingVertical: 10,
-      borderRadius: 14,
-      borderWidth: 1.5,
-      borderColor: colors.primary,
-      alignItems: 'center',
-    },
-    primaryGhostButtonText: {
-      color: colors.primary,
-      fontWeight: '800',
-    },
-    loaderRow: {
-      paddingVertical: 30,
-      alignItems: 'center',
+      textAlign: 'center',
+      fontSize: 13,
     },
   });
+
