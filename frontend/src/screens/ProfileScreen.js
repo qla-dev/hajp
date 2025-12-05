@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, RefreshControl, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, RefreshControl, Animated, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount } from '../api';
+import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend } from '../api';
 import BottomCTA from '../components/BottomCTA';
 
 export default function ProfileScreen({ navigation, route }) {
@@ -12,6 +12,8 @@ export default function ProfileScreen({ navigation, route }) {
   const [roomSummary, setRoomSummary] = useState({ total: 0, rooms: [] });
   const [friendsCount, setFriendsCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [friendStatus, setFriendStatus] = useState({ exists: false, approved: null });
+  const [connecting, setConnecting] = useState(false);
   const glowAnim = useRef(new Animated.Value(0)).current;
 
   const { colors } = useTheme();
@@ -46,19 +48,25 @@ export default function ProfileScreen({ navigation, route }) {
     async (userId) => {
       if (!userId) return;
       try {
-        const [{ data: userRes }, { data: roomsRes }, { data: friendsRes }] = await Promise.all([
+        const [{ data: userRes }, { data: roomsRes }, { data: friendsRes }, { data: statusRes }] = await Promise.all([
           fetchUserProfile(userId),
           fetchUserRoomsFor(userId),
           fetchUserFriendsCount(userId),
+          fetchFriendshipStatus(userId),
         ]);
         setUser(userRes?.data || userRes || null);
         setRoomSummary({ total: roomsRes?.total || 0, rooms: roomsRes?.rooms || [] });
         setFriendsCount(friendsRes?.count ?? 0);
+        setFriendStatus({
+          exists: !!statusRes?.exists,
+          approved: typeof statusRes?.approved === 'number' ? statusRes.approved : null,
+        });
         setHypeCount(0);
         setRecentHypes([]);
       } catch {
         setRoomSummary({ total: 0, rooms: [] });
         setFriendsCount(0);
+        setFriendStatus({ exists: false, approved: null });
         setHypeCount(0);
         setRecentHypes([]);
       }
@@ -110,6 +118,22 @@ export default function ProfileScreen({ navigation, route }) {
   const glowScale = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.25] });
   const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
+
+  const handleConnectPress = async () => {
+    if (!isOtherProfile || !route?.params?.userId || connecting) return;
+    if (friendStatus.exists && friendStatus.approved === 1) return;
+
+    setConnecting(true);
+    try {
+      const { data } = await addFriend(route.params.userId);
+      const approved = typeof data?.approved === 'number' ? data.approved : friendStatus.approved ?? 1;
+      setFriendStatus({ exists: true, approved });
+    } catch {
+      // ignore error, keep previous state
+    } finally {
+      setConnecting(false);
+    }
+  };
 
   useEffect(() => {
     const title = user?.username
@@ -244,24 +268,59 @@ export default function ProfileScreen({ navigation, route }) {
         </View>
 
         <View style={styles.section2}>
-          {isMine ? (
-            <View style={styles.rowSpread}>
-              <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('EditProfile', { user })}>
-                <Text style={styles.shareButtonText}>Uredi profil</Text>
-              </TouchableOpacity>
+  {isMine ? (
+    <View style={styles.rowSpread}>
+      <TouchableOpacity
+        style={styles.shareButton}
+        onPress={() => navigation.navigate('EditProfile', { user })}
+      >
+        <Text style={styles.shareButtonText}>Uredi profil</Text>
+      </TouchableOpacity>
 
-              <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('Share')}>
-                <Text style={styles.shareButtonText}>Podijeli profil</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={styles.rowSpread}>
-              <TouchableOpacity style={[styles.shareButton, styles.connectButton]}>
-                <Text style={[styles.shareButtonText, styles.connectButtonText]}>Poveži se</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+      <TouchableOpacity
+        style={styles.shareButton}
+        onPress={() => navigation.navigate('Share')}
+      >
+        <Text style={styles.shareButtonText}>Podijeli profil</Text>
+      </TouchableOpacity>
+    </View>
+  ) : (
+     <View style={styles.rowSpread}>
+      <TouchableOpacity
+        style={
+          friendStatus.exists && friendStatus.approved === 1
+            ? styles.shareButton
+            : [styles.shareButton, styles.connectButton]
+        }
+        onPress={handleConnectPress}
+        disabled={connecting || (friendStatus.exists && friendStatus.approved === 1)}
+      >
+        {connecting ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
+            <ActivityIndicator size="small" color={colors.text_primary} />
+            <Text style={[styles.shareButtonText, styles.connectButtonText]}>Učitavanje</Text>
+          </View>
+        ) : (
+          <Text
+            style={[
+              styles.shareButtonText,
+              friendStatus.exists
+                ? { color: colors.border }       // disabled: same as border
+                : styles.connectButtonText,      // active: primary
+            ]}
+          >
+            {friendStatus.exists
+              ? friendStatus.approved === 1
+                ? 'Već ste povezani'
+                : 'Zahtjev poslan'
+              : 'Poveži se'}
+          </Text>
+        )}
+      </TouchableOpacity>
+    </View>
+  )}
+</View>
+
 
    
 

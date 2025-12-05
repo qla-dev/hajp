@@ -160,6 +160,33 @@ class UserController extends Controller
         return response()->json(['count' => $count]);
     }
 
+    public function friendshipStatus(Request $request, User $user)
+    {
+        $authUser = $request->user();
+        $authId = $authUser->id;
+        $otherId = $user->id;
+
+        $low = min($authId, $otherId);
+        $high = max($authId, $otherId);
+
+        $friendship = DB::table('friendships')
+            ->where('auth_user_id', $low)
+            ->where('user_id', $high)
+            ->first();
+
+        if (!$friendship) {
+            return response()->json([
+                'exists' => false,
+                'approved' => null,
+            ]);
+        }
+
+        return response()->json([
+            'exists' => true,
+            'approved' => (int) ($friendship->approved ?? 1),
+        ]);
+    }
+
     public function addFriend(Request $request, User $user)
     {
         $authUser = $request->user();
