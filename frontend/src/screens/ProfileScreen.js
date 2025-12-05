@@ -155,7 +155,7 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.statsRow}>
                 <TouchableOpacity
                   style={styles.statItemRow}
-                  onPress={() => navigation.navigate('Friends', { screen: 'FriendsList', params: { from: 'Profile' } })}
+                  onPress={() => navigation.navigate('ProfileFriends')}
                 >
                   <Text style={styles.statNumber}>176</Text>
                   <Text style={styles.statLabel}>prijatelja</Text>

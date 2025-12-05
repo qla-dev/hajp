@@ -95,7 +95,7 @@ export default function SuggestionsScreen({ navigation }) {
     >
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Pozivnice</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Friends', { screen: 'FriendsList', params: { from: 'Suggestions' } })}>
+        <TouchableOpacity onPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}>
           <Text style={styles.sectionLink}>Prikaži sve +</Text>
         </TouchableOpacity>
       </View>
@@ -110,7 +110,7 @@ export default function SuggestionsScreen({ navigation }) {
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Mreža</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Friends', { screen: 'FriendsList', params: { from: 'Suggestions' } })}>
+        <TouchableOpacity onPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}>
           <Text style={styles.sectionLink}>Upravljaj mrežom +</Text>
         </TouchableOpacity>
       </View>

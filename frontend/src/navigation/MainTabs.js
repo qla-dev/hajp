@@ -128,6 +128,14 @@ function ProfileStackNavigator() {
           ),
         })}
       />
+      <ProfileStack.Screen
+        name="ProfileFriends"
+        component={FriendsScreen}
+        options={{
+          title: 'Prijatelji',
+          headerBackTitle: 'Profil',
+        }}
+      />
     </ProfileStack.Navigator>
   );
 }
@@ -176,37 +184,10 @@ function FriendsStackNavigator() {
       <FriendsStack.Screen
         name="FriendsList"
         component={FriendsScreen}
-        options={({ navigation, route }) => {
-          const from = route.params?.from;
-          const isFromProfile = from === 'Profile';
-          const label = isFromProfile ? 'Profil' : 'Sugestije';
-
-          if (!isFromProfile) {
-            return {
-              title: 'Prijatelji',
-              headerBackVisible: true,
-              headerBackTitle: label,
-            };
-          }
-
-          const handleBack = () => {
-            navigation.navigate('Profile', { screen: 'ProfileHome' });
-          };
-
-          return {
-            title: 'Prijatelji',
-            headerBackVisible: false,
-            headerLeft: () => (
-              <TouchableOpacity
-                onPress={handleBack}
-                style={styles.backButton}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Ionicons name="chevron-back" size={20} color={colors.text_primary} />
-                <Text style={styles.backLabel}>{label}</Text>
-              </TouchableOpacity>
-            ),
-          };
+        options={{
+          title: 'Prijatelji',
+          headerBackVisible: true,
+          headerBackTitle: 'Sugestije',
         }}
       />
     </FriendsStack.Navigator>
@@ -220,7 +201,16 @@ export default function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => {
         const focused = getFocusedRouteNameFromRoute(route) ?? '';
-        const hideTabBar = route.name === 'Hajp' && focused === 'Polling';
+
+        let hideTabBar = false;
+
+        // Hide tab bar only on Hajp > Polling, and Profile > ProfileFriends
+        if (route.name === 'Hajp' && focused === 'Polling') {
+          hideTabBar = true;
+        }
+        if (route.name === 'Profile' && focused === 'ProfileFriends') {
+          hideTabBar = true;
+        }
 
         return {
           headerTitle: headerLabelMap[route.name] || route.name,
@@ -267,7 +257,17 @@ export default function MainTabs() {
       }}
     >
       <Tab.Screen name="Hajp" component={HajpStackNavigator} options={{ headerShown: false }} />
-      <Tab.Screen name="Friends" component={FriendsStackNavigator} options={{ headerShown: false }} />
+      <Tab.Screen
+        name="Friends"
+        component={FriendsStackNavigator}
+        options={{ headerShown: false }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('Friends', { screen: 'Suggestions' });
+          },
+        })}
+      />
       <Tab.Screen name="Rank" component={RankStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Inbox" component={HajpoviStackNavigator} options={{ headerShown: false }} />
       <Tab.Screen name="Profile" component={ProfileStackNavigator} options={{ headerShown: false }} />
