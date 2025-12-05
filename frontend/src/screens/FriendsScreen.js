@@ -53,55 +53,72 @@ export default function FriendsScreen() {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={filteredFriends}
-        keyExtractor={(item, index) => String(item.id || item.username || item.name || index)}
-        refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={loadFriends} tintColor={colors.primary} colors={[colors.primary]} />
-        }
-        ListHeaderComponent={
-          <View style={styles.searchRow}>
-            <TextInput
-              placeholder="Pretraga"
-              placeholderTextColor={colors.text_secondary}
-              style={styles.searchInput}
-              value={search}
-              onChangeText={setSearch}
-            />
-            <View style={styles.iconPill} />
-          </View>
-        }
-        renderItem={({ item }) => {
-          const name = item.name || item.username || 'Korisnik';
-          const subtitle = item.title || item.headline || item.bio || '';
-          const connectedAt = item.connected_at || item.created_at || null;
+      <View style={styles.searchRow}>
+        <TextInput
+          placeholder="Pretraga"
+          placeholderTextColor={colors.text_secondary}
+          style={styles.searchInput}
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
 
-          return (
-            <View style={styles.row}>
-              {renderAvatar(item)}
-              <View style={styles.info}>
-                <Text style={styles.name}>{name}</Text>
-                {item.username ? <Text style={styles.subtitle}>@{item.username}</Text> : null}
-                {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-                {connectedAt ? <Text style={styles.meta}>Povezano {connectedAt}</Text> : null}
+      {loading ? (
+        <FlatList
+          data={filteredFriends}
+          keyExtractor={(item, index) => String(item.id || item.username || item.name || index)}
+          refreshControl={
+            <RefreshControl
+              refreshing={loading}
+              onRefresh={loadFriends}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+          renderItem={({ item }) => null}
+          contentContainerStyle={styles.listContent}
+        />
+      ) : filteredFriends.length === 0 ? (
+        <View style={styles.centerContent}>
+          <Text style={styles.emptyText}>Još nemaš prijatelja</Text>
+          <Text style={styles.emptySubtext}>Poveži se sa preporukama na ekranu Mreža.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredFriends}
+          keyExtractor={(item, index) => String(item.id || item.username || item.name || index)}
+          refreshControl={
+            <RefreshControl
+              refreshing={loading}
+              onRefresh={loadFriends}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+          renderItem={({ item }) => {
+            const name = item.name || item.username || 'Korisnik';
+            const subtitle = item.title || item.headline || item.bio || '';
+            const connectedAt = item.connected_at || item.created_at || null;
+
+            return (
+              <View style={styles.row}>
+                {renderAvatar(item)}
+                <View style={styles.info}>
+                  <Text style={styles.name}>{name}</Text>
+                  {item.username ? <Text style={styles.subtitle}>@{item.username}</Text> : null}
+                  {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+                  {connectedAt ? <Text style={styles.meta}>Povezano {connectedAt}</Text> : null}
+                </View>
+                <TouchableOpacity style={styles.messageButton}>
+                  <Text style={styles.messageIcon}>✉</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.messageButton}>
-                <Text style={styles.messageIcon}>✉</Text>
-              </TouchableOpacity>
-            </View>
-          );
-        }}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          !loading && (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyTitle}>Još nemaš prijatelja</Text>
-              <Text style={styles.emptySubtitle}>Poveži se sa preporukama na ekranu Mreža.</Text>
-            </View>
-          )
-        }
-      />
+            );
+          }}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
     </View>
   );
 }
@@ -111,17 +128,19 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
+      paddingTop: 10,
+      paddingHorizontal: 16,
+      paddingBottom: 4,
     },
     listContent: {
-      paddingHorizontal: 16,
+      paddingTop: 8,
       paddingBottom: 16,
     },
     searchRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 16,
+      paddingTop: 100,
       paddingBottom: 8,
-      gap: 10,
     },
     searchInput: {
       flex: 1,
@@ -130,14 +149,6 @@ const createStyles = (colors) =>
       paddingHorizontal: 14,
       paddingVertical: 10,
       color: colors.text_primary,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    iconPill: {
-      backgroundColor: colors.surface,
-      borderRadius: 12,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
       borderWidth: 1,
       borderColor: colors.border,
     },
@@ -191,23 +202,22 @@ const createStyles = (colors) =>
       fontWeight: '800',
       fontSize: 18,
     },
-    emptyState: {
-      paddingVertical: 40,
-      alignItems: 'center',
+    centerContent: {
+      flex: 1,
       justifyContent: 'center',
-      paddingHorizontal: 32,
+      alignItems: 'center',
+      padding: 40,
     },
-    emptyTitle: {
-      fontWeight: '800',
-      fontSize: 16,
+    emptyText: {
+      fontSize: 18,
+      fontWeight: '600',
       color: colors.text_primary,
-      marginBottom: 6,
+      marginBottom: 8,
       textAlign: 'center',
     },
-    emptySubtitle: {
+    emptySubtext: {
+      fontSize: 14,
       color: colors.text_secondary,
       textAlign: 'center',
-      fontSize: 13,
     },
   });
-

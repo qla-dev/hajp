@@ -8,10 +8,10 @@ import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import RoomsScreen from '../screens/RoomsScreen';
 import PollingScreen from '../screens/PollingScreen';
-import HajpoviScreen from '../screens/HajpoviScreen'];
-import RankRoomsScreen from '../screens/RankRoomsScreen'];
-import RankingScreen from '../screens/RankingScreen'];
-import ProfileScreen from '../screens/ProfileScreen'];
+import HajpoviScreen from '../screens/HajpoviScreen';
+import RankRoomsScreen from '../screens/RankRoomsScreen';
+import RankingScreen from '../screens/RankingScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 import SuggestionsScreen from '../screens/SuggestionsScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 
@@ -161,6 +161,7 @@ function FriendsStackNavigator() {
         headerTitleAlign: 'center',
         headerTintColor: colors.text_primary,
         headerStyle: { backgroundColor: 'transparent' },
+        headerBackTitleVisible: true,
       }}
     >
       <FriendsStack.Screen name="Suggestions" component={SuggestionsScreen} options={{ title: 'Sugestije' }} />
