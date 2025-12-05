@@ -123,6 +123,7 @@ export default function ProfileScreen({ navigation, route }) {
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.25] });
   const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
   const isFriendActionLoading = connecting || friendStatusLoading;
+  const connectButtonStyle = friendStatus.exists ? styles.shareButton : [styles.shareButton, styles.connectButton];
 
   const handleConnectPress = async () => {
     if (!isOtherProfile || !route?.params?.userId || isFriendActionLoading) return;
@@ -292,11 +293,7 @@ export default function ProfileScreen({ navigation, route }) {
   ) : (
      <View style={styles.rowSpread}>
       <TouchableOpacity
-        style={
-          friendStatus.exists && friendStatus.approved === 1
-            ? styles.shareButton
-            : [styles.shareButton, styles.connectButton]
-        }
+        style={connectButtonStyle}
         onPress={handleConnectPress}
         disabled={isFriendActionLoading || (friendStatus.exists && friendStatus.approved === 1)}
       >
@@ -540,6 +537,8 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: 'center',
       backgroundColor: colors.background,
+      height: 48,
+      justifyContent: 'center',
     },
     shareButtonText: {
       fontSize: 15,
