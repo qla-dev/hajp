@@ -86,11 +86,16 @@ export default function ProfileScreen({ navigation, route }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadData();
+    const viewingOther = route?.params?.isMine === false;
+    if (viewingOther && route?.params?.userId) {
+      await loadOtherProfile(route.params.userId);
+    } else {
+      await loadData();
+    }
     setRefreshing(false);
   };
 
-  const isOtherProfile = route?.name === 'ProfileFriends' && route?.params?.isMine === false;
+  const isOtherProfile = route?.params?.isMine === false;
   const isMine = !isOtherProfile;
 
   const username = user?.name ? user.name.toLowerCase().replace(' ', '') : 'gost';
@@ -199,7 +204,7 @@ export default function ProfileScreen({ navigation, route }) {
               <View style={styles.statsRow}>
                 <TouchableOpacity
                   style={styles.statItemRow}
-                  onPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}
+                  onPress={() => navigation.navigate('ProfileFriendsList')}
                 >
                   <Text style={styles.statNumber}>{friendsCount}</Text>
                   <Text style={styles.statLabel}>prijatelja</Text>
@@ -279,7 +284,14 @@ export default function ProfileScreen({ navigation, route }) {
 
       </ScrollView>
 
-      <BottomCTA label="Nadogradi na Premium" iconName="diamond-outline" onPress={() => navigation.navigate('Subscription')} fixed />
+      {isMine && (
+        <BottomCTA
+          label="Nadogradi na Premium"
+          iconName="diamond-outline"
+          onPress={() => navigation.navigate('Subscription')}
+          fixed
+        />
+      )}
     </View>
   );
 }

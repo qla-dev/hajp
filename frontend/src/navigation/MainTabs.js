@@ -131,9 +131,23 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen
         name="ProfileFriends"
         component={ProfileScreen}
-        options={{
+        options={({ navigation }) => ({
           title: 'Profil',
-          headerBackTitle: 'Profil',
+          headerBackVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => {
+                if (navigation.canGoBack()) {
+                  navigation.goBack();
+                }
+              }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="chevron-back" size={22} color={colors.text_primary} />
+              <Text style={styles.backLabel}>Nazad</Text>
+            </TouchableOpacity>
+          ),
           headerRight: () => (
             <TouchableOpacity
               style={styles.glassButton}
@@ -145,7 +159,16 @@ function ProfileStackNavigator() {
               <Ionicons name="ellipsis-horizontal" size={20} color={colors.text_primary} />
             </TouchableOpacity>
           ),
+        })}
+      />
+      <ProfileStack.Screen
+        name="ProfileFriendsList"
+        component={FriendsScreen}
+        options={{
+          title: 'Prijatelji',
+          headerBackTitle: 'Nazad',
         }}
+        initialParams={{ fromProfile: true }}
       />
     </ProfileStack.Navigator>
   );
@@ -201,6 +224,39 @@ function FriendsStackNavigator() {
           headerBackTitle: 'Sugestije',
         }}
       />
+      <FriendsStack.Screen
+        name="FriendProfile"
+        component={ProfileScreen}
+        options={({ navigation }) => ({
+          title: 'Profil',
+          headerBackVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => {
+                if (navigation.canGoBack()) {
+                  navigation.goBack();
+                }
+              }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="chevron-back" size={22} color={colors.text_primary} />
+              <Text style={styles.backLabel}>Nazad</Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <TouchableOpacity
+              style={styles.glassButton}
+              onPress={() => {
+                // simple native modal for now
+                alert('Opcije otvorene');
+              }}
+            >
+              <Ionicons name="ellipsis-horizontal" size={20} color={colors.text_primary} />
+            </TouchableOpacity>
+          ),
+        })}
+      />
     </FriendsStack.Navigator>
   );
 }
@@ -219,7 +275,10 @@ export default function MainTabs() {
         if (route.name === 'Hajp' && focused === 'Polling') {
           hideTabBar = true;
         }
-        if (route.name === 'Profile' && focused === 'ProfileFriends') {
+        if (route.name === 'Profile' && (focused === 'ProfileFriends' || focused === 'ProfileFriendsList')) {
+          hideTabBar = true;
+        }
+        if (route.name === 'Friends' && focused === 'FriendProfile') {
           hideTabBar = true;
         }
 
@@ -344,7 +403,7 @@ const createStyles = (colors, isDark) =>
       marginLeft: 2,
       color: colors.text_primary,
       fontSize: 17,
-      fontWeight: '400',
+      fontWeight: '500',
     },
   });
 

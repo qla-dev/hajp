@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, R
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchFriends } from '../api';
 
-export default function FriendsScreen({ navigation }) {
+export default function FriendsScreen({ navigation, route }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const [friends, setFriends] = useState([]);
@@ -101,15 +101,21 @@ export default function FriendsScreen({ navigation }) {
             const connectedAt = item.connected_at || item.created_at || null;
             const friendId = item.friend_id || item.id;
 
+            const fromProfile = route?.params?.fromProfile;
+
             return (
               <TouchableOpacity
                 style={styles.row}
-                onPress={() =>
-                  navigation.navigate('Profile', {
-                    screen: 'ProfileFriends',
-                    params: { isMine: false, userId: friendId },
-                  })
-                }
+                onPress={() => {
+                  if (fromProfile) {
+                    navigation.navigate('ProfileFriends', { isMine: false, userId: friendId });
+                  } else {
+                    navigation.navigate('FriendProfile', {
+                      isMine: false,
+                      userId: friendId,
+                    });
+                  }
+                }}
               >
                 {renderAvatar(item)}
                 <View style={styles.info}>
