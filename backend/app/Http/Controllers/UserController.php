@@ -34,6 +34,9 @@ class UserController extends Controller
         );
 
         $user->fill($data);
+        if ($request->has('is_private')) {
+            $user->is_private = $request->boolean('is_private');
+        }
         $user->save();
 
         return response()->json($user);
@@ -180,14 +183,20 @@ class UserController extends Controller
             return response()->json(['message' => 'Već ste prijatelji.'], 200);
         }
 
+        $approved = (int) $request->attributes->get('friendship_approved', 1);
+
         DB::table('friendships')->insert([
             'auth_user_id' => $low,
             'user_id' => $high,
+            'approved' => $approved,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        return response()->json(['message' => 'Prijatelj dodan.'], 201);
+        return response()->json([
+            'message' => $approved ? 'Prijatelj dodan.' : 'Zahtjev za prijateljstvo poslan.',
+            'approved' => $approved,
+        ], 201);
     }
 
     public function removeFriend(Request $request, User $user)

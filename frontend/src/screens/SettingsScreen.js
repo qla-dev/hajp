@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { THEME_MODES } from '../theme/colors';
-import { logout } from '../api';
+import { logout, getCurrentUser, updateCurrentUser } from '../api';
 
 const THEME_OPTIONS = [
   { value: THEME_MODES.SYSTEM, label: 'Auto', description: 'Prati podešavanje sistema' },
@@ -15,9 +15,23 @@ export default function SettingsScreen({ navigation }) {
   const [reduceNotifications, setReduceNotifications] = useState(false);
   const [hideTopFlames, setHideTopFlames] = useState(false);
   const [breakEnabled, setBreakEnabled] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   const { colors, mode, setMode, systemScheme } = useTheme();
   const styles = useThemedStyles(createStyles);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const me = await getCurrentUser();
+        if (me && typeof me.is_private !== 'undefined') {
+          setIsPrivate(!!me.is_private);
+        }
+      } catch {
+        // ignore
+      }
+    })();
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -41,6 +55,15 @@ export default function SettingsScreen({ navigation }) {
 
   const handleThemeChange = (value) => {
     setMode(value);
+  };
+
+  const handlePrivateToggle = async (value) => {
+    setIsPrivate(value);
+    try {
+      await updateCurrentUser({ is_private: value ? 1 : 0 });
+    } catch {
+      setIsPrivate((prev) => !prev);
+    }
   };
 
   return (
