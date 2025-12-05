@@ -64,7 +64,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('friends')->group(function () {
         Route::get('/suggestions', [UserController::class, 'friendSuggestions']);
         Route::get('/', [UserController::class, 'friends']);
+        Route::get('/requests', [UserController::class, 'friendRequests']);
         Route::post('/{user}/add', [UserController::class, 'addFriend'])->middleware('isPrivate');
+        Route::post('/{user}/approve', [UserController::class, 'approveFriend']);
         Route::delete('/{user}/remove', [UserController::class, 'removeFriend']);
     });
 

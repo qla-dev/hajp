@@ -94,8 +94,8 @@ export default function SuggestionsScreen({ navigation }) {
       }
     >
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Pozivnice</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}>
+        <Text style={styles.sectionTitle}>Zahtjevi za povezivanje</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Friends', { screen: 'FriendsList', params: { mode: 'requests' } })}>
           <Text style={styles.sectionLink}>Prikaži sve +</Text>
         </TouchableOpacity>
       </View>

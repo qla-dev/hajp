@@ -1,7 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  RefreshControl,
+  ActivityIndicator,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchFriends } from '../api';
+import { fetchFriends, fetchFriendRequests, approveFriendRequest } from '../api';
 
 export default function FriendsScreen({ navigation, route }) {
   const { colors } = useTheme();
@@ -9,18 +20,38 @@ export default function FriendsScreen({ navigation, route }) {
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
+  const [approvingFriendId, setApprovingFriendId] = useState(null);
+  const mode = route?.params?.mode || 'friends';
+  const isRequestList = mode === 'requests';
 
   const loadFriends = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await fetchFriends();
+      const fetcher = isRequestList ? fetchFriendRequests : fetchFriends;
+      const { data } = await fetcher();
       setFriends(data?.data || data || []);
     } catch {
       setFriends([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isRequestList]);
+
+  const handleApprove = useCallback(
+    async (friendId) => {
+      if (!friendId) return;
+      setApprovingFriendId(friendId);
+      try {
+        await approveFriendRequest(friendId);
+        await loadFriends();
+      } catch {
+        // ignore
+      } finally {
+        setApprovingFriendId(null);
+      }
+    },
+    [loadFriends],
+  );
 
   useEffect(() => {
     loadFriends();
@@ -80,8 +111,14 @@ export default function FriendsScreen({ navigation, route }) {
         />
       ) : filteredFriends.length === 0 ? (
         <View style={styles.centerContent}>
-          <Text style={styles.emptyText}>Još nemaš prijatelja</Text>
-          <Text style={styles.emptySubtext}>Poveži se sa preporukama na ekranu Mreža.</Text>
+          <Text style={styles.emptyText}>
+            {isRequestList ? 'Nema zahtjeva za povezivanje' : 'Još nemaš prijatelja'}
+          </Text>
+          <Text style={styles.emptySubtext}>
+            {isRequestList
+              ? 'Osvježi listu da proveriš nove zahtjeve.'
+              : 'Poveži se sa preporukama na ekranu Mreža.'}
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -124,9 +161,23 @@ export default function FriendsScreen({ navigation, route }) {
                   {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
                   {connectedAt ? <Text style={styles.meta}>Povezano {connectedAt}</Text> : null}
                 </View>
-                <TouchableOpacity style={styles.messageButton}>
-                  <Text style={styles.messageIcon}>✉</Text>
-                </TouchableOpacity>
+                {isRequestList ? (
+                  <TouchableOpacity
+                    style={styles.acceptButton}
+                    onPress={() => handleApprove(friendId)}
+                    disabled={approvingFriendId === friendId}
+                  >
+                    {approvingFriendId === friendId ? (
+                      <ActivityIndicator size="small" color={colors.primary} />
+                    ) : (
+                      <Text style={styles.acceptButtonText}>Prihvati</Text>
+                    )}
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.rowAction}>
+                    <Ionicons name="chevron-forward" size={20} color={colors.text_secondary} />
+                  </View>
+                )}
               </TouchableOpacity>
             );
           }}
@@ -194,15 +245,23 @@ const createStyles = (colors) =>
       color: colors.text_secondary,
       fontSize: 12,
     },
-    messageButton: {
-      padding: 8,
+    acceptButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 6,
       borderRadius: 18,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    messageIcon: {
-      fontSize: 16,
-      color: colors.text_secondary,
+    acceptButtonText: {
+      color: colors.primary,
+      fontWeight: '700',
+    },
+    rowAction: {
+      padding: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     separator: {
       height: 1,

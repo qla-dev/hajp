@@ -211,18 +211,23 @@ function FriendsStackNavigator() {
         name="Suggestions"
         component={SuggestionsScreen}
         options={{
-          title: 'Sugestije',
+          title: 'Mreža',
           headerBackVisible: false,
         }}
       />
       <FriendsStack.Screen
         name="FriendsList"
         component={FriendsScreen}
-        options={{
-          title: 'Prijatelji',
-          headerBackVisible: true,
-          headerBackTitle: 'Sugestije',
+        options={({ route }) => {
+          const mode = route?.params?.mode;
+          const title = mode === 'requests' ? 'Zahtjevi za povezivanje' : 'Prijatelji';
+          return {
+            title,
+            headerBackVisible: true,
+            headerBackTitle: mode === 'requests' ? 'Nazad' : 'Nazad',
+          };
         }}
+        initialParams={{ fromProfile: true }}
       />
       <FriendsStack.Screen
         name="FriendProfile"

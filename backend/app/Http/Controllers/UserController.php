@@ -121,6 +121,36 @@ class UserController extends Controller
         return response()->json(['data' => $friends]);
     }
 
+    public function friendRequests(Request $request)
+    {
+        $userId = $request->user()->id;
+
+        $requests = DB::table('friendships')
+            ->join('users as u1', function ($join) use ($userId) {
+                $join->on('friendships.auth_user_id', '=', 'u1.id');
+            })
+            ->join('users as u2', function ($join) use ($userId) {
+                $join->on('friendships.user_id', '=', 'u2.id');
+            })
+            ->where(function ($query) use ($userId) {
+                $query->where('friendships.auth_user_id', $userId)->orWhere('friendships.user_id', $userId);
+            })
+            ->where('friendships.approved', 0)
+            ->selectRaw(
+                'friendships.id,
+                CASE WHEN friendships.auth_user_id = ? THEN u2.id ELSE u1.id END as friend_id,
+                CASE WHEN friendships.auth_user_id = ? THEN u2.name ELSE u1.name END as name,
+                CASE WHEN friendships.auth_user_id = ? THEN u2.username ELSE u1.username END as username,
+                CASE WHEN friendships.auth_user_id = ? THEN u2.profile_photo ELSE u1.profile_photo END as profile_photo,
+                friendships.created_at',
+                [$userId, $userId, $userId, $userId]
+            )
+            ->orderByDesc('friendships.created_at')
+            ->get();
+
+        return response()->json(['data' => $requests]);
+    }
+
     public function showPublic(User $user)
     {
         return response()->json([
@@ -259,6 +289,28 @@ class UserController extends Controller
                 'message' => 'Greška pri dodavanju prijatelja.',
             ], 500);
         }
+    }
+
+    public function approveFriend(Request $request, User $user)
+    {
+        $authUser = $request->user();
+        $low = min($authUser->id, $user->id);
+        $high = max($authUser->id, $user->id);
+
+        $updated = DB::table('friendships')
+            ->where('auth_user_id', $low)
+            ->where('user_id', $high)
+            ->where('approved', 0)
+            ->update([
+                'approved' => 1,
+                'updated_at' => now(),
+            ]);
+
+        if (!$updated) {
+            return response()->json(['message' => 'Zahtjev nije pronađen.'], 404);
+        }
+
+        return response()->json(['message' => 'Zahtjev prihvaćen.', 'approved' => 1]);
     }
 
     public function removeFriend(Request $request, User $user)
