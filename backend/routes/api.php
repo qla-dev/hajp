@@ -64,6 +64,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('friends')->group(function () {
         Route::get('/suggestions', [UserController::class, 'friendSuggestions']);
         Route::get('/', [UserController::class, 'friends']);
+        Route::post('/{user}/add', [UserController::class, 'addFriend']);
+        Route::delete('/{user}/remove', [UserController::class, 'removeFriend']);
     });
 });
 

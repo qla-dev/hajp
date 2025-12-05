@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Pressable, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, Pressable, TouchableOpacity, Text, View } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
@@ -152,6 +152,7 @@ function HajpoviStackNavigator() {
 
 function FriendsStackNavigator() {
   const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   return (
     <FriendsStack.Navigator
@@ -164,13 +165,48 @@ function FriendsStackNavigator() {
         headerBackTitleVisible: true,
       }}
     >
-      <FriendsStack.Screen name="Suggestions" component={SuggestionsScreen} options={{ title: 'Sugestije' }} />
       <FriendsStack.Screen
-        name="Friends"
-        component={FriendsScreen}
+        name="Suggestions"
+        component={SuggestionsScreen}
         options={{
-          title: 'Prijatelji',
-          headerBackTitle: 'Sugestije',
+          title: 'Sugestije',
+          headerBackVisible: false,
+        }}
+      />
+      <FriendsStack.Screen
+        name="FriendsList"
+        component={FriendsScreen}
+        options={({ navigation, route }) => {
+          const from = route.params?.from;
+          const isFromProfile = from === 'Profile';
+          const label = isFromProfile ? 'Profil' : 'Sugestije';
+
+          if (!isFromProfile) {
+            return {
+              title: 'Prijatelji',
+              headerBackVisible: true,
+              headerBackTitle: label,
+            };
+          }
+
+          const handleBack = () => {
+            navigation.navigate('Profile', { screen: 'ProfileHome' });
+          };
+
+          return {
+            title: 'Prijatelji',
+            headerBackVisible: false,
+            headerLeft: () => (
+              <TouchableOpacity
+                onPress={handleBack}
+                style={styles.backButton}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="chevron-back" size={20} color={colors.text_primary} />
+                <Text style={styles.backLabel}>{label}</Text>
+              </TouchableOpacity>
+            ),
+          };
         }}
       />
     </FriendsStack.Navigator>
@@ -286,6 +322,18 @@ const createStyles = (colors, isDark) =>
       color: colors.text_primary,
       fontSize: 15,
       fontWeight: '700',
+    },
+    backButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 4,
+      paddingVertical: 4,
+    },
+    backLabel: {
+      marginLeft: 2,
+      color: colors.text_primary,
+      fontSize: 17,
+      fontWeight: '400',
     },
   });
 

@@ -45,5 +45,7 @@ export const removeProfilePhoto = () => api.delete('/api/user/photo');
 export const logout = () => api.post('/api/logout');
 export const fetchFriendSuggestions = () => api.get('/api/friends/suggestions');
 export const fetchFriends = () => api.get('/api/friends');
+export const addFriend = (userId) => api.post(`/api/friends/${userId}/add`);
+export const removeFriend = (userId) => api.delete(`/api/friends/${userId}/remove`);
 
 export default api;

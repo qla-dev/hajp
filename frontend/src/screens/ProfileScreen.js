@@ -153,10 +153,13 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.statsColumn}>
               <Text style={styles.userName}>{user?.name || 'Gost'}</Text>
               <View style={styles.statsRow}>
-                <View style={styles.statItemRow}>
+                <TouchableOpacity
+                  style={styles.statItemRow}
+                  onPress={() => navigation.navigate('Friends', { screen: 'FriendsList', params: { from: 'Profile' } })}
+                >
                   <Text style={styles.statNumber}>176</Text>
                   <Text style={styles.statLabel}>prijatelja</Text>
-                </View>
+                </TouchableOpacity>
                 <View style={styles.statItemRow}>
                   <Text style={styles.statNumber}>{hypeCount}</Text>
                   <Text style={styles.statLabel}>hajpova</Text>

@@ -116,4 +116,59 @@ class UserController extends Controller
 
         return response()->json(['data' => $friends]);
     }
+
+    public function addFriend(Request $request, User $user)
+    {
+        $authUser = $request->user();
+
+        if ($authUser->id === $user->id) {
+            return response()->json(['message' => 'Ne možeš dodati sebe kao prijatelja.'], 422);
+        }
+
+        $authId = $authUser->id;
+        $otherId = $user->id;
+
+        $low = min($authId, $otherId);
+        $high = max($authId, $otherId);
+
+        $existing = DB::table('friendships')
+            ->where('auth_user_id', $low)
+            ->where('user_id', $high)
+            ->first();
+
+        if ($existing) {
+            return response()->json(['message' => 'Već ste prijatelji.'], 200);
+        }
+
+        DB::table('friendships')->insert([
+            'auth_user_id' => $low,
+            'user_id' => $high,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['message' => 'Prijatelj dodan.'], 201);
+    }
+
+    public function removeFriend(Request $request, User $user)
+    {
+        $authUser = $request->user();
+
+        if ($authUser->id === $user->id) {
+            return response()->json(['message' => 'Ne možeš ukloniti sebe.'], 422);
+        }
+
+        $authId = $authUser->id;
+        $otherId = $user->id;
+
+        $low = min($authId, $otherId);
+        $high = max($authId, $otherId);
+
+        DB::table('friendships')
+            ->where('auth_user_id', $low)
+            ->where('user_id', $high)
+            ->delete();
+
+        return response()->json(['message' => 'Prijatelj uklonjen.'], 200);
+    }
 }
