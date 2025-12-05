@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 
 class UserController extends Controller
@@ -191,7 +192,17 @@ class UserController extends Controller
     {
         $authUser = $request->user();
 
+        Log::info('AddFriend called', [
+            'auth_id' => $authUser?->id,
+            'target_id' => $user?->id,
+            'ip' => $request->ip(),
+            'payload' => $request->all(),
+        ]);
+
         if ($authUser->id === $user->id) {
+            Log::warning('AddFriend: user tried to add self', [
+                'auth_id' => $authUser->id,
+            ]);
             return response()->json(['message' => 'Ne možeš dodati sebe kao prijatelja.'], 422);
         }
 
@@ -207,23 +218,47 @@ class UserController extends Controller
             ->first();
 
         if ($existing) {
+            Log::info('AddFriend: friendship already exists', [
+                'auth_id' => $authId,
+                'other_id' => $otherId,
+                'friendship_id' => $existing->id ?? null,
+            ]);
             return response()->json(['message' => 'Već ste prijatelji.'], 200);
         }
 
         $approved = (int) $request->attributes->get('friendship_approved', 1);
 
-        DB::table('friendships')->insert([
-            'auth_user_id' => $low,
-            'user_id' => $high,
-            'approved' => $approved,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        try {
+            DB::table('friendships')->insert([
+                'auth_user_id' => $low,
+                'user_id' => $high,
+                'approved' => $approved,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
-        return response()->json([
-            'message' => $approved ? 'Prijatelj dodan.' : 'Zahtjev za prijateljstvo poslan.',
-            'approved' => $approved,
-        ], 201);
+            Log::info('AddFriend: friendship created', [
+                'auth_id' => $authId,
+                'other_id' => $otherId,
+                'approved' => $approved,
+            ]);
+
+            return response()->json([
+                'message' => $approved ? 'Prijatelj dodan.' : 'Zahtjev za prijateljstvo poslan.',
+                'approved' => $approved,
+            ], 201);
+        } catch (\Throwable $e) {
+            Log::error('AddFriend: failed to create friendship', [
+                'auth_id' => $authId,
+                'other_id' => $otherId,
+                'approved' => $approved,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Greška pri dodavanju prijatelja.',
+            ], 500);
+        }
     }
 
     public function removeFriend(Request $request, User $user)

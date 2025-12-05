@@ -297,7 +297,7 @@ export default function ProfileScreen({ navigation, route }) {
       >
         {connecting ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
-            <ActivityIndicator size="small" color={colors.text_primary} />
+            <ActivityIndicator size="small" color={colors.primary} />
             <Text style={[styles.shareButtonText, styles.connectButtonText]}>Učitavanje</Text>
           </View>
         ) : (
@@ -311,7 +311,7 @@ export default function ProfileScreen({ navigation, route }) {
           >
             {friendStatus.exists
               ? friendStatus.approved === 1
-                ? 'Već ste povezani'
+                ? 'Povezani ste'
                 : 'Zahtjev poslan'
               : 'Poveži se'}
           </Text>
@@ -666,3 +666,4 @@ const createStyles = (colors) =>
       color: colors.text_secondary,
     },
   });
+

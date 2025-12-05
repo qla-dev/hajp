@@ -84,10 +84,39 @@ export default function SettingsScreen({ navigation }) {
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionLabel}>Privatnost profila</Text>
+        <SettingRow
+          label="Privatan profil"
+          value={isPrivate}
+          onValueChange={handlePrivateToggle}
+          styles={styles}
+          colors={colors}
+        />
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionLabel}>Podešavanja</Text>
-        <SettingRow label="Smanji notifikacije" value={reduceNotifications} onValueChange={setReduceNotifications} styles={styles} colors={colors} />
-        <SettingRow label="Sakrij top hajpove" value={hideTopFlames} onValueChange={setHideTopFlames} styles={styles} colors={colors} />
-        <SettingRow label="Pauza od Hajpa" value={breakEnabled} onValueChange={setBreakEnabled} styles={styles} colors={colors} />
+        <SettingRow
+          label="Smanji notifikacije"
+          value={reduceNotifications}
+          onValueChange={setReduceNotifications}
+          styles={styles}
+          colors={colors}
+        />
+        <SettingRow
+          label="Sakrij top hajpove"
+          value={hideTopFlames}
+          onValueChange={setHideTopFlames}
+          styles={styles}
+          colors={colors}
+        />
+        <SettingRow
+          label="Pauza od Hajpa"
+          value={breakEnabled}
+          onValueChange={setBreakEnabled}
+          styles={styles}
+          colors={colors}
+        />
       </View>
 
       <View style={styles.section}>
