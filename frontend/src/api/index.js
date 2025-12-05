@@ -47,5 +47,8 @@ export const fetchFriendSuggestions = () => api.get('/api/friends/suggestions');
 export const fetchFriends = () => api.get('/api/friends');
 export const addFriend = (userId) => api.post(`/api/friends/${userId}/add`);
 export const removeFriend = (userId) => api.delete(`/api/friends/${userId}/remove`);
+export const fetchUserProfile = (userId) => api.get(`/api/users/${userId}`);
+export const fetchUserRoomsFor = (userId) => api.get(`/api/users/${userId}/rooms`);
+export const fetchUserFriendsCount = (userId) => api.get(`/api/users/${userId}/friends/count`);
 
 export default api;

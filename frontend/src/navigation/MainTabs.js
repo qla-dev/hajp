@@ -130,10 +130,21 @@ function ProfileStackNavigator() {
       />
       <ProfileStack.Screen
         name="ProfileFriends"
-        component={FriendsScreen}
+        component={ProfileScreen}
         options={{
-          title: 'Prijatelji',
+          title: 'Profil',
           headerBackTitle: 'Profil',
+          headerRight: () => (
+            <TouchableOpacity
+              style={styles.glassButton}
+              onPress={() => {
+                // simple native modal for now
+                alert('Opcije otvorene');
+              }}
+            >
+              <Ionicons name="ellipsis-horizontal" size={20} color={colors.text_primary} />
+            </TouchableOpacity>
+          ),
         }}
       />
     </ProfileStack.Navigator>

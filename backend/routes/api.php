@@ -67,6 +67,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{user}/add', [UserController::class, 'addFriend']);
         Route::delete('/{user}/remove', [UserController::class, 'removeFriend']);
     });
+
+    Route::prefix('users')->group(function () {
+        Route::get('/{user}', [UserController::class, 'showPublic']);
+        Route::get('/{user}/rooms', [UserController::class, 'roomsForUser']);
+        Route::get('/{user}/friends/count', [UserController::class, 'friendsCount']);
+    });
 });
 
 // Simple unauthenticated test endpoint

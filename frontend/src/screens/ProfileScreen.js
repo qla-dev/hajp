@@ -2,14 +2,15 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, RefreshControl, Animated } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL } from '../api';
+import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount } from '../api';
 import BottomCTA from '../components/BottomCTA';
 
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreen({ navigation, route }) {
   const [user, setUser] = useState(null);
   const [hypeCount, setHypeCount] = useState(0);
   const [recentHypes, setRecentHypes] = useState([]);
   const [roomSummary, setRoomSummary] = useState({ total: 0, rooms: [] });
+  const [friendsCount, setFriendsCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const glowAnim = useRef(new Animated.Value(0)).current;
 
@@ -33,16 +34,54 @@ export default function ProfileScreen({ navigation }) {
     } catch {
       setRoomSummary({ total: 0, rooms: [] });
     }
+    try {
+      const { data } = await fetchFriends();
+      setFriendsCount((data?.data || data || []).length);
+    } catch {
+      setFriendsCount(0);
+    }
   }, []);
 
+  const loadOtherProfile = useCallback(
+    async (userId) => {
+      if (!userId) return;
+      try {
+        const [{ data: userRes }, { data: roomsRes }, { data: friendsRes }] = await Promise.all([
+          fetchUserProfile(userId),
+          fetchUserRoomsFor(userId),
+          fetchUserFriendsCount(userId),
+        ]);
+        setUser(userRes?.data || userRes || null);
+        setRoomSummary({ total: roomsRes?.total || 0, rooms: roomsRes?.rooms || [] });
+        setFriendsCount(friendsRes?.count ?? 0);
+        setHypeCount(0);
+        setRecentHypes([]);
+      } catch {
+        setRoomSummary({ total: 0, rooms: [] });
+        setFriendsCount(0);
+        setHypeCount(0);
+        setRecentHypes([]);
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (isOtherProfile && route?.params?.userId) {
+      loadOtherProfile(route.params.userId);
+    } else {
+      loadData();
+    }
+  }, [isOtherProfile, route?.params?.userId, loadData, loadOtherProfile]);
 
   useFocusEffect(
     useCallback(() => {
-      loadData();
-    }, [loadData]),
+      if (isOtherProfile && route?.params?.userId) {
+        loadOtherProfile(route.params.userId);
+      } else {
+        loadData();
+      }
+    }, [isOtherProfile, route?.params?.userId, loadData, loadOtherProfile]),
   );
 
   const onRefresh = async () => {
@@ -50,6 +89,9 @@ export default function ProfileScreen({ navigation }) {
     await loadData();
     setRefreshing(false);
   };
+
+  const isOtherProfile = route?.name === 'ProfileFriends' && route?.params?.isMine === false;
+  const isMine = !isOtherProfile;
 
   const username = user?.name ? user.name.toLowerCase().replace(' ', '') : 'gost';
   const displayedRooms = (roomSummary.rooms || []).slice(0, 3);
@@ -100,8 +142,9 @@ export default function ProfileScreen({ navigation }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
+        {isMine && (
           <View style={styles.coinRow}>
-          <TouchableOpacity style={styles.coinCard} onPress={() => navigation.navigate('Subscription')}>
+            <TouchableOpacity style={styles.coinCard} onPress={() => navigation.navigate('Subscription')}>
             <View style={styles.coinStack}>
               <Animated.View
                 style={[
@@ -124,16 +167,17 @@ export default function ProfileScreen({ navigation }) {
               <View style={[styles.sparkle, styles.sparkleOne]} />
               <View style={[styles.sparkle, styles.sparkleTwo]} />
             </View>
-            <View style={styles.coinTextBlock}>
-              <Text style={styles.coinLabel}>HAJP COIN</Text>
-              <Text style={styles.coinAmount}>{coinBalance}</Text>
-              <Text style={styles.coinSub}>Tapni za shop</Text>
-            </View>
-            <View style={styles.coinPill}>
-              <Text style={styles.coinPillText}>Shop</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+              <View style={styles.coinTextBlock}>
+                <Text style={styles.coinLabel}>HAJP COIN</Text>
+                <Text style={styles.coinAmount}>{coinBalance}</Text>
+                <Text style={styles.coinSub}>Tapni za shop</Text>
+              </View>
+              <View style={styles.coinPill}>
+                <Text style={styles.coinPillText}>Shop</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
         <View style={styles.profileSection}>
           <View style={styles.profileRow}>
             <Image
@@ -155,9 +199,9 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.statsRow}>
                 <TouchableOpacity
                   style={styles.statItemRow}
-                  onPress={() => navigation.navigate('ProfileFriends')}
+                  onPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}
                 >
-                  <Text style={styles.statNumber}>176</Text>
+                  <Text style={styles.statNumber}>{friendsCount}</Text>
                   <Text style={styles.statLabel}>prijatelja</Text>
                 </TouchableOpacity>
                 <View style={styles.statItemRow}>
@@ -195,15 +239,23 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         <View style={styles.section2}>
-          <View style={styles.rowSpread}>
-            <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('EditProfile', { user })}>
-              <Text style={styles.shareButtonText}>Uredi profil</Text>
-            </TouchableOpacity>
+          {isMine ? (
+            <View style={styles.rowSpread}>
+              <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('EditProfile', { user })}>
+                <Text style={styles.shareButtonText}>Uredi profil</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('Share')}>
-              <Text style={styles.shareButtonText}>Podijeli profil</Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('Share')}>
+                <Text style={styles.shareButtonText}>Podijeli profil</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.rowSpread}>
+              <TouchableOpacity style={[styles.shareButton, styles.connectButton]}>
+                <Text style={[styles.shareButtonText, styles.connectButtonText]}>Poveži se</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
    
@@ -417,6 +469,13 @@ const createStyles = (colors) =>
       fontSize: 15,
       fontWeight: '600',
       color: colors.text_primary,
+    },
+    connectButton: {
+      borderColor: colors.primary,
+    },
+    connectButtonText: {
+      color: colors.primary,
+      fontWeight: '700',
     },
     coinRow: {
       paddingHorizontal: 20,

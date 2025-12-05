@@ -117,6 +117,46 @@ class UserController extends Controller
         return response()->json(['data' => $friends]);
     }
 
+    public function showPublic(User $user)
+    {
+        return response()->json([
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'profile_photo' => $user->profile_photo,
+                'sex' => $user->sex,
+                'coins' => $user->coins ?? 0,
+            ],
+        ]);
+    }
+
+    public function roomsForUser(User $user)
+    {
+        $roomsQuery = $user
+            ->rooms()
+            ->select('rooms.id', 'rooms.name')
+            ->orderByDesc('room_members.created_at');
+
+        $total = (clone $roomsQuery)->count();
+        $roomNames = (clone $roomsQuery)->limit(3)->pluck('name')->values();
+
+        return response()->json([
+            'total' => $total,
+            'rooms' => $roomNames,
+        ]);
+    }
+
+    public function friendsCount(User $user)
+    {
+        $count = DB::table('friendships')
+            ->where('auth_user_id', $user->id)
+            ->orWhere('user_id', $user->id)
+            ->count();
+
+        return response()->json(['count' => $count]);
+    }
+
     public function addFriend(Request $request, User $user)
     {
         $authUser = $request->user();

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, R
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchFriends } from '../api';
 
-export default function FriendsScreen() {
+export default function FriendsScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const [friends, setFriends] = useState([]);
@@ -75,7 +75,7 @@ export default function FriendsScreen() {
               colors={[colors.primary]}
             />
           }
-          renderItem={({ item }) => null}
+          renderItem={() => null}
           contentContainerStyle={styles.listContent}
         />
       ) : filteredFriends.length === 0 ? (
@@ -99,9 +99,18 @@ export default function FriendsScreen() {
             const name = item.name || item.username || 'Korisnik';
             const subtitle = item.title || item.headline || item.bio || '';
             const connectedAt = item.connected_at || item.created_at || null;
+            const friendId = item.friend_id || item.id;
 
             return (
-              <View style={styles.row}>
+              <TouchableOpacity
+                style={styles.row}
+                onPress={() =>
+                  navigation.navigate('Profile', {
+                    screen: 'ProfileFriends',
+                    params: { isMine: false, userId: friendId },
+                  })
+                }
+              >
                 {renderAvatar(item)}
                 <View style={styles.info}>
                   <Text style={styles.name}>{name}</Text>
@@ -112,7 +121,7 @@ export default function FriendsScreen() {
                 <TouchableOpacity style={styles.messageButton}>
                   <Text style={styles.messageIcon}>✉</Text>
                 </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             );
           }}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
