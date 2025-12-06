@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import SuggestionSlider from '../components/SuggestionSlider';
 import RoomSuggestions from '../components/RoomSuggestions';
@@ -45,6 +46,7 @@ export default function SuggestionsScreen({ navigation }) {
   const handleApprove = useCallback(
     async (friendId) => {
       if (!friendId) return;
+      Haptics.selectionAsync().catch(() => {});
       setApprovingRequestId(friendId);
       try {
         await approveFriendRequest(friendId);
@@ -54,6 +56,16 @@ export default function SuggestionsScreen({ navigation }) {
       }
     },
     [loadRequests],
+  );
+  const handleRequestPress = useCallback(
+    (item) => {
+      Haptics.selectionAsync().catch(() => {});
+      navigation.navigate('FriendProfile', {
+        isMine: false,
+        userId: item.friend_id || item.id,
+      });
+    },
+    [navigation],
   );
 
   const onRefresh = useCallback(async () => {
@@ -120,19 +132,14 @@ export default function SuggestionsScreen({ navigation }) {
       ) : (
         <View style={styles.requestsRow}>
           {requests.slice(0, 2).map((item) => (
-            <FriendListItem
-              key={item.id}
-              friend={item}
-              isRequestList
-              approving={approvingRequestId === item.id}
-              onPress={() =>
-                navigation.navigate('FriendProfile', {
-                  isMine: false,
-                  userId: item.friend_id || item.id,
-                })
-              }
-              onApprove={() => handleApprove(item.friend_id || item.id)}
-            />
+              <FriendListItem
+                key={item.id}
+                friend={item}
+                isRequestList
+                approving={approvingRequestId === item.id}
+                onPress={() => handleRequestPress(item)}
+                onApprove={() => handleApprove(item.friend_id || item.id)}
+              />
           ))}
           {!requests.length && (
             <Text style={styles.emptyRequests}>Nema novih zahtjeva.</Text>
