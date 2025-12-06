@@ -134,9 +134,14 @@ export default function SuggestionGrid({ title = 'Još preporuka', refreshKey, o
                   onPress={() => handleConnect(item)}
                   disabled={pendingId === item.id}
                 >
-                  <Text style={styles.primaryGhostButtonText}>
-                    {pendingId === item.id ? 'Učitavanje' : 'Poveži se'}
-                  </Text>
+                  <View style={styles.connectRow}>
+                    {pendingId === item.id && (
+                      <ActivityIndicator size="small" color={colors.primary} style={styles.connectSpinner} />
+                    )}
+                    <Text style={styles.primaryGhostButtonText}>
+                      {pendingId === item.id ? 'Povezivanje' : 'Poveži se'}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               </Animated.View>
             </TouchableOpacity>
@@ -219,6 +224,15 @@ const createStyles = (colors) =>
       color: colors.primary,
       fontWeight: '800',
       fontSize: 12,
+    },
+    connectRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      columnGap: 6,
+    },
+    connectSpinner: {
+      marginRight: 4,
     },
     loader: {
       paddingVertical: 12,

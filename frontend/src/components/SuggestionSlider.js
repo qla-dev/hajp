@@ -189,7 +189,9 @@ export default function SuggestionSlider({
                     {pendingId === item.id && (
                       <ActivityIndicator size="small" color={colors.primary} style={styles.connectSpinner} />
                     )}
-                    <Text style={styles.primaryGhostButtonText}>Poveži se</Text>
+                    <Text style={styles.primaryGhostButtonText}>
+                      {pendingId === item.id ? 'Povezivanje' : 'Poveži se'}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               </Animated.View>
