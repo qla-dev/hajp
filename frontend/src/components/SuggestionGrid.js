@@ -6,18 +6,23 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchFriendSuggestions, addFriend, baseURL } from '../api';
 
 const GRID_COLUMNS = 2;
 
-export default function SuggestionGrid({ title = 'Još preporuka', refreshKey }) {
+export default function SuggestionGrid({ title = 'Još preporuka', refreshKey, onCardPress }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pendingId, setPendingId] = useState(null);
+  const [fadeValues] = useState({});
+  const navigation = useNavigation();
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -36,14 +41,39 @@ export default function SuggestionGrid({ title = 'Još preporuka', refreshKey })
   }, [loadItems, refreshKey]);
 
   const handleConnect = async (item) => {
+    Haptics.selectionAsync().catch(() => {});
     if (!item?.id || pendingId === item.id) return;
+    if (!fadeValues[item.id]) {
+      fadeValues[item.id] = new Animated.Value(1);
+    }
     setPendingId(item.id);
     try {
       await addFriend(item.id);
-      setItems((prev) => prev.filter((i) => i.id !== item.id));
-    } finally {
+      Animated.timing(fadeValues[item.id], {
+        toValue: 0,
+        duration: 450,
+        useNativeDriver: true,
+      }).start(() => {
+        setItems((prev) => prev.filter((i) => i.id !== item.id));
+        setPendingId(null);
+      });
+    } catch {
       setPendingId(null);
     }
+  };
+
+  const handleCardPress = (item) => {
+    Haptics.selectionAsync().catch(() => {});
+    if (typeof onCardPress === 'function') {
+      onCardPress(item);
+      return;
+    }
+    const friendId = item.friend_id || item.id;
+    if (!friendId) return;
+    navigation.navigate('FriendProfile', {
+      isMine: false,
+      userId: friendId,
+    });
   };
 
   const resolveAvatar = (photo) => {
@@ -87,20 +117,27 @@ export default function SuggestionGrid({ title = 'Još preporuka', refreshKey })
       ) : (
         <View style={styles.grid}>
           {items.slice(0, 4).map((item) => (
-            <View key={item.id || item.username || item.name} style={styles.card}>
-              {renderAvatar(item)}
-              <Text style={styles.name}>{item.name || item.username}</Text>
-              {item.username ? <Text style={styles.subtitle}>@{item.username}</Text> : null}
-              <TouchableOpacity
-                style={styles.primaryGhostButton}
-                onPress={() => handleConnect(item)}
-                disabled={pendingId === item.id}
-              >
-                <Text style={styles.primaryGhostButtonText}>
-                  {pendingId === item.id ? 'Učitavanje' : 'Poveži se'}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              key={item.id || item.username || item.name}
+              activeOpacity={0.8}
+              onPress={() => handleCardPress(item)}
+              style={styles.cardWrapper}
+            >
+              <Animated.View style={[styles.card, fadeValues[item.id] && { opacity: fadeValues[item.id] }]}>
+                {renderAvatar(item)}
+                <Text style={styles.name}>{item.name || item.username}</Text>
+                {item.username ? <Text style={styles.subtitle}>@{item.username}</Text> : null}
+                <TouchableOpacity
+                  style={styles.primaryGhostButton}
+                  onPress={() => handleConnect(item)}
+                  disabled={pendingId === item.id}
+                >
+                  <Text style={styles.primaryGhostButtonText}>
+                    {pendingId === item.id ? 'Učitavanje' : 'Poveži se'}
+                  </Text>
+                </TouchableOpacity>
+              </Animated.View>
+            </TouchableOpacity>
           ))}
         </View>
       )}
@@ -129,10 +166,10 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
-      gap: 12,
+      marginHorizontal: -2,
     },
     card: {
-      width: '48%',
+      width: '100%',
       backgroundColor: colors.transparent,
       borderRadius: 16,
       padding: 12,
@@ -183,5 +220,10 @@ const createStyles = (colors) =>
     },
     loader: {
       paddingVertical: 12,
+    },
+    cardWrapper: {
+      width: '49%',
+      paddingHorizontal: 2,
+      marginBottom: 10,
     },
   });

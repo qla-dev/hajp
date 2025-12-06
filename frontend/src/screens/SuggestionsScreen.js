@@ -125,7 +125,7 @@ export default function SuggestionsScreen({ navigation }) {
       )}
 
       <SuggestionSlider
-        linkLabel="Pogledajte sve"
+        linkLabel="Pogledaj sve"
         onLinkPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}
         refreshKey={refreshKey}
       />

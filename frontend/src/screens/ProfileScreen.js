@@ -334,7 +334,7 @@ export default function ProfileScreen({ navigation, route }) {
         {showPrivateNotice ? (
           <View style={styles.privateWrapper}>
             <SuggestionSlider
-              linkLabel="Pogledajte sve"
+              linkLabel="Pogledaj sve"
               onLinkPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}
             />
             <View style={styles.privateNotice}>

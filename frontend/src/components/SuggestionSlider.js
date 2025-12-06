@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,8 @@ export default function SuggestionSlider({
   const [loading, setLoading] = useState(false);
   const [pendingId, setPendingId] = useState(null);
   const [fadeValues] = useState({});
+  const lastTapRef = useRef(0);
+  const skipUntilRef = useRef(0);
 
   const resolveAvatar = (photo) => {
     if (!photo) return null;
@@ -103,6 +105,9 @@ export default function SuggestionSlider({
   };
 
   const handleCardPress = (item) => {
+    const now = Date.now();
+    lastTapRef.current = now;
+    skipUntilRef.current = now + 600;
     if (typeof onCardPress === 'function') {
       onCardPress(item);
       return;
@@ -142,6 +147,7 @@ export default function SuggestionSlider({
           snapToInterval={232}
           decelerationRate="fast"
           onMomentumScrollEnd={() => {
+            if (Date.now() < skipUntilRef.current) return;
             Haptics.selectionAsync().catch(() => {});
           }}
         >
