@@ -10,38 +10,10 @@ import {
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import SuggestionSlider from '../components/SuggestionSlider';
+import RoomSuggestions from '../components/RoomSuggestions';
 import SuggestionGrid from '../components/SuggestionGrid';
-import RoomCard from '../components/RoomCard';
 import FriendListItem from '../components/FriendListItem';
 import { fetchFriendRequests, approveFriendRequest } from '../api';
-
-const rooms = [
-  {
-    id: 1,
-    name: 'Grow Together',
-    description: 'Soba puna motivacije, mentorstva i cool priča.',
-    members: 128,
-    is_18_over: true,
-    cover: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=60',
-  },
-  {
-    id: 2,
-    name: 'Weekend Hype',
-    description: 'Casual chat + hajp stream svaki petak.',
-    members: 94,
-    is_18_over: false,
-    cover: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=60',
-  },
-  {
-    id: 3,
-    name: 'Tech Deep Dive',
-    description: 'Deep kodanje, kolaboracije i meme battle.',
-    members: 64,
-    is_18_over: true,
-    cover: 'https://images.unsplash.com/photo-1485217988980-11786ced9454?auto=format&fit=crop&w=800&q=60',
-  },
-];
-
 
 export default function SuggestionsScreen({ navigation }) {
   const { colors } = useTheme();
@@ -103,7 +75,12 @@ export default function SuggestionsScreen({ navigation }) {
       style={styles.container}
       contentInsetAdjustmentBehavior="always"
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+        />
       }
     >
       <View style={styles.sectionHeader}>
@@ -153,15 +130,7 @@ export default function SuggestionsScreen({ navigation }) {
         refreshKey={refreshKey}
       />
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Sobe nasumično otvorene</Text>
-      </View>
-
-      <View style={styles.roomList}>
-        {rooms.map((room) => (
-          <RoomCard key={room.id} room={room} onPress={() => console.log('Open room', room.name)} />
-        ))}
-      </View>
+      <RoomSuggestions refreshKey={refreshKey} onRoomPress={(room) => console.log('Open room', room?.name)} />
 
       <SuggestionGrid refreshKey={refreshKey} />
     </ScrollView>
@@ -204,9 +173,5 @@ const createStyles = (colors) =>
     emptyRequests: {
       paddingHorizontal: 16,
       color: colors.text_secondary,
-    },
-    roomList: {
-      paddingHorizontal: 16,
-      paddingTop: 8,
     },
   });
