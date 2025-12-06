@@ -114,7 +114,7 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-      paddingTop: 104,
+      paddingTop: 4,
       paddingHorizontal: 16,
       paddingBottom: 4,
     },
@@ -129,7 +129,7 @@ const createStyles = (colors) =>
     alignItems: 'center',
   },
   list: {
-    paddingTop: 12,
+    paddingTop: 102,
     paddingBottom: 120,
   },
   });
