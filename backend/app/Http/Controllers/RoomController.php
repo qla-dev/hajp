@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Question;
 use App\Models\Room;
+use App\Models\RoomMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -20,6 +21,25 @@ class RoomController extends Controller
             'tagline',
             'description',
             'is_private',
+        ]);
+    }
+
+    public function join(Request $request, Room $room)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $approved = $room->is_private ? 0 : 1;
+        RoomMember::updateOrCreate(
+            ['room_id' => $room->id, 'user_id' => $user->id],
+            ['approved' => $approved]
+        );
+
+        return response()->json([
+            'status' => $approved ? 'joined' : 'requested',
+            'room_id' => $room->id,
         ]);
     }
 

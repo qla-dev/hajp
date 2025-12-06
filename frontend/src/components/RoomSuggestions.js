@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import RoomCard from './RoomCard';
-import { fetchRooms } from '../api';
+import { fetchRooms, joinRoom } from '../api';
 
 export default function RoomSuggestions({ refreshKey, onRoomPress }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [joiningRoomId, setJoiningRoomId] = useState(null);
 
   const loadRooms = useCallback(async () => {
     setLoading(true);
@@ -21,6 +22,27 @@ export default function RoomSuggestions({ refreshKey, onRoomPress }) {
       setLoading(false);
     }
   }, []);
+
+  const handleRoomJoin = useCallback(
+    async (roomId) => {
+      if (!roomId) return;
+      setJoiningRoomId(roomId);
+      try {
+        const { data } = await joinRoom(roomId);
+        Alert.alert(
+          data?.status === 'requested' ? 'Zahtjev poslan' : 'Pridruženo',
+          data?.status === 'requested'
+            ? 'Poslan je zahtjev za pridruživanje sobi.'
+            : 'Uspješno ste se pridružili sobi.',
+        );
+      } catch (error) {
+        Alert.alert('Greška', 'Nije moguće poslati zahtjev za sobu.');
+      } finally {
+        setJoiningRoomId(null);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     loadRooms();
@@ -41,6 +63,8 @@ export default function RoomSuggestions({ refreshKey, onRoomPress }) {
             key={room.id}
             room={room}
             onPress={() => onRoomPress?.(room)}
+            onJoin={() => handleRoomJoin(room.id)}
+            joining={joiningRoomId === room.id}
           />
         ))
       )}

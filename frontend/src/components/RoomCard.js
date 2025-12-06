@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 
 const FALLBACK_COVER =
   'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1440&q=80';
 
-export default function RoomCard({ room = {}, onPress }) {
+export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const coverUri = room.cover_url || room.cover || FALLBACK_COVER;
@@ -14,12 +14,16 @@ export default function RoomCard({ room = {}, onPress }) {
   const privacyLabel = room.is_private ? 'Privatna' : 'Javna';
   const typeLabel = room.type || 'Vibe';
 
+  const handleJoin = () => {
+    onJoin?.(room);
+  };
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.92}>
       <ImageBackground source={{ uri: coverUri }} style={styles.cover} imageStyle={styles.coverImage}>
         <View style={styles.overlay} />
         <View style={styles.topRow}>
-          <View style={[styles.privacyBadge, room.is_private ? styles.privateBadge : styles.publicBadge]}>
+          <View style={[styles.privacyBadge, room.is_private ? styles.publicBadge : styles.publicBadge]}>
             <Ionicons name={room.is_private ? 'lock-closed' : 'lock-open'} size={14} color="#fff" />
             <Text style={styles.privacyText}>{privacyLabel}</Text>
           </View>
@@ -38,10 +42,13 @@ export default function RoomCard({ room = {}, onPress }) {
           <Ionicons name="people-circle-outline" size={22} color={colors.secondary} />
           <Text style={styles.memberText}>{memberCount} članova</Text>
         </View>
-        <View style={styles.trendingPill}>
-          <Ionicons name="sparkles" size={14} color={colors.primary} />
-          <Text style={[styles.memberText, { color: colors.primary, marginLeft: 4 }]}>Trending</Text>
-        </View>
+        <TouchableOpacity style={styles.joinButton} onPress={handleJoin} disabled={!onJoin || joining}>
+          {joining ? (
+            <ActivityIndicator size="small" color={colors.primary} />
+          ) : (
+            <Text style={[styles.memberText, { color: colors.primary }]}>Pridruži se</Text>
+          )}
+        </TouchableOpacity>
       </View>
       {!!room.description && (
         <Text style={styles.description} numberOfLines={3}>
@@ -96,7 +103,7 @@ const createStyles = (colors) =>
       backgroundColor: colors.secondary,
     },
     privateBadge: {
-      backgroundColor: colors.secondary,
+      backgroundColor: colors.error,
     },
     publicBadge: {
       backgroundColor: colors.secondary,
@@ -105,7 +112,6 @@ const createStyles = (colors) =>
       color: '#fff',
       fontWeight: '700',
       fontSize: 12,
-      marginLeft: 4,
     },
     typeCluster: {
       flexDirection: 'row',
@@ -122,7 +128,7 @@ const createStyles = (colors) =>
       borderRadius: 12,
     },
     adultText: {
-      backgroundColor: 'rgba(255, 26, 26, 0.9)',
+      backgroundColor: 'rgba(255, 0, 0, 0.9)',
       paddingRight: 7,
     },
     infoBlock: {
@@ -144,7 +150,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: 20,
+      paddingHorizontal: 15,
       paddingVertical: 14,
     },
     memberRow: {
@@ -157,14 +163,12 @@ const createStyles = (colors) =>
       fontWeight: '600',
       color: colors.text_secondary,
     },
-    trendingPill: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderRadius: 999,
+    joinButton: {
+      borderRadius: 14,
       borderWidth: 1,
       borderColor: colors.primary,
-      paddingHorizontal: 10,
-      paddingVertical: 4,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
       backgroundColor: colors.background,
     },
     description: {

@@ -32,11 +32,12 @@ const headerLabelMap = {
 
 const iconMap = {
   Hajp: { active: 'home', inactive: 'home-outline' },
-  Friends: { active: 'people', inactive: 'people-outline' },
+  Friends: { active: 'planet', inactive: 'planet-outline' },
   Rank: { active: 'radio', inactive: 'radio-outline' },
   Inbox: { active: 'flame', inactive: 'flame-outline' },
   Profile: { active: 'person', inactive: 'person-outline' },
 };
+
 
 function HajpStackNavigator() {
   const { colors } = useTheme();
@@ -348,10 +349,10 @@ export default function MainTabs() {
             const icons = iconMap[route.name] || iconMap.Hajp;
             const iconName = isFocused ? icons.active : icons.inactive;
               // Bigger size only for Friends
-  const customSize = route.name === "Friends" ? size + 9 : size;
+  const customSize = route.name === "hue" ? size + 9 : size;
 
   // Thicker stroke only for Friends
-  const stroke = route.name === "Friends" ? 5.2 : 5.3;
+  const stroke = route.name === "hue" ? 5.2 : 5.3;
             return <Ionicons  name={iconName}
       size={customSize}
       color={color}

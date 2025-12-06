@@ -52,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('rooms')->group(function () {
         Route::get('/{room}/questions/active', [RoomController::class, 'activeQuestion']);
+        Route::post('/{room}/join', [RoomController::class, 'join']);
     });
 
     Route::prefix('subscription')->group(function () {
