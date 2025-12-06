@@ -10,6 +10,7 @@ import {
   Animated,
   ActivityIndicator,
   PanResponder,
+  Dimensions,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,21 +30,50 @@ export default function ProfileScreen({ navigation, route }) {
   const [friendStatusLoading, setFriendStatusLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const glowAnim = useRef(new Animated.Value(0)).current;
+  const screenTranslate = useRef(new Animated.Value(0)).current;
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_, gestureState) => {
         const { dx, dy } = gestureState;
-        return dx > 12 && Math.abs(dx) > Math.abs(dy);
+        return dx > 10 && Math.abs(dx) > Math.abs(dy);
       },
-      onPanResponderRelease: (_, gestureState) => {
-        if (!navigation.canGoBack()) return;
-        const { dx, vx } = gestureState;
-        if (dx > 120 || vx > 0.35) {
-          navigation.goBack();
+      onPanResponderGrant: () => {
+        screenTranslate.setValue(0);
+      },
+      onPanResponderMove: (_, gestureState) => {
+        const { dx } = gestureState;
+        if (dx > 0) {
+          screenTranslate.setValue(dx);
         }
       },
-      onPanResponderTerminate: () => {},
+      onPanResponderRelease: (_, gestureState) => {
+        const { dx, vx } = gestureState;
+        const width = Dimensions.get('window').width;
+        if (dx > 120 || vx > 0.35) {
+          Animated.timing(screenTranslate, {
+            toValue: width,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => {
+            screenTranslate.setValue(0);
+            navigation.canGoBack() && navigation.goBack();
+          });
+        } else {
+          Animated.spring(screenTranslate, {
+            toValue: 0,
+            bounciness: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+      onPanResponderTerminate: () => {
+        Animated.spring(screenTranslate, {
+          toValue: 0,
+          bounciness: 0,
+          useNativeDriver: true,
+        }).start();
+      },
     }),
   ).current;
 
@@ -205,7 +235,10 @@ export default function ProfileScreen({ navigation, route }) {
   };
 
   return (
-    <View style={styles.screen} {...panResponder.panHandlers}>
+    <Animated.View
+      style={[styles.screen, { transform: [{ translateX: screenTranslate }] }]}
+      {...panResponder.panHandlers}
+    >
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
@@ -395,7 +428,7 @@ export default function ProfileScreen({ navigation, route }) {
           fixed
         />
       )}
-    </View>
+    </Animated.View>
   );
 }
 

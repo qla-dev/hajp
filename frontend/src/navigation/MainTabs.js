@@ -139,6 +139,7 @@ function ProfileStackNavigator() {
         component={ProfileScreen}
         options={({ navigation }) => ({
           title: headerLabelMap.Profile,
+          gestureEnabled: false,
           headerLeft: () => (
             <TouchableOpacity
               onPress={() => navigation.navigate('Rank', { screen: 'RankRooms' })}
@@ -157,7 +158,6 @@ function ProfileStackNavigator() {
               <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
             </TouchableOpacity>
           ),
-          gestureResponseDistance: { horizontal: 240 },
         })}
       />
       <ProfileStack.Screen
@@ -165,6 +165,7 @@ function ProfileStackNavigator() {
         component={ProfileScreen}
         options={({ navigation }) => ({
           title: 'Profil',
+          gestureEnabled: false,
           headerBackVisible: false,
           headerLeft: () => (
             <TouchableOpacity
@@ -191,7 +192,6 @@ function ProfileStackNavigator() {
               <Ionicons name="ellipsis-horizontal" size={20} color={colors.text_primary} />
             </TouchableOpacity>
           ),
-          gestureResponseDistance: { horizontal: 240 },
         })}
       />
       <ProfileStack.Screen
@@ -200,7 +200,7 @@ function ProfileStackNavigator() {
         options={{
           title: 'Prijatelji',
           headerBackTitle: 'Nazad',
-          gestureResponseDistance: { horizontal: 240 },
+          gestureEnabled: false,
         }}
         initialParams={{ fromProfile: true }}
       />
