@@ -141,7 +141,8 @@ export default function ProfileScreen({ navigation, route }) {
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.25] });
   const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
   const isFriendActionLoading = connecting || friendStatusLoading;
-  const connectButtonStyle = friendStatus.exists ? styles.shareButton : [styles.shareButton, styles.connectButton];
+  const isConnected = friendStatus.exists && friendStatus.approved === 1;
+  const connectButtonStyle = isConnected ? styles.shareButton : [styles.shareButton, styles.connectButton];
 
   const handleConnectPress = async () => {
     if (!isOtherProfile || !route?.params?.userId || isFriendActionLoading) return;
@@ -317,14 +318,14 @@ export default function ProfileScreen({ navigation, route }) {
                     <Text style={[styles.shareButtonText, styles.connectButtonText]}>Učitavanje</Text>
                   </View>
                 ) : (
-                  <Text
-                    style={[
-                      styles.shareButtonText,
-                      friendStatus.exists ? { color: colors.border } : styles.connectButtonText,
-                    ]}
-                  >
-                    {friendStatus.exists ? (friendStatus.approved === 1 ? 'Povezani ste' : 'Zahtjev poslan') : 'Poveži se'}
-                  </Text>
+                    <Text
+                      style={[
+                        styles.shareButtonText,
+                        isConnected ? { color: colors.success } : styles.connectButtonText,
+                      ]}
+                    >
+                      {friendStatus.exists ? (friendStatus.approved === 1 ? 'Povezani ste' : 'Zahtjev poslan') : 'Poveži se'}
+                    </Text>
                 )}
               </TouchableOpacity>
             </View>
