@@ -14,6 +14,7 @@ export default function PollItem({
   disabled,
   accentColor,
   onCardPress,
+  style,
 }) {
   const { colors } = useTheme();
   const completion = total ? Math.min(Math.max(answered / total, 0), 1) : 0;
@@ -26,7 +27,7 @@ export default function PollItem({
   return (
     <Container
       {...containerProps}
-      style={[styles.card, { backgroundColor: colors.transparent, borderColor: accent }]}
+      style={[styles.card, { backgroundColor: colors.transparent, borderColor: accent }, style]}
     >
       <View style={styles.row}>
         <Text style={[styles.roomName, { color: colors.text_primary }]} numberOfLines={1}>

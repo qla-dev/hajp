@@ -11,8 +11,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRooms, fetchActiveQuestion } from '../api';
 import PollItem from '../components/PollItem';
 
-const LIST_TOP_PADDING = 98;
-const REFRESH_INDICATOR_OFFSET = 100;
+const LIST_TOP_PADDING = 92;
 
 export default function RoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
@@ -81,7 +80,7 @@ export default function RoomsScreen({ navigation }) {
     }
   };
 
-  const renderRoom = ({ item }) => {
+  const renderRoom = ({ item, index }) => {
     const highlight = roomPolls[item.id];
     const baseTotal = item.polls_count ?? 20;
     const fallbackAnswered = Math.min(item.completed_polls ?? baseTotal, baseTotal);
@@ -90,6 +89,8 @@ export default function RoomsScreen({ navigation }) {
     const answered = highlight?.answered ?? fallbackAnswered;
     const isComplete = total > 0 && answered >= total;
     const emoji = highlight?.emoji || (item.type === 'Za žene' ? '🌸' : '⚡️');
+
+    const itemStyle = index === 0 ? { marginTop: 105 } : undefined;
 
     return (
       <PollItem
@@ -102,19 +103,30 @@ export default function RoomsScreen({ navigation }) {
           navigation.navigate('Polling', { roomId: item.id, roomName: item.name })
         }
         accentColor={isComplete ? colors.error : item.is_private ? colors.error : colors.primary}
+        style={itemStyle}
       />
+    );
+  };
+
+  const renderEmptyState = () => {
+    if (loading) {
+      return (
+        <View style={styles.loader}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Učitavam sobe</Text>
+        </View>
+      );
+    }
+    return (
+      <View style={styles.emptyState}>
+        <Text style={[styles.loadingText, { marginTop: 0 }]}>Još nema soba</Text>
+      </View>
     );
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.section}>
-        {loading ? (
-          <View style={styles.loader}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>Učitavam sobe</Text>
-          </View>
-        ) : (
           <FlatList
             data={rooms}
             keyExtractor={(item) => String(item.id)}
@@ -127,12 +139,12 @@ export default function RoomsScreen({ navigation }) {
                 onRefresh={() => loadRooms({ showLoader: false })}
                 tintColor={colors.primary}
                 colors={[colors.primary]}
-                progressViewOffset={REFRESH_INDICATOR_OFFSET}
+                progressViewOffset={LIST_TOP_PADDING}
               />
             }
-            style={styles.listMargin}
+            ListEmptyComponent={renderEmptyState}
+            ListEmptyComponentStyle={{ paddingTop: LIST_TOP_PADDING }}
           />
-        )}
       </View>
     </View>
   );
@@ -143,13 +155,13 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-      paddingTop: 0,
+      marginTop: 0,
       paddingHorizontal: 16,
       paddingBottom: 0,
     },
     section: {
       flex: 1,
-      paddingTop: 12,
+      paddingTop: 0,
       borderBottomWidth: 0,
     },
     loadingText: {
@@ -158,14 +170,17 @@ const createStyles = (colors) =>
       marginTop: 12,
     },
     loader: {
-      flex: 1,
-      justifyContent: 'center',
       alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 32,
     },
-    listMargin: {
-      marginTop: LIST_TOP_PADDING,
+    emptyState: {
+      alignItems: 'center',
+      paddingVertical: 32,
     },
     list: {
+      paddingTop: 0,
       paddingBottom: 0,
+      flexGrow: 1,
     },
   });
