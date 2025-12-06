@@ -184,8 +184,10 @@ class UserController extends Controller
     public function friendsCount(User $user)
     {
         $count = DB::table('friendships')
-            ->where('auth_user_id', $user->id)
-            ->orWhere('user_id', $user->id)
+            ->where(function ($query) use ($user) {
+                $query->where('auth_user_id', $user->id)->orWhere('user_id', $user->id);
+            })
+            ->where('approved', 1)
             ->count();
 
         return response()->json(['count' => $count]);
