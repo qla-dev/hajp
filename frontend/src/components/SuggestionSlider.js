@@ -12,7 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchFriendSuggestions, addFriend } from '../api';
+import { fetchFriendSuggestions, addFriend, baseURL } from '../api';
 
 export default function SuggestionSlider({
   title = 'Predlažemo ti',
@@ -32,6 +32,35 @@ export default function SuggestionSlider({
   const [pendingId, setPendingId] = useState(null);
   const [fadeValues] = useState({});
 
+  const resolveAvatar = (photo) => {
+    if (!photo) return null;
+    if (/^https?:\/\//i.test(photo)) return photo;
+    const cleanBase = (baseURL || '').replace(/\/+$/, '');
+    const cleanPath = photo.replace(/^\/+/, '');
+    return `${cleanBase}/${cleanPath}`;
+  };
+
+  const pickAvatarField = (item) =>
+    item.profile_photo || item.photo || item.avatar || item.image || null;
+
+  const renderAvatar = (item) => {
+    const uri = resolveAvatar(pickAvatarField(item));
+    if (uri) {
+      return <Image source={{ uri }} style={styles.cardAvatar} />;
+    }
+    const label = item.name || item.username || 'Korisnik';
+    const initials = label
+      .split(' ')
+      .map((part) => part.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
+    return (
+      <View style={[styles.cardAvatar, styles.avatarFallback]}>
+        <Text style={styles.avatarFallbackText}>{initials}</Text>
+      </View>
+    );
+  };
+
   const loadSuggestions = useCallback(async () => {
     setLoading(true);
     try {
@@ -47,23 +76,6 @@ export default function SuggestionSlider({
   useEffect(() => {
     loadSuggestions();
   }, [loadSuggestions, refreshKey]);
-
-  const renderAvatar = (item) => {
-    if (item.profile_photo) {
-      return <Image source={{ uri: item.profile_photo }} style={styles.cardAvatar} />;
-    }
-    const label = item.name || item.username || 'Korisnik';
-    const initials = label
-      .split(' ')
-      .map((part) => part.charAt(0).toUpperCase())
-      .slice(0, 2)
-      .join('');
-    return (
-      <View style={[styles.cardAvatar, styles.avatarFallback]}>
-        <Text style={styles.avatarFallbackText}>{initials}</Text>
-      </View>
-    );
-  };
 
   const handleConnect = async (item) => {
     if (!item.id || pendingId === item.id) return;

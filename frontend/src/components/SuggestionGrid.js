@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchFriendSuggestions, addFriend } from '../api';
+import { fetchFriendSuggestions, addFriend, baseURL } from '../api';
 
 const GRID_COLUMNS = 2;
 
@@ -46,9 +46,21 @@ export default function SuggestionGrid({ title = 'Još preporuka', refreshKey })
     }
   };
 
+  const resolveAvatar = (photo) => {
+    if (!photo) return null;
+    if (/^https?:\/\//i.test(photo)) return photo;
+    const cleanBase = (baseURL || '').replace(/\/+$/, '');
+    const cleanPath = photo.replace(/^\/+/, '');
+    return `${cleanBase}/${cleanPath}`;
+  };
+
+  const pickAvatarField = (item) =>
+    item.profile_photo || item.photo || item.avatar || item.image || null;
+
   const renderAvatar = (item) => {
-    if (item.profile_photo) {
-      return <Image source={{ uri: item.profile_photo }} style={styles.avatar} />;
+    const uri = resolveAvatar(pickAvatarField(item));
+    if (uri) {
+      return <Image source={{ uri }} style={styles.avatar} />;
     }
     const label = item.name || item.username || 'Korisnik';
     const initials = label
