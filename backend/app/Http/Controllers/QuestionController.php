@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Http\JsonResponse;
 
 class QuestionController extends Controller
 {
@@ -119,5 +120,59 @@ class QuestionController extends Controller
             ->get();
 
         return $votes;
+    }
+
+    public function activities(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        $limit = max(1, (int) $request->query('limit', 10));
+        $page = max(1, (int) $request->query('page', 1));
+
+        $friendships = DB::table('friendships')
+            ->where('approved', 1)
+            ->where(function ($query) use ($user) {
+                $query->where('auth_user_id', $user->id)->orWhere('user_id', $user->id);
+            })
+            ->get();
+
+        $friendIds = [];
+        foreach ($friendships as $friendship) {
+            $friendIds[] = $friendship->auth_user_id === $user->id ? $friendship->user_id : $friendship->auth_user_id;
+        }
+
+        if (empty($friendIds)) {
+            return response()->json([
+                'data' => [],
+                'meta' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'has_more' => false,
+                ],
+            ]);
+        }
+
+        $offset = ($page - 1) * $limit;
+
+        $votes = Vote::with(['question', 'user'])
+            ->whereIn('user_id', $friendIds)
+            ->orderByDesc('created_at')
+            ->skip($offset)
+            ->take($limit)
+            ->get();
+
+        $total = Vote::whereIn('user_id', $friendIds)->count();
+
+        return response()->json([
+            'data' => $votes,
+            'meta' => [
+                'page' => $page,
+                'limit' => $limit,
+                'has_more' => $offset + $limit < $total,
+            ],
+        ]);
     }
 }

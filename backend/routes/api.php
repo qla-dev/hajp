@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/photo', [UserController::class, 'uploadPhoto']);
         Route::delete('/photo', [UserController::class, 'removePhoto']);
         Route::get('/votes', [QuestionController::class, 'myVotes']);
+        Route::get('/activities', [QuestionController::class, 'activities']);
     });
 
     Route::prefix('questions')->group(function () {

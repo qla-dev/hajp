@@ -1,101 +1,66 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { getInbox, getCurrentUser } from '../api';
+import { fetchFriendActivities } from '../api';
 import RankRoomsScreen from './RankRoomsScreen';
-import BottomCTA from '../components/BottomCTA';
+import ActivityItem from '../components/ActivityItem';
 
-const TAB_RANK = 'rank';
 const TAB_ACTIVITY = 'activity';
+const TAB_RANK = 'rank';
+const PAGE_LIMIT = 10;
 
 export default function LiveScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState(TAB_ACTIVITY);
-  const [loading, setLoading] = useState(true);
-  const [messages, setMessages] = useState([]);
-  const [user, setUser] = useState(null);
+  const [activities, setActivities] = useState([]);
+  const [activityPage, setActivityPage] = useState(1);
+  const [loadingActivities, setLoadingActivities] = useState(true);
+  const [loadingMoreActivities, setLoadingMoreActivities] = useState(false);
+  const [hasMoreActivities, setHasMoreActivities] = useState(true);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
-  const loadUser = useCallback(async () => {
-    try {
-      const current = await getCurrentUser();
-      setUser(current || null);
-      return current;
-    } catch (error) {
-      console.error('Greška pri učitavanju korisnika:', error);
-      setUser(null);
-      return null;
-    }
-  }, []);
-
-  const loadMessages = useCallback(async (targetUser) => {
-    try {
-      const resolvedUser = targetUser || (await loadUser());
-      if (resolvedUser) {
-        const { data } = await getInbox(resolvedUser.id);
-        setMessages(data?.messages || []);
+  const loadActivities = useCallback(
+    async (page = 1, append = false) => {
+      if (append) {
+        setLoadingMoreActivities(true);
       } else {
-        setMessages([]);
+        setLoadingActivities(true);
+        setHasMoreActivities(true);
       }
-    } catch (error) {
-      setMessages([]);
-      console.error('Greška pri učitavanju aktivnosti:', error);
-    }
-  }, [loadUser]);
+      try {
+        const { data, meta } = await fetchFriendActivities(page, PAGE_LIMIT);
+        setActivities((prev) => (append ? [...prev, ...data] : data));
+        setActivityPage(page);
+        setHasMoreActivities(meta?.has_more ?? false);
+      } catch (error) {
+        if (!append) {
+          setActivities([]);
+          setHasMoreActivities(false);
+        }
+        console.error('Greška pri učitavanju aktivnosti:', error);
+      } finally {
+        if (append) {
+          setLoadingMoreActivities(false);
+        } else {
+          setLoadingActivities(false);
+        }
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
-    let isMounted = true;
     if (activeTab === TAB_ACTIVITY) {
-      (async () => {
-        setLoading(true);
-        const current = await loadUser();
-        if (!isMounted) return;
-        try {
-          await loadMessages(current);
-        } finally {
-          isMounted && setLoading(false);
-        }
-      })();
-    } else {
-      setLoading(false);
+      loadActivities(1);
     }
-    return () => {
-      isMounted = false;
-    };
-  }, [activeTab, loadUser, loadMessages]);
+  }, [activeTab, loadActivities]);
 
-  const renderActivity = ({ item }) => {
-    const metadata = item.metadata || {};
-    const from = metadata.gender ? `Od: ${metadata.gender}` : 'Anonimno';
-    const ts = item.created_at
-      ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : '';
-
-    return (
-      <View style={styles.messageCard}>
-        <Ionicons name="radio" size={40} color="#0ea5e9" style={styles.messageIcon} />
-        <View style={styles.messageContent}>
-          <Text style={styles.messageText} numberOfLines={1}>
-            {item.message || 'Aktivnost'}
-          </Text>
-          <Text style={styles.messageMetadata}>{from}</Text>
-        </View>
-        <Text style={styles.messageTime}>{ts}</Text>
-      </View>
-    );
+  const handleLoadMore = () => {
+    if (!hasMoreActivities || loadingMoreActivities || loadingActivities) return;
+    loadActivities(activityPage + 1, true);
   };
 
   const renderContent = () => {
-    if (loading) {
-      return (
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Učitavanje</Text>
-        </View>
-      );
-    }
-
     if (activeTab === TAB_RANK) {
       return (
         <View style={styles.rankWrapper}>
@@ -104,7 +69,16 @@ export default function LiveScreen({ navigation }) {
       );
     }
 
-    if (!messages.length) {
+    if (loadingActivities) {
+      return (
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Učitavanje</Text>
+        </View>
+      );
+    }
+
+    if (!activities.length) {
       return (
         <View style={styles.centerContent}>
           <Text style={styles.emptyText}>Još uvijek nema aktivnosti</Text>
@@ -115,10 +89,17 @@ export default function LiveScreen({ navigation }) {
 
     return (
       <FlatList
-        data={messages}
+        data={activities}
         keyExtractor={(item) => String(item.id)}
-        renderItem={renderActivity}
+        renderItem={({ item }) => <ActivityItem activity={item} />}
         contentContainerStyle={styles.messagesList}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMoreActivities ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 12 }} />
+          ) : null
+        }
       />
     );
   };
@@ -126,7 +107,7 @@ export default function LiveScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.tabs}>
-    {[TAB_ACTIVITY, TAB_RANK].map((tab) => (
+        {[TAB_ACTIVITY, TAB_RANK].map((tab) => (
           <TouchableOpacity
             key={tab}
             style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
@@ -141,7 +122,6 @@ export default function LiveScreen({ navigation }) {
       </View>
 
       {renderContent()}
-
     </View>
   );
 }
@@ -185,41 +165,6 @@ const createStyles = (colors, isDark) =>
     messagesList: {
       paddingHorizontal: 16,
       paddingBottom: 16,
-    },
-    messageCard: {
-      flexDirection: 'row',
-      backgroundColor: colors.surface,
-      padding: 16,
-      borderRadius: 12,
-      marginBottom: 12,
-      alignItems: 'center',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08,
-      shadowRadius: 2,
-      elevation: 2,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    messageIcon: {
-      marginRight: 12,
-    },
-    messageContent: {
-      flex: 1,
-    },
-    messageText: {
-      fontSize: 15,
-      color: colors.text_primary,
-      fontWeight: '700',
-      marginBottom: 4,
-    },
-    messageMetadata: {
-      fontSize: 13,
-      color: colors.text_secondary,
-    },
-    messageTime: {
-      fontSize: 12,
-      color: colors.text_secondary,
     },
     centerContent: {
       flex: 1,

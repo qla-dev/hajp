@@ -32,6 +32,8 @@ export const fetchMyVotes = (selectedUserId) =>
   api.get('/api/user/votes', {
     params: selectedUserId ? { selected_user_id: selectedUserId } : undefined,
   });
+export const fetchFriendActivities = (page = 1, limit = 10) =>
+  api.get('/api/user/activities', { params: { page, limit } });
 export const subscriptionStatus = () => api.get('/api/subscription/status');
 export const subscribe = () => api.post('/api/subscription/subscribe');
 export const getInbox = (userId) => api.get(`/api/anonymous/inbox/${userId}`);
