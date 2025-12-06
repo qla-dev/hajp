@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchFriendActivities } from '../api';
 import RankRoomsScreen from './RankRoomsScreen';
@@ -93,10 +93,18 @@ export default function LiveScreen({ navigation }) {
       <FlatList
         data={activities}
         keyExtractor={(item, idx) => `${item.id || idx}-${idx}`}
-        renderItem={({ item }) => <ActivityItem activity={item} />}
+        renderItem={({ item, index }) => <ActivityItem activity={item} isLast={index === activities.length - 1} />}
         contentContainerStyle={styles.messagesList}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl
+            refreshing={loadingActivities}
+            onRefresh={() => loadActivities(1)}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
         ListFooterComponent={
           loadingMoreActivities ? (
             <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 12 }} />

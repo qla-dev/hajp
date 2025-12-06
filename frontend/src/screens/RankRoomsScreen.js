@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRooms } from '../api';
 
@@ -33,19 +41,23 @@ export default function RankRoomsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {loading ? (
-        <View style={styles.loader}>
-        <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Učitavam sobe</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={rooms}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderRoom}
-          contentContainerStyle={styles.list}
-        />
-      )}
+      <FlatList
+        data={rooms}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={renderRoom}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={loadRooms} tintColor={colors.primary} colors={[colors.primary]} />
+        }
+        ListEmptyComponent={
+          loading ? (
+            <View style={styles.loader}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={styles.loadingText}>Učitavam sobe</Text>
+            </View>
+          ) : null
+        }
+      />
     </View>
   );
 }

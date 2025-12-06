@@ -163,17 +163,34 @@ class QuestionController extends Controller
 
         $offset = ($page - 1) * $limit;
 
-        $votes = Vote::with(['question', 'user'])
-            ->whereIn('user_id', $friendIds)
+        $activityQuery = Vote::with(['question', 'user', 'selectedUser', 'question.poll.room'])
+            ->where(function ($query) use ($friendIds) {
+                $query->whereIn('user_id', $friendIds)
+                    ->orWhereIn('selected_user_id', $friendIds);
+            });
+
+        $votes = (clone $activityQuery)
             ->orderByDesc('created_at')
             ->skip($offset)
             ->take($limit)
             ->get();
 
-        $total = Vote::whereIn('user_id', $friendIds)->count();
+        $total = (clone $activityQuery)->count();
+
+        $prepared = $votes->map(function (Vote $vote) use ($friendIds) {
+            $isFriendCaster = in_array($vote->user_id, $friendIds, true);
+            $isFriendTarget = in_array($vote->selected_user_id, $friendIds, true);
+
+            return [
+                ...$vote->toArray(),
+            'action' => $isFriendCaster ? 'ishajpao' : 'ishajpan',
+                'is_friend_target' => $isFriendTarget,
+                'is_friend_caster' => $isFriendCaster,
+            ];
+        });
 
         $response = [
-            'data' => $votes,
+            'data' => $prepared,
             'meta' => [
                 'page' => $page,
                 'limit' => $limit,
