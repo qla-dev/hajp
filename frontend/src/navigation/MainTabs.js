@@ -73,6 +73,7 @@ const RankStack = createNativeStackNavigator();
 
 function RankStackNavigator() {
   const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   return (
     <RankStack.Navigator
@@ -85,6 +86,34 @@ function RankStackNavigator() {
       }}
     >
     <RankStack.Screen name="Live" component={LiveScreen} options={{ title: 'Uživo' }} />
+    <RankStack.Screen
+      name="LiveFriendProfile"
+      component={ProfileScreen}
+      options={({ navigation }) => ({
+        title: 'Profil',
+        headerBackVisible: false,
+        headerLeft: () => (
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="chevron-back" size={22} color={colors.text_primary} />
+            <Text style={styles.backLabel}>Nazad</Text>
+          </TouchableOpacity>
+        ),
+        headerRight: () => (
+          <TouchableOpacity
+            style={styles.glassButton}
+            onPress={() => {
+              alert('Opcije otvorene');
+            }}
+          >
+            <Ionicons name="ellipsis-horizontal" size={20} color={colors.text_primary} />
+          </TouchableOpacity>
+        ),
+      })}
+    />
     <RankStack.Screen name="RankRooms" component={RankRoomsScreen} options={{ title: 'Sobe' }} />
     <RankStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
     </RankStack.Navigator>
@@ -239,11 +268,7 @@ function FriendsStackNavigator() {
           headerLeft: () => (
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => {
-                if (navigation.canGoBack()) {
-                  navigation.goBack();
-                }
-              }}
+              onPress={() => navigation.canGoBack() && navigation.goBack()}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Ionicons name="chevron-back" size={22} color={colors.text_primary} />
@@ -254,7 +279,6 @@ function FriendsStackNavigator() {
             <TouchableOpacity
               style={styles.glassButton}
               onPress={() => {
-                // simple native modal for now
                 alert('Opcije otvorene');
               }}
             >

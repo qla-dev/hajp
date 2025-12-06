@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL } from '../api';
 
-export default function ActivityItem({ activity, isLast }) {
+export default function ActivityItem({ activity, isLast, navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
@@ -29,8 +29,17 @@ export default function ActivityItem({ activity, isLast }) {
 
   const genderColor = relevantUser?.sex === 'boy' ? '#60a5fa' : '#f472b6';
 
+  const handlePress = () => {
+    const targetId = relevantUser?.id;
+    if (!targetId) return;
+    navigation?.navigate('LiveFriendProfile', {
+      isMine: false,
+      userId: targetId,
+    });
+  };
+
   return (
-    <View style={[styles.card, isLast && styles.cardLast]}>
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.7} style={[styles.card, isLast && styles.cardLast]}>
       {avatarUri ? (
         <Image source={{ uri: avatarUri }} style={styles.avatar} />
       ) : (
@@ -57,7 +66,7 @@ export default function ActivityItem({ activity, isLast }) {
       <Text style={styles.time}>
         {activity.created_at ? formatTimeLabel(activity.created_at) : ''}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 

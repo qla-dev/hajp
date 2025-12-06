@@ -93,7 +93,13 @@ export default function LiveScreen({ navigation }) {
       <FlatList
         data={activities}
         keyExtractor={(item, idx) => `${item.id || idx}-${idx}`}
-        renderItem={({ item, index }) => <ActivityItem activity={item} isLast={index === activities.length - 1} />}
+        renderItem={({ item, index }) => (
+          <ActivityItem
+            activity={item}
+            isLast={index === activities.length - 1}
+            navigation={navigation}
+          />
+        )}
         contentContainerStyle={styles.messagesList}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
