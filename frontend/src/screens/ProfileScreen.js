@@ -20,17 +20,21 @@ export default function ProfileScreen({ navigation, route }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
-  const loadData = useCallback(async () => {
-    const current = await getCurrentUser();
-    setUser(current);
+  const loadVotes = useCallback(async (selectedUserId) => {
     try {
-      const { data } = await fetchMyVotes();
+      const { data } = await fetchMyVotes(selectedUserId);
       setHypeCount(data?.length || 0);
       setRecentHypes((data || []).slice(0, 3));
     } catch {
       setHypeCount(0);
       setRecentHypes([]);
     }
+  }, []);
+
+  const loadData = useCallback(async () => {
+    const current = await getCurrentUser();
+    setUser(current);
+    await loadVotes();
     try {
       const { data } = await fetchUserRooms();
       setRoomSummary({ total: data?.total || 0, rooms: data?.rooms || [] });
@@ -43,7 +47,7 @@ export default function ProfileScreen({ navigation, route }) {
     } catch {
       setFriendsCount(0);
     }
-  }, []);
+  }, [loadVotes]);
 
   const loadOtherProfile = useCallback(
     async (userId) => {
@@ -63,8 +67,7 @@ export default function ProfileScreen({ navigation, route }) {
           exists: !!statusRes?.exists,
           approved: typeof statusRes?.approved === 'number' ? statusRes.approved : null,
         });
-        setHypeCount(0);
-        setRecentHypes([]);
+        await loadVotes(userId);
       } catch {
         setRoomSummary({ total: 0, rooms: [] });
         setFriendsCount(0);
@@ -75,7 +78,7 @@ export default function ProfileScreen({ navigation, route }) {
         setFriendStatusLoading(false);
       }
     },
-    [],
+    [loadVotes],
   );
 
   useEffect(() => {

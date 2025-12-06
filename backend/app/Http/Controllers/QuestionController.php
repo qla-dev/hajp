@@ -111,8 +111,10 @@ class QuestionController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
+        $targetUserId = $request->query('selected_user_id') ?: $user->id;
+
         $votes = Vote::with(['question', 'user'])
-            ->where('selected_user_id', $user->id)
+            ->where('selected_user_id', $targetUserId)
             ->latest()
             ->get();
 

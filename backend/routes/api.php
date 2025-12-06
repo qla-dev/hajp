@@ -41,15 +41,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::match(['put', 'patch'], '/', [UserController::class, 'update']);
         Route::post('/photo', [UserController::class, 'uploadPhoto']);
         Route::delete('/photo', [UserController::class, 'removePhoto']);
+        Route::get('/votes', [QuestionController::class, 'myVotes']);
     });
 
     Route::prefix('questions')->group(function () {
         Route::post('/{question}/vote', [QuestionController::class, 'vote']);
         Route::post('/{question}/skip', [QuestionController::class, 'skip']);
-    });
-
-    Route::prefix('my')->group(function () {
-        Route::get('/votes', [QuestionController::class, 'myVotes']);
     });
 
     Route::prefix('rooms')->group(function () {
