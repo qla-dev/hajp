@@ -10,7 +10,7 @@ const TAB_RANK = 'rank';
 const TAB_ACTIVITY = 'activity';
 
 export default function LiveScreen({ navigation }) {
-  const [activeTab, setActiveTab] = useState(TAB_RANK);
+  const [activeTab, setActiveTab] = useState(TAB_ACTIVITY);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState([]);
   const [user, setUser] = useState(null);
@@ -126,7 +126,7 @@ export default function LiveScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.tabs}>
-        {[TAB_RANK, TAB_ACTIVITY].map((tab) => (
+    {[TAB_ACTIVITY, TAB_RANK].map((tab) => (
           <TouchableOpacity
             key={tab}
             style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
@@ -142,9 +142,6 @@ export default function LiveScreen({ navigation }) {
 
       {renderContent()}
 
-      {activeTab === TAB_RANK && (
-        <BottomCTA label="Vidi ko te hajpa" iconName="diamond-outline" onPress={() => navigation.navigate('Subscription')} fixed />
-      )}
     </View>
   );
 }
