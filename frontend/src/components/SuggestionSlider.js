@@ -22,6 +22,7 @@ export default function SuggestionSlider({
   emptyTitle = 'Nema preporuka',
   emptySubtitle = 'Osvježi da dobiješ nove prijedloge.',
   onCardPress,
+  refreshKey,
 }) {
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -45,7 +46,7 @@ export default function SuggestionSlider({
 
   useEffect(() => {
     loadSuggestions();
-  }, [loadSuggestions]);
+  }, [loadSuggestions, refreshKey]);
 
   const renderAvatar = (item) => {
     if (item.profile_photo) {
