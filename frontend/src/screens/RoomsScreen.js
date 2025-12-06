@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+﻿import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchRooms } from '../api';
+import { fetchRooms, fetchActiveQuestion } from '../api';
+import PollItem from '../components/PollItem';
 
 export default function RoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [roomPolls, setRoomPolls] = useState({});
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
@@ -13,30 +15,86 @@ export default function RoomsScreen({ navigation }) {
     loadRooms();
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadActivePolls = async () => {
+      if (!rooms.length) {
+        setRoomPolls({});
+        return;
+      }
+      const highlights = {};
+      await Promise.all(
+        rooms.map(async (room) => {
+          if (controller.signal.aborted) return;
+          try {
+            const { data } = await fetchActiveQuestion(room.id);
+            highlights[room.id] = {
+              question: data?.question?.question ?? null,
+              emoji: data?.question?.emoji ?? null,
+              answered: Math.max(0, Math.min(data?.total ?? 0, (data?.index ?? 1) - 1)),
+              total: data?.total ?? 0,
+            };
+          } catch (error) {
+            highlights[room.id] = undefined;
+          }
+        }),
+      );
+      if (!controller.signal.aborted) {
+        setRoomPolls(highlights);
+      }
+    };
+
+    loadActivePolls();
+
+    return () => {
+      controller.abort();
+    };
+  }, [rooms]);
+
   const loadRooms = async () => {
     setLoading(true);
     try {
       const { data } = await fetchRooms();
       setRooms(data || []);
     } catch (error) {
-      console.error('Greška pri učitavanju soba:', error);
+      console.error('GreÅ¡ka pri uÄitavanju soba:', error);
     }
     setLoading(false);
   };
 
-  const renderRoom = ({ item }) => (
-    <TouchableOpacity style={styles.roomCard} onPress={() => navigation.navigate('Polling', { roomId: item.id })}>
-      <Text style={styles.roomName}>{item.name}</Text>
-      {item.is_18_over ? <Text style={styles.roomBadge}>18+</Text> : null}
-    </TouchableOpacity>
-  );
+  const renderRoom = ({ item }) => {
+    const highlight = roomPolls[item.id];
+    const baseTotal = item.polls_count ?? 20;
+    const fallbackAnswered = Math.min(
+      item.completed_polls ?? Math.floor((item.members_count ?? 0) / 2),
+      baseTotal,
+    );
+
+    const total = highlight?.total ?? baseTotal;
+    const answered = highlight?.answered ?? fallbackAnswered;
+    const emoji = highlight?.emoji || (item.type === 'Za žene' ? '🌸' : '⚡️');
+    return (
+      <PollItem
+        roomName={item.name}
+        question={highlight?.question || item.tagline || item.description}
+        answered={answered}
+        total={total}
+        emoji={emoji}
+        onCardPress={() =>
+          navigation.navigate('Polling', { roomId: item.id, roomName: item.name })
+        }
+        accentColor={item.is_private ? colors.error : colors.primary}
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
       {loading ? (
         <View style={styles.loader}>
-        <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Učitavam sobe</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>UÄitavam sobe</Text>
         </View>
       ) : (
         <FlatList
@@ -44,6 +102,7 @@ export default function RoomsScreen({ navigation }) {
           keyExtractor={(item) => String(item.id)}
           renderItem={renderRoom}
           contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -60,41 +119,21 @@ const createStyles = (colors) =>
       paddingBottom: 4,
     },
     loadingText: {
-      color: colors.text_secondary,
-      fontSize: 16,
-      marginTop: 12,
-    },
-    loader: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    list: {
-      paddingTop: 95,
-      paddingBottom: 4,
-    },
-    roomCard: {
-      backgroundColor: colors.surface,
-      padding: 16,
-      borderRadius: 12,
-      marginVertical: 6,
-      borderWidth: 1,
-      borderColor: colors.border,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08,
-      shadowRadius: 2,
-      elevation: 1,
-    },
-    roomName: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: colors.text_primary,
-    },
-    roomBadge: {
-      marginTop: 4,
-      fontSize: 12,
-      color: colors.error,
-      fontWeight: '700',
-    },
+    color: colors.text_secondary,
+    fontSize: 16,
+    marginTop: 12,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  list: {
+    paddingTop: 12,
+    paddingBottom: 120,
+  },
   });
+
+
+
+
