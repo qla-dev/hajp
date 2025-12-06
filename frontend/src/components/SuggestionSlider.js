@@ -123,7 +123,7 @@ export default function SuggestionSlider({
 
     const friendId = item.friend_id || item.id;
     if (!friendId) return;
-    navigation.navigate('FriendProfile', {
+    navigation.push('FriendProfile', {
       isMine: false,
       userId: friendId,
     });

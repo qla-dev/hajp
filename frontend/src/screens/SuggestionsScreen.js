@@ -59,10 +59,12 @@ export default function SuggestionsScreen({ navigation }) {
   );
   const handleRequestPress = useCallback(
     (item) => {
+      const friendId = item.friend_id || item.id;
+      if (!friendId) return;
       Haptics.selectionAsync().catch(() => {});
-      navigation.navigate('FriendProfile', {
+      navigation.push('FriendProfile', {
         isMine: false,
-        userId: item.friend_id || item.id,
+        userId: friendId,
       });
     },
     [navigation],
@@ -90,7 +92,7 @@ export default function SuggestionsScreen({ navigation }) {
       setSkipSliderHaptic(true);
       const friendId = item.friend_id || item.id;
       if (!friendId) return;
-      navigation.navigate('FriendProfile', {
+      navigation.push('FriendProfile', {
         isMine: false,
         userId: friendId,
       });
