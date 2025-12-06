@@ -84,13 +84,11 @@ export default function RoomsScreen({ navigation }) {
   const renderRoom = ({ item }) => {
     const highlight = roomPolls[item.id];
     const baseTotal = item.polls_count ?? 20;
-    const fallbackAnswered = Math.min(
-      item.completed_polls ?? Math.floor((item.members_count ?? 0) / 2),
-      baseTotal,
-    );
+    const fallbackAnswered = Math.min(item.completed_polls ?? baseTotal, baseTotal);
 
     const total = highlight?.total ?? baseTotal;
     const answered = highlight?.answered ?? fallbackAnswered;
+    const isComplete = total > 0 && answered >= total;
     const emoji = highlight?.emoji || (item.type === 'Za žene' ? '🌸' : '⚡️');
 
     return (
@@ -103,7 +101,7 @@ export default function RoomsScreen({ navigation }) {
         onCardPress={() =>
           navigation.navigate('Polling', { roomId: item.id, roomName: item.name })
         }
-        accentColor={item.is_private ? colors.error : colors.primary}
+        accentColor={isComplete ? colors.error : item.is_private ? colors.error : colors.primary}
       />
     );
   };

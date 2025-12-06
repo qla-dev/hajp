@@ -41,7 +41,7 @@ export default function PollItem({
       </View>
 
       <Text style={[styles.question, { color: colors.text_primary }]} numberOfLines={3}>
-        {question || 'Čekamo novo pitanje...'}
+        {question || 'Nema novih anketa za sobu'}
       </Text>
 
       <View style={styles.detailRow}>
@@ -72,7 +72,7 @@ export default function PollItem({
         </View>
       ) : (
         <Text style={[styles.placeholder, { color: colors.text_secondary }]}>
-          Čekamo novo pitanje
+          Nema novih anketa za sobu
         </Text>
       )}
     </Container>
