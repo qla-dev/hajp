@@ -1,13 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRooms, fetchActiveQuestion } from '../api';
 import PollItem from '../components/PollItem';
+
+const LIST_TOP_PADDING = 98;
+const REFRESH_INDICATOR_OFFSET = 100;
 
 export default function RoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roomPolls, setRoomPolls] = useState({});
+  const [refreshing, setRefreshing] = useState(false);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
@@ -49,15 +60,25 @@ export default function RoomsScreen({ navigation }) {
     return () => controller.abort();
   }, [rooms]);
 
-  const loadRooms = async () => {
-    setLoading(true);
+  const loadRooms = async ({ showLoader = true } = {}) => {
+    if (showLoader) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
+
     try {
       const { data } = await fetchRooms();
       setRooms(data || []);
     } catch (error) {
-      console.error('Greška pri učitavanju soba:', error);
+      console.error('Gre?ka pri u?itavanju soba:', error);
+    } finally {
+      if (showLoader) {
+        setLoading(false);
+      } else {
+        setRefreshing(false);
+      }
     }
-    setLoading(false);
   };
 
   const renderRoom = ({ item }) => {
@@ -102,6 +123,16 @@ export default function RoomsScreen({ navigation }) {
             renderItem={renderRoom}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => loadRooms({ showLoader: false })}
+                tintColor={colors.primary}
+                colors={[colors.primary]}
+                progressViewOffset={REFRESH_INDICATOR_OFFSET}
+              />
+            }
+            style={styles.listMargin}
           />
         )}
       </View>
@@ -133,8 +164,10 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
+    listMargin: {
+      marginTop: LIST_TOP_PADDING,
+    },
     list: {
-      paddingTop: 98,
       paddingBottom: 0,
     },
   });
