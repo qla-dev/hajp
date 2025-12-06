@@ -11,7 +11,16 @@ class RoomController extends Controller
 {
     public function index()
     {
-        return Room::select('id', 'name', 'type', 'is_18_over')->get();
+        return Room::withCount(['users as members_count'])->get([
+            'id',
+            'name',
+            'type',
+            'is_18_over',
+            'cover_url',
+            'tagline',
+            'description',
+            'is_private',
+        ]);
     }
 
     public function userRooms(Request $request)

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Room extends Model
 {
-    protected $fillable = ['name','type','is_18_over'];
+    protected $fillable = ['name', 'type', 'is_18_over', 'cover_url', 'tagline', 'description', 'is_private'];
 
     public function members(): HasMany
     {

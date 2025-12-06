@@ -67,11 +67,32 @@ class DemoDataSeeder extends Seeder
         // Rooms (using school names as room labels)
         $roomNames = $schools;
         $rooms = [];
-        foreach ($roomNames as $roomName) {
+        $covers = [
+            'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
+            'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=900&q=80',
+            'https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?auto=format&fit=crop&w=900&q=80',
+            'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=900&q=80',
+        ];
+        $taglines = [
+            'Grow together, challenge the norms',
+            'Late-night debates and unstoppable energy',
+            'The place for bold ideas and spicy takes',
+            'Curate your vibe, keep the hype alive',
+        ];
+        $descriptions = [
+            'Shared playlists, trending polls, and friends who get the vibe.',
+            'Fresh prompts, wild opinions, and a community that keeps it real.',
+            'Meet the crew tossing out rapid-fire debates and winning mood checks.',
+            'Drop in for micro podcasts, snappy polls, and zero drama.',
+        ];
+        foreach ($roomNames as $index => $roomName) {
             $rooms[$roomName] = Room::create([
                 'name' => $roomName,
                 'type' => 'public',
                 'is_18_over' => false,
+                'cover_url' => $covers[$index % count($covers)],
+                'tagline' => $taglines[$index % count($taglines)],
+                'description' => $descriptions[$index % count($descriptions)],
             ]);
         }
 
