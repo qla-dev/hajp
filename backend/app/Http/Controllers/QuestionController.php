@@ -7,6 +7,7 @@ use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
 
@@ -131,6 +132,11 @@ class QuestionController extends Controller
 
         $limit = max(1, (int) $request->query('limit', 10));
         $page = max(1, (int) $request->query('page', 1));
+        Log::info('activities request', [
+            'user_id' => $user->id,
+            'page' => $page,
+            'limit' => $limit,
+        ]);
 
         $friendships = DB::table('friendships')
             ->where('approved', 1)
@@ -166,13 +172,21 @@ class QuestionController extends Controller
 
         $total = Vote::whereIn('user_id', $friendIds)->count();
 
-        return response()->json([
+        $response = [
             'data' => $votes,
             'meta' => [
                 'page' => $page,
                 'limit' => $limit,
                 'has_more' => $offset + $limit < $total,
             ],
+        ];
+
+        Log::info('activities response', [
+            'user_id' => $user->id,
+            'items' => count($votes),
+            'meta' => $response['meta'],
         ]);
+
+        return response()->json($response);
     }
 }

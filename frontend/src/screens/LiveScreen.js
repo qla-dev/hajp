@@ -28,7 +28,9 @@ export default function LiveScreen({ navigation }) {
         setHasMoreActivities(true);
       }
       try {
-        const { data, meta } = await fetchFriendActivities(page, PAGE_LIMIT);
+        const response = await fetchFriendActivities(page, PAGE_LIMIT);
+        const { data, meta } = response.data;
+        console.log('activities result', data?.length, meta);
         setActivities((prev) => (append ? [...prev, ...data] : data));
         setActivityPage(page);
         setHasMoreActivities(meta?.has_more ?? false);
@@ -90,7 +92,7 @@ export default function LiveScreen({ navigation }) {
     return (
       <FlatList
         data={activities}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={(item, idx) => `${item.id || idx}-${idx}`}
         renderItem={({ item }) => <ActivityItem activity={item} />}
         contentContainerStyle={styles.messagesList}
         onEndReached={handleLoadMore}
