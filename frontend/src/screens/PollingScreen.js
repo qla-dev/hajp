@@ -100,7 +100,7 @@ export default function PollingScreen({ route, navigation }) {
   };
 
   if (loading && firstLoad) {
-    const loadingLabel = firstLoad ? 'Ucitavanje ankete' : 'Ucitavanje pitanja';
+    const loadingLabel = firstLoad ? 'Učitavanje ankete' : 'Učitavanje pitanja';
     return (
       <View style={[styles.container, styles.center, { backgroundColor: bgColor }]}>
         <ActivityIndicator size="large" color={colors.textLight} />
