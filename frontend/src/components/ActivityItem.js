@@ -16,7 +16,7 @@ export default function ActivityItem({ activity, isLast, navigation }) {
     return `${cleanBase}/${cleanPath}`;
   };
 
-  const selectedTarget = activity.selected_user;
+  const selectedTarget = activity.selected_user || activity.selectedUser;
   const isCasterAction = activity.action === 'ishajpao';
   const relevantUser = isCasterAction ? activity.user : selectedTarget || activity.user;
   const initials = (relevantUser?.name || relevantUser?.username || 'Korisnik')
@@ -27,7 +27,10 @@ export default function ActivityItem({ activity, isLast, navigation }) {
   const avatarUri = resolveAvatar(relevantUser?.profile_photo);
   const actionLabel = formatActionLabel(activity.action);
 
-  const genderColor = relevantUser?.sex === 'boy' ? '#60a5fa' : '#f472b6';
+  const otherUserSex = isCasterAction
+    ? selectedTarget?.sex || activity.selected_user_sex || activity.selectedUser?.sex
+    : activity.user?.sex;
+  const genderColor = otherUserSex === 'girl' ? '#f472b6' : '#60a5fa';
 
   const handlePress = () => {
     const targetId = relevantUser?.id;
