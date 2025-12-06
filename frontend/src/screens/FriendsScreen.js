@@ -4,15 +4,14 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  Image,
   TouchableOpacity,
   TextInput,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchFriends, fetchFriendRequests, approveFriendRequest } from '../api';
+import FriendListItem from '../components/FriendListItem';
 
 export default function FriendsScreen({ navigation, route }) {
   const { colors } = useTheme();
@@ -64,23 +63,6 @@ export default function FriendsScreen({ navigation, route }) {
     const username = (item.username || '').toLowerCase();
     return name.includes(query) || username.includes(query);
   });
-
-  const renderAvatar = (item) => {
-    if (item.profile_photo) {
-      return <Image source={{ uri: item.profile_photo }} style={styles.avatar} />;
-    }
-    const label = item.name || item.username || 'Korisnik';
-    const initials = label
-      .split(' ')
-      .map((part) => part.charAt(0).toUpperCase())
-      .slice(0, 2)
-      .join('');
-    return (
-      <View style={[styles.avatar, styles.avatarFallback]}>
-        <Text style={styles.avatarFallbackText}>{initials}</Text>
-      </View>
-    );
-  };
 
   const formatStatusDate = (value) => {
     if (!value) return null;
@@ -143,57 +125,38 @@ export default function FriendsScreen({ navigation, route }) {
             />
           }
           renderItem={({ item }) => {
-            const name = item.name || item.username || 'Korisnik';
             const subtitle = item.title || item.headline || item.bio || '';
             const connectedAt = item.connected_at || item.created_at || null;
             const friendId = item.friend_id || item.id;
             const statusDate = formatStatusDate(connectedAt);
-
+            const statusLabel = statusDate
+              ? `${isRequestList ? 'Zahtjev poslan' : 'Povezano'} ${statusDate}`
+              : null;
+            const username = item.username ? `@${item.username}` : null;
             const fromProfile = route?.params?.fromProfile;
 
+            const handlePress = () => {
+              if (fromProfile) {
+                navigation.navigate('ProfileFriends', { isMine: false, userId: friendId });
+              } else {
+                navigation.navigate('FriendProfile', {
+                  isMine: false,
+                  userId: friendId,
+                });
+              }
+            };
+
             return (
-              <TouchableOpacity
-                style={styles.row}
-                onPress={() => {
-                  if (fromProfile) {
-                    navigation.navigate('ProfileFriends', { isMine: false, userId: friendId });
-                  } else {
-                    navigation.navigate('FriendProfile', {
-                      isMine: false,
-                      userId: friendId,
-                    });
-                  }
-                }}
-              >
-                {renderAvatar(item)}
-                <View style={styles.info}>
-                  <Text style={styles.name}>{name}</Text>
-                  {item.username ? <Text style={styles.subtitle}>@{item.username}</Text> : null}
-                  {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-                  {statusDate ? (
-                    <Text style={styles.meta}>
-                      {isRequestList ? 'Zahtjev poslan' : 'Povezano'} {statusDate}
-                    </Text>
-                  ) : null}
-                </View>
-                {isRequestList ? (
-                  <TouchableOpacity
-                    style={styles.acceptButton}
-                    onPress={() => handleApprove(friendId)}
-                    disabled={approvingFriendId === friendId}
-                  >
-                    {approvingFriendId === friendId ? (
-                      <ActivityIndicator size="small" color={colors.primary} />
-                    ) : (
-                      <Text style={styles.acceptButtonText}>Prihvati</Text>
-                    )}
-                  </TouchableOpacity>
-                ) : (
-                  <View style={styles.rowAction}>
-                    <Ionicons name="chevron-forward" size={20} color={colors.text_secondary} />
-                  </View>
-                )}
-              </TouchableOpacity>
+              <FriendListItem
+                friend={item}
+                subtitle={subtitle}
+                username={username}
+                statusLabel={statusLabel}
+                isRequestList={isRequestList}
+                approving={approvingFriendId === friendId}
+                onPress={handlePress}
+                onApprove={isRequestList ? () => handleApprove(friendId) : undefined}
+              />
             );
           }}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -233,63 +196,9 @@ const createStyles = (colors) =>
       borderWidth: 1,
       borderColor: colors.border,
     },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 10,
-      gap: 12,
-    },
-    avatar: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: colors.secondary,
-    },
-    info: {
-      flex: 1,
-      gap: 2,
-    },
-    name: {
-      fontWeight: '800',
-      color: colors.text_primary,
-    },
-    subtitle: {
-      color: colors.text_secondary,
-    },
-    meta: {
-      color: colors.text_secondary,
-      fontSize: 12,
-    },
-    acceptButton: {
-      paddingHorizontal: 16,
-      paddingVertical: 6,
-      borderRadius: 18,
-      borderWidth: 1,
-      borderColor: colors.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    acceptButtonText: {
-      color: colors.primary,
-      fontWeight: '700',
-    },
-    rowAction: {
-      padding: 8,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
     separator: {
       height: 1,
       backgroundColor: colors.border,
-    },
-    avatarFallback: {
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    avatarFallbackText: {
-      color: colors.textLight,
-      fontWeight: '800',
-      fontSize: 18,
     },
     centerContent: {
       flex: 1,
