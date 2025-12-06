@@ -132,6 +132,7 @@ function ProfileStackNavigator() {
           headerTitleAlign: 'center',
           headerTintColor: colors.text_primary,
           headerStyle: { backgroundColor: 'transparent' },
+          gestureResponseDistance: { horizontal: 260 },
         }}
       >
       <ProfileStack.Screen
