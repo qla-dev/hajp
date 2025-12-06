@@ -34,8 +34,10 @@ export default function SuggestionSlider({
   const [loading, setLoading] = useState(false);
   const [pendingId, setPendingId] = useState(null);
   const [fadeValues] = useState({});
+  const skipUntilRef = useRef(0);
   const hapticCooldownRef = useRef(0);
   const tapTriggeredRef = useRef(false);
+  const draggingRef = useRef(false);
 
   const resolveAvatar = (photo) => {
     if (!photo) return null;
@@ -113,6 +115,7 @@ export default function SuggestionSlider({
       Haptics.selectionAsync().catch(() => {});
       hapticCooldownRef.current = now;
     }
+    skipUntilRef.current = now + 1200;
     if (typeof onCardPress === 'function') {
       onCardPress(item);
       return;
@@ -151,20 +154,39 @@ export default function SuggestionSlider({
           snapToAlignment="start"
           snapToInterval={232}
           decelerationRate="fast"
+          onScrollBeginDrag={() => {
+            draggingRef.current = true;
+          }}
           onMomentumScrollEnd={() => {
             if (skipHapticRef?.current) {
               skipHapticRef.current = false;
               onClearSkip();
+              draggingRef.current = false;
               return;
             }
             if (tapTriggeredRef.current) {
               tapTriggeredRef.current = false;
+              draggingRef.current = false;
               return;
             }
             if (skipNextHaptic) {
               onClearSkip();
+              draggingRef.current = false;
               return;
             }
+            if (!draggingRef.current) {
+              return;
+            }
+            const now = Date.now();
+            if (now < skipUntilRef.current) {
+              draggingRef.current = false;
+              return;
+            }
+            if (now - hapticCooldownRef.current > 500) {
+              Haptics.selectionAsync().catch(() => {});
+              hapticCooldownRef.current = now;
+            }
+            draggingRef.current = false;
           }}
         >
           {suggestions.map((item) => (
