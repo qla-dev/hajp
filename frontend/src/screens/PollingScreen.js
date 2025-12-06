@@ -155,7 +155,7 @@ export default function PollingScreen({ route, navigation }) {
         {refreshingQuestion ? (
           <>
             <ActivityIndicator size="large" color={colors.textLight} />
-            <Text style={styles.loadingText}>Ucitavanje pitanja</Text>
+            <Text style={styles.loadingText}>Učitavanje pitanja</Text>
           </>
         ) : (
           <>
