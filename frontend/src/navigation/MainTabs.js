@@ -11,6 +11,7 @@ import PollingScreen from '../screens/PollingScreen';
 import HajpoviScreen from '../screens/HajpoviScreen';
 import RankRoomsScreen from '../screens/RankRoomsScreen';
 import RankingScreen from '../screens/RankingScreen';
+import LiveScreen from '../screens/LiveScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SuggestionsScreen from '../screens/SuggestionsScreen';
 import FriendsScreen from '../screens/FriendsScreen';
@@ -24,7 +25,7 @@ const FriendsStack = createNativeStackNavigator();
 const headerLabelMap = {
   Hajp: 'Ankete',
   Inbox: 'Hajpovi',
-  Rank: 'Rank',
+  Rank: 'Uživo',
   Friends: 'Mreža',
   Profile: 'Profil',
 };
@@ -32,7 +33,7 @@ const headerLabelMap = {
 const iconMap = {
   Hajp: { active: 'home', inactive: 'home-outline' },
   Friends: { active: 'people', inactive: 'people-outline' },
-  Rank: { active: 'trophy', inactive: 'trophy-outline' },
+  Rank: { active: 'radio', inactive: 'radio-outline' },
   Inbox: { active: 'flame', inactive: 'flame-outline' },
   Profile: { active: 'person', inactive: 'person-outline' },
 };
@@ -83,8 +84,9 @@ function RankStackNavigator() {
         headerStyle: { backgroundColor: 'transparent' },
       }}
     >
-      <RankStack.Screen name="RankRooms" component={RankRoomsScreen} options={{ title: 'Sobe' }} />
-      <RankStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
+    <RankStack.Screen name="Live" component={LiveScreen} options={{ title: 'Uživo' }} />
+    <RankStack.Screen name="RankRooms" component={RankRoomsScreen} options={{ title: 'Sobe' }} />
+    <RankStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
     </RankStack.Navigator>
   );
 }
