@@ -12,7 +12,7 @@ import { fetchFriendSuggestions, addFriend } from '../api';
 
 const GRID_COLUMNS = 2;
 
-export default function SuggestionGrid({ title = 'Vise preporuka', refreshKey }) {
+export default function SuggestionGrid({ title = 'Još preporuka', refreshKey }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const [items, setItems] = useState([]);
@@ -85,7 +85,7 @@ export default function SuggestionGrid({ title = 'Vise preporuka', refreshKey })
                 disabled={pendingId === item.id}
               >
                 <Text style={styles.primaryGhostButtonText}>
-                  {pendingId === item.id ? 'Loading' : 'Povezi se'}
+                  {pendingId === item.id ? 'Učitavanje' : 'Poveži se'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -121,7 +121,7 @@ const createStyles = (colors) =>
     },
     card: {
       width: '48%',
-      backgroundColor: colors.surface,
+      backgroundColor: colors.transparent,
       borderRadius: 16,
       padding: 12,
       borderWidth: 1,

@@ -29,7 +29,7 @@ export default function RoomSuggestions({ refreshKey, onRoomPress }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Sobe nasumično otvorene</Text>
+        <Text style={styles.title}>Predložene sobe po tvojim aktivnostima</Text>
       </View>
       {loading ? (
         <View style={styles.loader}>
@@ -58,7 +58,8 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 8,
+      marginTop: 20,
+      marginBottom: 10,
     },
     title: {
       fontSize: 16,

@@ -29,7 +29,7 @@ const createStyles = (colors) =>
   StyleSheet.create({
     card: {
       width: '100%',
-      backgroundColor: colors.surface,
+      backgroundColor: colors.transparent,
       borderRadius: 18,
       marginBottom: 16,
       overflow: 'hidden',
