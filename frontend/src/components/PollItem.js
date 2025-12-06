@@ -26,7 +26,7 @@ export default function PollItem({
   return (
     <Container
       {...containerProps}
-      style={[styles.card, { backgroundColor: colors.surface, borderColor: accent }]}
+      style={[styles.card, { backgroundColor: colors.transparent, borderColor: accent }]}
     >
       <View style={styles.row}>
         <Text style={[styles.roomName, { color: colors.text_primary }]} numberOfLines={1}>
@@ -85,11 +85,11 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 16,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 10,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   row: {
     flexDirection: 'row',

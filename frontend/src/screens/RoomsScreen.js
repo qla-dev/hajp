@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRooms, fetchActiveQuestion } from '../api';
@@ -35,7 +35,7 @@ export default function RoomsScreen({ navigation }) {
               answered: Math.max(0, Math.min(data?.total ?? 0, (data?.index ?? 1) - 1)),
               total: data?.total ?? 0,
             };
-          } catch (error) {
+          } catch {
             highlights[room.id] = undefined;
           }
         }),
@@ -46,10 +46,7 @@ export default function RoomsScreen({ navigation }) {
     };
 
     loadActivePolls();
-
-    return () => {
-      controller.abort();
-    };
+    return () => controller.abort();
   }, [rooms]);
 
   const loadRooms = async () => {
@@ -58,7 +55,7 @@ export default function RoomsScreen({ navigation }) {
       const { data } = await fetchRooms();
       setRooms(data || []);
     } catch (error) {
-      console.error('GreÅ¡ka pri uÄitavanju soba:', error);
+      console.error('Greška pri učitavanju soba:', error);
     }
     setLoading(false);
   };
@@ -74,6 +71,7 @@ export default function RoomsScreen({ navigation }) {
     const total = highlight?.total ?? baseTotal;
     const answered = highlight?.answered ?? fallbackAnswered;
     const emoji = highlight?.emoji || (item.type === 'Za žene' ? '🌸' : '⚡️');
+
     return (
       <PollItem
         roomName={item.name}
@@ -91,20 +89,22 @@ export default function RoomsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {loading ? (
-        <View style={styles.loader}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>UÄitavam sobe</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={rooms}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderRoom}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+      <View style={styles.section}>
+        {loading ? (
+          <View style={styles.loader}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Učitavam sobe</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={rooms}
+            keyExtractor={(item) => String(item.id)}
+            renderItem={renderRoom}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </View>
     </View>
   );
 }
@@ -114,26 +114,27 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-      paddingTop: 4,
+      paddingTop: 0,
       paddingHorizontal: 16,
-      paddingBottom: 4,
+      paddingBottom: 0,
+    },
+    section: {
+      flex: 1,
+      paddingTop: 12,
+      borderBottomWidth: 0,
     },
     loadingText: {
-    color: colors.text_secondary,
-    fontSize: 16,
-    marginTop: 12,
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  list: {
-    paddingTop: 102,
-    paddingBottom: 120,
-  },
+      color: colors.text_secondary,
+      fontSize: 16,
+      marginTop: 12,
+    },
+    loader: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    list: {
+      paddingTop: 98,
+      paddingBottom: 0,
+    },
   });
-
-
-
-
