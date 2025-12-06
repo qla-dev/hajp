@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -24,6 +24,7 @@ export default function SuggestionsScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [skipSliderHaptic, setSkipSliderHaptic] = useState(false);
+  const skipSliderHapticRef = useRef(false);
 
   const loadRequests = useCallback(async () => {
     setLoadingRequests(true);
@@ -73,6 +74,7 @@ export default function SuggestionsScreen({ navigation }) {
 
   const handleGridCardPress = useCallback(
     (item) => {
+      skipSliderHapticRef.current = true;
       setSkipSliderHaptic(true);
       const friendId = item.friend_id || item.id;
       if (!friendId) return;
@@ -143,6 +145,7 @@ export default function SuggestionsScreen({ navigation }) {
         onLinkPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}
         refreshKey={refreshKey}
         skipNextHaptic={skipSliderHaptic}
+        skipHapticRef={skipSliderHapticRef}
         onClearSkip={() => setSkipSliderHaptic(false)}
       />
 

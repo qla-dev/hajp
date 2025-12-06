@@ -24,6 +24,7 @@ export default function SuggestionSlider({
   onCardPress,
   refreshKey,
   skipNextHaptic = false,
+  skipHapticRef,
   onClearSkip = () => {},
 }) {
   const navigation = useNavigation();
@@ -33,7 +34,6 @@ export default function SuggestionSlider({
   const [loading, setLoading] = useState(false);
   const [pendingId, setPendingId] = useState(null);
   const [fadeValues] = useState({});
-  const skipUntilRef = useRef(0);
   const hapticCooldownRef = useRef(0);
   const tapTriggeredRef = useRef(false);
 
@@ -113,7 +113,6 @@ export default function SuggestionSlider({
       Haptics.selectionAsync().catch(() => {});
       hapticCooldownRef.current = now;
     }
-    skipUntilRef.current = now + 1200;
     if (typeof onCardPress === 'function') {
       onCardPress(item);
       return;
@@ -153,6 +152,11 @@ export default function SuggestionSlider({
           snapToInterval={232}
           decelerationRate="fast"
           onMomentumScrollEnd={() => {
+            if (skipHapticRef?.current) {
+              skipHapticRef.current = false;
+              onClearSkip();
+              return;
+            }
             if (tapTriggeredRef.current) {
               tapTriggeredRef.current = false;
               return;
@@ -160,12 +164,6 @@ export default function SuggestionSlider({
             if (skipNextHaptic) {
               onClearSkip();
               return;
-            }
-            const now = Date.now();
-            if (now < skipUntilRef.current) return;
-            if (now - hapticCooldownRef.current > 500) {
-              Haptics.selectionAsync().catch(() => {});
-              hapticCooldownRef.current = now;
             }
           }}
         >
