@@ -15,7 +15,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchFriendSuggestions, addFriend } from '../api';
 
 export default function SuggestionSlider({
-  title = 'Predlažemo vam',
+  title = 'Predlažemo ti',
   linkLabel,
   onLinkPress,
   showHeader = true,
@@ -183,6 +183,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingVertical: 12,
+      paddingTop: 30,
     },
     sectionTitle: {
       fontSize: 16,

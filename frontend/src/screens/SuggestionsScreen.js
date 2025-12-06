@@ -171,7 +171,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     emptyRequests: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 0,
       color: colors.text_secondary,
     },
   });
