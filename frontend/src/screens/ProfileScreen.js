@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Animated,
   ActivityIndicator,
+  PanResponder,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,6 +29,23 @@ export default function ProfileScreen({ navigation, route }) {
   const [friendStatusLoading, setFriendStatusLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const glowAnim = useRef(new Animated.Value(0)).current;
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        const { dx, dy } = gestureState;
+        return dx > 12 && Math.abs(dx) > Math.abs(dy);
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (!navigation.canGoBack()) return;
+        const { dx, vx } = gestureState;
+        if (dx > 120 || vx > 0.35) {
+          navigation.goBack();
+        }
+      },
+      onPanResponderTerminate: () => {},
+    }),
+  ).current;
 
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -187,7 +205,7 @@ export default function ProfileScreen({ navigation, route }) {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={styles.screen} {...panResponder.panHandlers}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}

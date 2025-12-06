@@ -125,15 +125,15 @@ function ProfileStackNavigator() {
   const styles = useThemedStyles(createStyles);
 
   return (
-    <ProfileStack.Navigator
-      screenOptions={{
-        headerTransparent: true,
-        headerShadowVisible: false,
-        headerTitleAlign: 'center',
-        headerTintColor: colors.text_primary,
-        headerStyle: { backgroundColor: 'transparent' },
-      }}
-    >
+      <ProfileStack.Navigator
+        screenOptions={{
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerTitleAlign: 'center',
+          headerTintColor: colors.text_primary,
+          headerStyle: { backgroundColor: 'transparent' },
+        }}
+      >
       <ProfileStack.Screen
         name="ProfileHome"
         component={ProfileScreen}
@@ -157,6 +157,7 @@ function ProfileStackNavigator() {
               <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
             </TouchableOpacity>
           ),
+          gestureResponseDistance: { horizontal: 240 },
         })}
       />
       <ProfileStack.Screen
@@ -190,6 +191,7 @@ function ProfileStackNavigator() {
               <Ionicons name="ellipsis-horizontal" size={20} color={colors.text_primary} />
             </TouchableOpacity>
           ),
+          gestureResponseDistance: { horizontal: 240 },
         })}
       />
       <ProfileStack.Screen
@@ -198,6 +200,7 @@ function ProfileStackNavigator() {
         options={{
           title: 'Prijatelji',
           headerBackTitle: 'Nazad',
+          gestureResponseDistance: { horizontal: 240 },
         }}
         initialParams={{ fromProfile: true }}
       />
