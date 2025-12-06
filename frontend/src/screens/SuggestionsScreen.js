@@ -23,6 +23,7 @@ export default function SuggestionsScreen({ navigation }) {
   const [approvingRequestId, setApprovingRequestId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [skipSliderHaptic, setSkipSliderHaptic] = useState(false);
 
   const loadRequests = useCallback(async () => {
     setLoadingRequests(true);
@@ -69,6 +70,19 @@ export default function SuggestionsScreen({ navigation }) {
     });
     return unsubscribe;
   }, [navigation, onRefresh]);
+
+  const handleGridCardPress = useCallback(
+    (item) => {
+      setSkipSliderHaptic(true);
+      const friendId = item.friend_id || item.id;
+      if (!friendId) return;
+      navigation.navigate('FriendProfile', {
+        isMine: false,
+        userId: friendId,
+      });
+    },
+    [navigation],
+  );
 
   return (
     <ScrollView
@@ -128,11 +142,13 @@ export default function SuggestionsScreen({ navigation }) {
         linkLabel="Pogledaj sve"
         onLinkPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}
         refreshKey={refreshKey}
+        skipNextHaptic={skipSliderHaptic}
+        onClearSkip={() => setSkipSliderHaptic(false)}
       />
 
       <RoomSuggestions refreshKey={refreshKey} onRoomPress={(room) => console.log('Open room', room?.name)} />
 
-      <SuggestionGrid refreshKey={refreshKey} />
+      <SuggestionGrid refreshKey={refreshKey} onCardPress={handleGridCardPress} />
     </ScrollView>
   );
 }

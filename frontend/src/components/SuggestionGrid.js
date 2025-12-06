@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,9 @@ import {
   Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
+import * as Haptics from 'expo-haptics';
 import { fetchFriendSuggestions, addFriend, baseURL } from '../api';
-
-const GRID_COLUMNS = 2;
 
 export default function SuggestionGrid({ title = 'Još preporuka', refreshKey, onCardPress }) {
   const { colors } = useTheme();
@@ -23,6 +21,7 @@ export default function SuggestionGrid({ title = 'Još preporuka', refreshKey, o
   const [pendingId, setPendingId] = useState(null);
   const [fadeValues] = useState({});
   const navigation = useNavigation();
+  const hapticCooldownRef = useRef(0);
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -41,7 +40,6 @@ export default function SuggestionGrid({ title = 'Još preporuka', refreshKey, o
   }, [loadItems, refreshKey]);
 
   const handleConnect = async (item) => {
-    Haptics.selectionAsync().catch(() => {});
     if (!item?.id || pendingId === item.id) return;
     if (!fadeValues[item.id]) {
       fadeValues[item.id] = new Animated.Value(1);
@@ -63,7 +61,11 @@ export default function SuggestionGrid({ title = 'Još preporuka', refreshKey, o
   };
 
   const handleCardPress = (item) => {
-    Haptics.selectionAsync().catch(() => {});
+    const now = Date.now();
+    if (now - hapticCooldownRef.current > 500) {
+      Haptics.selectionAsync().catch(() => {});
+      hapticCooldownRef.current = now;
+    }
     if (typeof onCardPress === 'function') {
       onCardPress(item);
       return;

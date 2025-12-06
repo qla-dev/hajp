@@ -23,6 +23,8 @@ export default function SuggestionSlider({
   emptySubtitle = 'Osvježi da dobiješ nove prijedloge.',
   onCardPress,
   refreshKey,
+  skipNextHaptic = false,
+  onClearSkip = () => {},
 }) {
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -31,8 +33,9 @@ export default function SuggestionSlider({
   const [loading, setLoading] = useState(false);
   const [pendingId, setPendingId] = useState(null);
   const [fadeValues] = useState({});
-  const lastTapRef = useRef(0);
   const skipUntilRef = useRef(0);
+  const hapticCooldownRef = useRef(0);
+  const tapTriggeredRef = useRef(false);
 
   const resolveAvatar = (photo) => {
     if (!photo) return null;
@@ -89,7 +92,6 @@ export default function SuggestionSlider({
     setPendingId(item.id);
     try {
       await addFriend(item.id);
-      Haptics.selectionAsync().catch(() => {});
 
       Animated.timing(fadeValues[item.id], {
         toValue: 0,
@@ -105,9 +107,13 @@ export default function SuggestionSlider({
   };
 
   const handleCardPress = (item) => {
+    tapTriggeredRef.current = true;
     const now = Date.now();
-    lastTapRef.current = now;
-    skipUntilRef.current = now + 600;
+    if (now - hapticCooldownRef.current > 500) {
+      Haptics.selectionAsync().catch(() => {});
+      hapticCooldownRef.current = now;
+    }
+    skipUntilRef.current = now + 1200;
     if (typeof onCardPress === 'function') {
       onCardPress(item);
       return;
@@ -121,7 +127,7 @@ export default function SuggestionSlider({
     });
   };
 
-  return (
+    return (
     <View>
       {showHeader && (
         <View style={styles.sectionHeader}>
@@ -147,8 +153,20 @@ export default function SuggestionSlider({
           snapToInterval={232}
           decelerationRate="fast"
           onMomentumScrollEnd={() => {
-            if (Date.now() < skipUntilRef.current) return;
-            Haptics.selectionAsync().catch(() => {});
+            if (tapTriggeredRef.current) {
+              tapTriggeredRef.current = false;
+              return;
+            }
+            if (skipNextHaptic) {
+              onClearSkip();
+              return;
+            }
+            const now = Date.now();
+            if (now < skipUntilRef.current) return;
+            if (now - hapticCooldownRef.current > 500) {
+              Haptics.selectionAsync().catch(() => {});
+              hapticCooldownRef.current = now;
+            }
           }}
         >
           {suggestions.map((item) => (
