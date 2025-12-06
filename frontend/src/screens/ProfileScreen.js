@@ -1,9 +1,21 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, RefreshControl, Animated, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  Animated,
+  ActivityIndicator,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend } from '../api';
 import BottomCTA from '../components/BottomCTA';
+import SuggestionSlider from '../components/SuggestionSlider';
 
 export default function ProfileScreen({ navigation, route }) {
   const [user, setUser] = useState(null);
@@ -24,7 +36,7 @@ export default function ProfileScreen({ navigation, route }) {
     try {
       const { data } = await fetchMyVotes(selectedUserId);
       setHypeCount(data?.length || 0);
-      setRecentHypes((data || []).slice(0, 3));
+      setRecentHypes((data || []).slice(0, 10));
     } catch {
       setHypeCount(0);
       setRecentHypes([]);
@@ -112,6 +124,9 @@ export default function ProfileScreen({ navigation, route }) {
 
   const isOtherProfile = route?.params?.isMine === false;
   const isMine = !isOtherProfile;
+  const hasActiveFriendship = friendStatus.exists && friendStatus.approved === 1;
+  const isPrivateProfile = Boolean(user?.is_private);
+  const showPrivateNotice = isOtherProfile && isPrivateProfile && !hasActiveFriendship;
 
   const username = user?.name ? user.name.toLowerCase().replace(' ', '') : 'gost';
   const displayedRooms = (roomSummary.rooms || []).slice(0, 3);
@@ -130,7 +145,7 @@ export default function ProfileScreen({ navigation, route }) {
 
   const handleConnectPress = async () => {
     if (!isOtherProfile || !route?.params?.userId || isFriendActionLoading) return;
-    if (friendStatus.exists && friendStatus.approved === 1) return;
+    if (hasActiveFriendship) return;
 
     setConnecting(true);
     try {
@@ -252,99 +267,104 @@ export default function ProfileScreen({ navigation, route }) {
         </View>
       
 
-        <View style={styles.userDetails}>
-          <View style={styles.roomRow}>
-            <View style={styles.roomAvatars}>
-              {[0, 1, 2].map((idx) => {
-                const name = displayedRooms[idx];
-                const label = name ? name.trim().charAt(0).toUpperCase() : '?';
-                const isVisible = Boolean(name);
-                return (
-                  <View
-                    key={idx}
-                    style={[
-                      styles.roomAvatar,
-                      { marginLeft: idx === 0 ? 0 : -12, opacity: isVisible ? 1 : 0.4 },
-                    ]}
-                  >
-                    <Text style={styles.roomAvatarText}>{label}</Text>
-                  </View>
-                );
-              })}
+        {!showPrivateNotice && (
+          <View style={styles.userDetails}>
+            <View style={styles.roomRow}>
+              <View style={styles.roomAvatars}>
+                {[0, 1, 2].map((idx) => {
+                  const name = displayedRooms[idx];
+                  const label = name ? name.trim().charAt(0).toUpperCase() : '?';
+                  const isVisible = Boolean(name);
+                  return (
+                    <View
+                      key={idx}
+                      style={[
+                        styles.roomAvatar,
+                        { marginLeft: idx === 0 ? 0 : -12, opacity: isVisible ? 1 : 0.4 },
+                      ]}
+                    >
+                      <Text style={styles.roomAvatarText}>{label}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+              <Text style={styles.roomSummaryText}>{roomLine}</Text>
             </View>
-            <Text style={styles.roomSummaryText}>{roomLine}</Text>
           </View>
-        </View>
+        )}
 
         <View style={styles.section2}>
-  {isMine ? (
-    <View style={styles.rowSpread}>
-      <TouchableOpacity
-        style={styles.shareButton}
-        onPress={() => navigation.navigate('EditProfile', { user })}
-      >
-        <Text style={styles.shareButtonText}>Uredi profil</Text>
-      </TouchableOpacity>
+          {isMine ? (
+            <View style={styles.rowSpread}>
+              <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('EditProfile', { user })}>
+                <Text style={styles.shareButtonText}>Uredi profil</Text>
+              </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.shareButton}
-        onPress={() => navigation.navigate('Share')}
-      >
-        <Text style={styles.shareButtonText}>Podijeli profil</Text>
-      </TouchableOpacity>
-    </View>
-  ) : (
-     <View style={styles.rowSpread}>
-      <TouchableOpacity
-        style={connectButtonStyle}
-        onPress={handleConnectPress}
-        disabled={isFriendActionLoading || (friendStatus.exists && friendStatus.approved === 1)}
-      >
-        {isFriendActionLoading ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={[styles.shareButtonText, styles.connectButtonText]}>Učitavanje</Text>
-          </View>
-        ) : (
-          <Text
-            style={[
-              styles.shareButtonText,
-              friendStatus.exists
-                ? { color: colors.border }       // disabled: same as border
-                : styles.connectButtonText,      // active: primary
-            ]}
-          >
-            {friendStatus.exists
-              ? friendStatus.approved === 1
-                ? 'Povezani ste'
-                : 'Zahtjev poslan'
-              : 'Poveži se'}
-          </Text>
-        )}
-      </TouchableOpacity>
-    </View>
-  )}
-</View>
-
-
-   
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Top hajpovi</Text>
-          {recentHypes.length === 0 ? (
-            <Text style={styles.emptyHype}>Još nema hajpova</Text>
+              <TouchableOpacity style={styles.shareButton} onPress={() => navigation.navigate('Share')}>
+                <Text style={styles.shareButtonText}>Podijeli profil</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
-            recentHypes.map((item, idx) => (
-              <View key={item.id || idx} style={styles.flameItem}>
-                <Text style={styles.flameNumber}>{idx + 1}</Text>
-                <Text style={styles.flameEmoji}>🔥</Text>
-                <Text style={styles.flameText} numberOfLines={1}>
-                  {item?.question?.question || 'Hajp'}
-                </Text>
-              </View>
-            ))
+            <View style={styles.rowSpread}>
+              <TouchableOpacity
+                style={connectButtonStyle}
+                onPress={handleConnectPress}
+                disabled={isFriendActionLoading || hasActiveFriendship}
+              >
+                {isFriendActionLoading ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
+                    <ActivityIndicator size="small" color={colors.primary} />
+                    <Text style={[styles.shareButtonText, styles.connectButtonText]}>Učitavanje</Text>
+                  </View>
+                ) : (
+                  <Text
+                    style={[
+                      styles.shareButtonText,
+                      friendStatus.exists ? { color: colors.border } : styles.connectButtonText,
+                    ]}
+                  >
+                    {friendStatus.exists ? (friendStatus.approved === 1 ? 'Povezani ste' : 'Zahtjev poslan') : 'Poveži se'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
           )}
         </View>
+
+        {showPrivateNotice ? (
+          <View style={styles.privateWrapper}>
+            <SuggestionSlider
+              linkLabel="Pogledajte sve"
+              onLinkPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}
+            />
+            <View style={styles.privateNotice}>
+              <View style={styles.privateIcon}>
+                <Ionicons name="lock-closed-outline" size={40} color={colors.text_secondary} />
+              </View>
+              <Text style={styles.privateTitle}>Ovo je privatan račun</Text>
+              <Text style={styles.privateSubtitle}>
+                Počnite pratiti ovaj korisnički račun kako biste vidjeli njihove fotografije i videozapise.
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.section3}>
+            <Text style={styles.sectionTitle}>Posljedni hajpovi</Text>
+            {recentHypes.length === 0 ? (
+              <Text style={styles.emptyHype}>Još nema hajpova</Text>
+            ) : (
+              recentHypes.map((item, idx) => (
+                <View key={item.id || idx} style={styles.flameItem}>
+                  <Text style={styles.flameNumber}>{idx + 1}</Text>
+                  <Text style={styles.flameEmoji}>🔥</Text>
+                  <Text style={styles.flameText} numberOfLines={1}>
+                    {item?.question?.question || 'Hajp'}
+                  </Text>
+                </View>
+              ))
+            )}
+          </View>
+        )}
 
       </ScrollView>
 
@@ -635,6 +655,46 @@ const createStyles = (colors) =>
       backgroundColor: colors.background,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
+    },
+    section3: {
+      padding: 16,
+      paddingBottom: 16,
+      backgroundColor: colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    privateWrapper: {
+      gap: 12,
+    },
+    privateNotice: {
+      paddingVertical: 32,
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.transparent,
+    },
+    privateIcon: {
+      width: 90,
+      height: 90,
+      borderRadius: 45,
+      borderWidth: 1,
+      borderColor: colors.border,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    privateTitle: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: colors.text_primary,
+      marginBottom: 8,
+    },
+    privateSubtitle: {
+      fontSize: 14,
+      color: colors.text_secondary,
+      textAlign: 'center',
+      lineHeight: 20,
+      paddingHorizontal: 24,
     },
     rowSpread: {
       flexDirection: 'row',

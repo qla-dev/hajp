@@ -155,11 +155,12 @@ class UserController extends Controller
         return response()->json([
             'data' => [
                 'id' => $user->id,
-                'name' => $user->name,
-                'username' => $user->username,
-                'profile_photo' => $user->profile_photo,
-                'sex' => $user->sex,
-                'coins' => $user->coins ?? 0,
+        'name' => $user->name,
+        'username' => $user->username,
+        'profile_photo' => $user->profile_photo,
+        'sex' => $user->sex,
+        'coins' => $user->coins ?? 0,
+        'is_private' => $user->is_private ?? 0,
             ],
         ]);
     }
