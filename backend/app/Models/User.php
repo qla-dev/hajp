@@ -26,6 +26,7 @@ class User extends Authenticatable
         'sex',
         'profile_photo',
         'is_subscribed',
+        'hajp_coins',
     ];
 
     /**
@@ -43,12 +44,25 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+    protected $appends = ['coins'];
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'hajp_coins' => 'integer',
         ];
+    }
+
+    public function getCoinsAttribute(): int
+    {
+        return (int) ($this->attributes['hajp_coins'] ?? 0);
+    }
+
+    public function setCoinsAttribute($value): void
+    {
+        $this->attributes['hajp_coins'] = max(0, (int) $value);
     }
 
     public function polls()

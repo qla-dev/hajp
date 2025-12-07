@@ -8,13 +8,12 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchRooms, fetchActiveQuestion } from '../api';
+import { fetchRoomsStatus } from '../api';
 import PollItem from '../components/PollItem';
 
 export default function RoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [roomPolls, setRoomPolls] = useState({});
   const [refreshing, setRefreshing] = useState(false);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -22,40 +21,6 @@ export default function RoomsScreen({ navigation }) {
   useEffect(() => {
     loadRooms();
   }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const loadActivePolls = async () => {
-      if (!rooms.length) {
-        setRoomPolls({});
-        return;
-      }
-      const highlights = {};
-      await Promise.all(
-        rooms.map(async (room) => {
-          if (controller.signal.aborted) return;
-          try {
-            const { data } = await fetchActiveQuestion(room.id);
-            highlights[room.id] = {
-              question: data?.question?.question ?? null,
-              emoji: data?.question?.emoji ?? null,
-              answered: Math.max(0, Math.min(data?.total ?? 0, (data?.index ?? 1) - 1)),
-              total: data?.total ?? 0,
-            };
-          } catch {
-            highlights[room.id] = undefined;
-          }
-        }),
-      );
-      if (!controller.signal.aborted) {
-        setRoomPolls(highlights);
-      }
-    };
-
-    loadActivePolls();
-    return () => controller.abort();
-  }, [rooms]);
 
   const loadRooms = async ({ showLoader = true } = {}) => {
     if (showLoader) {
@@ -65,8 +30,8 @@ export default function RoomsScreen({ navigation }) {
     }
 
     try {
-      const { data } = await fetchRooms();
-      setRooms(data || []);
+      const { data } = await fetchRoomsStatus();
+      setRooms(data?.data || []);
     } catch (error) {
       console.error('Greška pri učitavanju soba:', error);
     } finally {
@@ -79,7 +44,7 @@ export default function RoomsScreen({ navigation }) {
   };
 
   const renderRoom = ({ item }) => {
-    const highlight = roomPolls[item.id];
+    const highlight = item.active_question;
     const baseTotal = item.polls_count ?? 20;
     const fallbackAnswered = Math.min(item.completed_polls ?? baseTotal, baseTotal);
 

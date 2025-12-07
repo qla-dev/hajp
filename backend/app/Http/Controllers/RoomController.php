@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Question;
 use App\Models\Room;
 use App\Models\RoomMember;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -59,15 +60,93 @@ class RoomController extends Controller
         ]);
     }
 
+    public function status(Request $request)
+    {
+        $rooms = Room::withCount(['users as members_count'])->get([
+            'id',
+            'name',
+            'type',
+            'is_18_over',
+            'cover_url',
+            'tagline',
+            'description',
+            'is_private',
+        ]);
+
+        $user = $request->user();
+        $payload = $rooms->map(function ($room) use ($user) {
+            $highlight = null;
+            $result = $this->buildActiveQuestionData($room, $user);
+            if (!isset($result['error'])) {
+                $highlight = [
+                    'question' => $result['question']->question,
+                    'emoji' => $result['question']->emoji,
+                    'total' => $result['total'],
+                    'answered' => $result['answered'],
+                ];
+            }
+
+            $roomData = $room->toArray();
+            $roomData['active_question'] = $highlight;
+            return $roomData;
+        });
+
+        return response()->json(['data' => $payload]);
+    }
+
     public function activeQuestion(Request $request, Room $room)
     {
+        $result = $this->buildActiveQuestionData($room, $request->user());
+        if (isset($result['error'])) {
+            return response()->json(['message' => $result['error']], $result['status']);
+        }
+
+        return response()->json([
+            'question' => $result['question'],
+            'total' => $result['total'],
+            'index' => $result['index'],
+            'poll_id' => $result['poll_id'],
+        ]);
+    }
+
+    public function bulkActiveQuestions(Request $request)
+    {
+        $roomIds = (array) $request->input('room_ids', []);
+        if (!$roomIds) {
+            return response()->json(['data' => []]);
+        }
+
+        $rooms = Room::whereIn('id', $roomIds)->get();
         $user = $request->user();
+        $data = [];
+
+        foreach ($rooms as $room) {
+            $result = $this->buildActiveQuestionData($room, $user);
+            if (isset($result['error'])) {
+                continue;
+            }
+
+            $data[] = [
+                'room_id' => $room->id,
+                'question' => $result['question']->question,
+                'emoji' => $result['question']->emoji,
+                'total' => $result['total'],
+                'answered' => $result['answered'],
+            ];
+        }
+
+        return response()->json(['data' => $data]);
+    }
+
+    private function buildActiveQuestionData(Room $room, ?User $user)
+    {
         $poll = $room->polls()->where('status', 'active')->latest()->first();
         if (!$poll) {
-            return response()->json(['message' => 'Nema aktivnih anketa'], 404);
+            return ['error' => 'Nema aktivnih anketa', 'status' => 404];
         }
 
         $questionsQuery = $poll->questions()->with('votes.selectedUser')->orderBy('id');
+        $skipped = [];
 
         if ($user) {
             $skipped = Cache::get("skipped_questions_user_{$user->id}", []);
@@ -82,17 +161,17 @@ class RoomController extends Controller
 
         $total = $poll->questions()->count();
         if ($total === 0) {
-            return response()->json(['message' => 'Nema aktivnih pitanja'], 404);
+            return ['error' => 'Nema aktivnih pitanja', 'status' => 404];
         }
 
         $question = $questionsQuery->first();
         if (!$question) {
-            return response()->json(['message' => 'Nema aktivnih pitanja'], 404);
+            return ['error' => 'Nema aktivnih pitanja', 'status' => 404];
         }
 
         $options = $question->generateOptions();
         if (count($options) < 2) {
-            return response()->json(['message' => 'Nema dovoljno korisnika za opcije'], 422);
+            return ['error' => 'Nema dovoljno korisnika za opcije', 'status' => 422];
         }
 
         $question->setAttribute('options', $options);
@@ -106,12 +185,14 @@ class RoomController extends Controller
             $skippedCount = count(Cache::get("skipped_questions_user_{$user->id}", []));
         }
         $index = $user ? min($total, $answeredCount + $skippedCount + 1) : 1;
+        $answered = max(0, min($total, $index - 1));
 
-        return response()->json([
+        return [
             'question' => $question,
             'total' => $total,
             'index' => $index,
             'poll_id' => $poll->id,
-        ]);
+            'answered' => $answered,
+        ];
     }
 }
