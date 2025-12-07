@@ -1,172 +1,237 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  Switch,
+  ActivityIndicator,
 } from 'react-native';
-import { useHeaderHeight } from '@react-navigation/elements';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
+import FormTextInput from '../components/FormTextInput';
 import { createRoom } from '../api';
 
-const VIBE_OPTIONS = [
-  { id: 'school', label: 'Školska smjena' },
-  { id: 'uni', label: 'Univerzitetska struka' },
-  { id: 'creative', label: 'Kreativna scena' },
-  { id: 'afterparty', label: 'Afterparty' },
-  { id: 'chill', label: 'Chill zona' },
-  { id: 'insider', label: 'Insider krug' },
+const vibeOptions = [
+  { key: 'zabava', label: 'Zabava u gradu', icon: 'musical-notes-outline' },
+  { key: 'biznis', label: 'Biznis okruženje', icon: 'briefcase-outline' },
+  { key: 'skola', label: 'Školsko okruženje', icon: 'school-outline' },
+  { key: 'univerzitet', label: 'Studentski kutak', icon: 'book-outline' },
+  { key: 'gaming', label: 'Gaming arena', icon: 'game-controller-outline' },
+  { key: 'pop kultura', label: 'Pop kultura', icon: 'tv-outline' },
 ];
 
-const PRIVACY_OPTIONS = [
-  { id: 'public', label: 'Javna' },
-  { id: 'private', label: 'Privatna' },
+const privacyOptions = [
+  { key: 'public', label: 'Javno', icon: 'globe-outline', value: false },
+  { key: 'private', label: 'Privatna', icon: 'lock-closed-outline', value: true },
 ];
-
-const defaultForm = {
-  name: '',
-  tagline: '',
-  description: '',
-  vibe: VIBE_OPTIONS[0].id,
-  privacy: PRIVACY_OPTIONS[0].id,
-  cover_url: '',
-  is_18_over: false,
-};
 
 export default function CreateRoomScreen({ navigation }) {
-  const [form, setForm] = useState(defaultForm);
-  const [loading, setLoading] = useState(false);
-  const headerHeight = useHeaderHeight();
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const insets = useSafeAreaInsets();
 
-  const handleFieldChange = useCallback((field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  const [name, setName] = useState('');
+  const [tagline, setTagline] = useState('');
+  const [description, setDescription] = useState('');
+  const [coverUrl, setCoverUrl] = useState('');
+  const [selectedVibe, setSelectedVibe] = useState(vibeOptions[0].key);
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [is18Over, setIs18Over] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = useCallback(async () => {
-    if (!form.name.trim() || loading) return;
-    setLoading(true);
+  const handleSubmit = async () => {
+    if (!name.trim()) {
+      setErrorMessage('Naziv sobe je obavezan.');
+      return;
+    }
+
+    setErrorMessage('');
+    setCreating(true);
+
     try {
       await createRoom({
-        name: form.name.trim(),
-        tagline: form.tagline.trim(),
-        description: form.description.trim(),
-        vibe: form.vibe,
-        privacy: form.privacy,
-        cover_url: form.cover_url.trim(),
-        is_18_over: form.is_18_over,
+        name: name.trim(),
+        tagline: tagline.trim() || undefined,
+        description: description.trim() || undefined,
+        cover_url: coverUrl.trim() || undefined,
+        type: selectedVibe,
+        is_private: isPrivate,
+        is_18_over: is18Over,
       });
       navigation.goBack();
-    } catch {
-      // ignore errors
+    } catch (error) {
+      console.error('Neuspjeh pri kreiranju sobe', error);
+      setErrorMessage('Neuspješno kreiranje sobe, pokušaj ponovo.');
     } finally {
-      setLoading(false);
+      setCreating(false);
     }
-  }, [form, loading, navigation]);
+  };
 
   return (
-    <View style={styles.screen}>
-      <View style={{ height: headerHeight }} />
-      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Kreiraj novu sobu</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Naziv sobe"
-          placeholderTextColor={colors.text_secondary}
-          value={form.name}
-          onChangeText={(value) => handleFieldChange('name', value)}
-          autoCapitalize="words"
-          selectionColor={colors.primary}
-          editable={!loading}
-        />
-        <Text style={styles.label}>Vibe</Text>
-        <View style={styles.optionRow}>
-          {VIBE_OPTIONS.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              style={[styles.optionChip, form.vibe === option.id && styles.optionChipActive]}
-              onPress={() => handleFieldChange('vibe', option.id)}
-              disabled={loading}
-            >
-              <Text style={[styles.optionText, form.vibe === option.id && styles.optionTextActive]}>
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+    <KeyboardAvoidingView
+      style={styles.screen}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 110 : 80}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.headerSpacer} />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Naziv sobe</Text>
+          <FormTextInput
+            value={name}
+            onChangeText={setName}
+            placeholder="Unesi naziv sobe"
+            style={styles.input}
+          />
         </View>
-        <Text style={styles.label}>Privatnost</Text>
-        <View style={styles.optionRow}>
-          {PRIVACY_OPTIONS.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              style={[styles.optionChip, form.privacy === option.id && styles.optionChipActive]}
-              onPress={() => handleFieldChange('privacy', option.id)}
-              disabled={loading}
-            >
-              <Text style={[styles.optionText, form.privacy === option.id && styles.optionTextActive]}>
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Tagline</Text>
+          <FormTextInput
+            value={tagline}
+            onChangeText={setTagline}
+            placeholder="Kratka poruka ili moto"
+            style={styles.input}
+          />
         </View>
-        <Text style={styles.sectionLabel}>Tagline</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Kratki tagline"
-          placeholderTextColor={colors.text_secondary}
-          value={form.tagline}
-          onChangeText={(value) => handleFieldChange('tagline', value)}
-          autoCapitalize="sentences"
-          editable={!loading}
-        />
-        <Text style={styles.sectionLabel}>Opis</Text>
-        <TextInput
-          style={[styles.input, styles.inputMultiline]}
-          placeholder="Detaljniji opis"
-          placeholderTextColor={colors.text_secondary}
-          value={form.description}
-          onChangeText={(value) => handleFieldChange('description', value)}
-          multiline
-          numberOfLines={4}
-          editable={!loading}
-        />
-        <Text style={styles.sectionLabel}>Cover URL</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="https://..."
-          placeholderTextColor={colors.text_secondary}
-          value={form.cover_url}
-          onChangeText={(value) => handleFieldChange('cover_url', value)}
-          autoCapitalize="none"
-          editable={!loading}
-        />
-        <Text style={styles.sectionLabel}>18+</Text>
-        <TouchableOpacity
-          onPress={() => handleFieldChange('is_18_over', !form.is_18_over)}
-          style={[styles.toggle, form.is_18_over ? styles.toggleActive : styles.toggleInactive]}
-        >
-          <Text style={styles.toggleText}>{form.is_18_over ? 'Da' : 'Ne'}</Text>
-        </TouchableOpacity>
-        <View style={{ height: 120 }} />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Opis</Text>
+          <FormTextInput
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Opširnije objasni vibe sobe"
+            style={[styles.input, styles.multiline]}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Cover link</Text>
+          <FormTextInput
+            value={coverUrl}
+            onChangeText={setCoverUrl}
+            placeholder="https://example.com/cover.jpg"
+            style={styles.input}
+            keyboardType="url"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Vibe</Text>
+          <View style={styles.chipRow}>
+            {vibeOptions.map((option) => {
+              const active = selectedVibe === option.key;
+              return (
+                <TouchableOpacity
+                  key={option.key}
+                  style={[
+                    styles.chip,
+                    active && styles.chipActive,
+                    { borderColor: active ? colors.primary : colors.border },
+                  ]}
+                  onPress={() => setSelectedVibe(option.key)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={option.icon}
+                    size={20}
+                    color={active ? colors.textLight : colors.text_secondary}
+                    style={styles.chipIcon}
+                  />
+                  <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>{option.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Privatnost</Text>
+          <View style={styles.privacyRow}>
+            {privacyOptions.map((option, index) => {
+              const active = isPrivate === option.value;
+              return (
+                <TouchableOpacity
+                  key={option.key}
+                  style={[
+                    styles.privacyButton,
+                    active && styles.privacyActive,
+                    index === 0 && { marginRight: 8 },
+                    index === 1 && { marginLeft: 8 },
+                  ]}
+                  onPress={() => setIsPrivate(option.value)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={option.icon}
+                    size={20}
+                    color={active ? colors.primary : colors.text_secondary}
+                  />
+                  <Text style={[styles.privacyLabel, active && styles.privacyLabelActive]}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>18+ prostor</Text>
+          <View style={styles.switchRow}>
+            <View>
+              <Text style={styles.switchLabel}>
+                {is18Over ? 'Samo za 18+' : 'Otvoreno za sve uzraste'}
+              </Text>
+              <Text style={styles.switchSubLabel}>
+                {is18Over ? 'Sadržaj prilagođen odraslima' : 'Dozvoljeno mlađima od 18'}
+              </Text>
+            </View>
+            <Switch
+              value={is18Over}
+              onValueChange={setIs18Over}
+              thumbColor={is18Over ? colors.primary : colors.surface}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              ios_backgroundColor={colors.border}
+            />
+          </View>
+        </View>
+
+        {errorMessage ? <Text style={styles.errorLabel}>{errorMessage}</Text> : null}
+
+        <View style={{ height: Math.max(insets.bottom + 60, 60) }} />
       </ScrollView>
-      <View style={styles.footer}>
+
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         <TouchableOpacity
-          style={[styles.submitButton, (!form.name.trim() || loading) && styles.submitButtonDisabled]}
+          style={[styles.cta, creating && styles.ctaDisabled]}
           onPress={handleSubmit}
-          disabled={!form.name.trim() || loading}
+          activeOpacity={0.8}
+          disabled={creating}
         >
-          {loading ? (
-            <ActivityIndicator size="small" color={colors.textLight} />
+          {creating ? (
+            <ActivityIndicator color={colors.textLight} />
           ) : (
-            <Text style={styles.submitText}>Dodaj sobu</Text>
+            <Text style={styles.ctaLabel}>Dodaj sobu</Text>
           )}
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -176,103 +241,131 @@ const createStyles = (colors) =>
       flex: 1,
       backgroundColor: colors.background,
     },
-    body: {
-      padding: 24,
-      gap: 16,
-    },
-    title: {
-      fontSize: 22,
-      fontWeight: '800',
-      color: colors.text_primary,
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 14,
-      paddingVertical: 12,
+    scrollContent: {
       paddingHorizontal: 16,
-      backgroundColor: colors.surface,
-      color: colors.text_primary,
+      paddingBottom: 40,
     },
-    inputMultiline: {
-      minHeight: 90,
-      textAlignVertical: 'top',
+    headerSpacer: {
+      height: 32,
     },
-    label: {
-      fontSize: 12,
-      letterSpacing: 0.6,
-      textTransform: 'uppercase',
-      color: colors.text_secondary,
+    section: {
+      marginBottom: 16,
     },
     sectionLabel: {
-      fontSize: 14,
+      fontSize: 15,
+      fontWeight: '600',
       color: colors.text_secondary,
-      marginTop: 4,
+      marginBottom: 8,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
     },
-    optionRow: {
+    input: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      color: colors.text_primary,
+      fontSize: 16,
+    },
+    multiline: {
+      minHeight: 100,
+      paddingTop: 12,
+    },
+    chipRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: 8,
     },
-    optionChip: {
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-    },
-    optionChipActive: {
-      borderColor: colors.primary,
-      backgroundColor: colors.primary + '15',
-    },
-    optionText: {
-      color: colors.text_primary,
-      fontWeight: '600',
-    },
-    optionTextActive: {
-      color: colors.primary,
-    },
-    toggle: {
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-      borderRadius: 14,
-      borderWidth: 1,
-      borderColor: colors.border,
+    chip: {
+      flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.surface,
-    },
-    toggleActive: {
-      borderColor: colors.primary,
-      backgroundColor: colors.primary + '0f',
-    },
-    toggleInactive: {},
-    toggleText: {
-      color: colors.text_primary,
-      fontWeight: '600',
-    },
-    footer: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 0,
-      padding: 24,
-      borderTopWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.background,
-    },
-    submitButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 14,
       borderRadius: 16,
-      paddingVertical: 16,
-      alignItems: 'center',
+      borderWidth: 1,
+      backgroundColor: colors.surface,
+      marginBottom: 10,
+      marginRight: 10,
+    },
+    chipActive: {
       backgroundColor: colors.primary,
     },
-    submitButtonDisabled: {
-      opacity: 0.6,
+    chipIcon: {
+      marginRight: 8,
     },
-    submitText: {
+    chipLabel: {
+      fontSize: 14,
+      color: colors.text_secondary,
+    },
+    chipLabelActive: {
       color: colors.textLight,
-      fontWeight: '700',
+    },
+    privacyRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    privacyButton: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingVertical: 14,
+      backgroundColor: colors.surface,
+    },
+    privacyActive: {
+      borderColor: colors.primary,
+      backgroundColor: colors.surfaceDark,
+    },
+    privacyLabel: {
+      marginLeft: 8,
+      fontWeight: '600',
+      color: colors.text_secondary,
+    },
+    privacyLabelActive: {
+      color: colors.primary,
+    },
+    switchRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    switchLabel: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text_primary,
+    },
+    switchSubLabel: {
+      fontSize: 13,
+      color: colors.text_secondary,
+    },
+    errorLabel: {
+      color: colors.error,
+      fontSize: 13,
+      marginBottom: 12,
+    },
+    footer: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingHorizontal: 16,
+      backgroundColor: colors.background,
+    },
+    cta: {
+      height: 54,
+      borderRadius: 28,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    ctaDisabled: {
+      opacity: 0.7,
+    },
+    ctaLabel: {
+      color: colors.textLight,
       fontSize: 16,
+      fontWeight: '700',
     },
   });
