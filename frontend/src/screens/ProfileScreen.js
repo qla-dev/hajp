@@ -158,7 +158,7 @@ export default function ProfileScreen({ navigation, route }) {
     displayedRooms.length > 0
       ? `Član ${displayedRooms.join(', ')}${remainingRooms > 0 ? ` i još ${remainingRooms} soba` : ''}`
       : 'Nisi član nijedne sobe';
-  const coinBalance = user?.coins ?? 0;
+  const coinBalance = user?.coins ?? 58;
   const avatarTextColor = encodeURIComponent(colors.textLight.replace('#', ''));
   const glowScale = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.25] });
@@ -602,6 +602,7 @@ const createStyles = (colors) =>
     coinRow: {
       paddingHorizontal: 20,
       paddingVertical: 18,
+      paddingTop: 7,
       backgroundColor: colors.background,
       borderBottomWidth: 1,
       borderTopWidth: 0,

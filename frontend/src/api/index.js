@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const baseURL = process.env.REACT_NATIVE_API_URL || 'http://192.168.0.32:8000';
+export const baseURL = process.env.REACT_NATIVE_API_URL || 'http://192.168.0.30:8000';
 
 const api = axios.create({ baseURL });
 

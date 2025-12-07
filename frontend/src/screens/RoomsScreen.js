@@ -53,6 +53,12 @@ export default function RoomsScreen({ navigation }) {
     const isComplete = total > 0 && answered >= total;
     const emoji = highlight?.emoji || (item.type === 'Za žene' ? '🌸' : '⚡️');
 
+    const accentColor = isComplete
+      ? colors.secondary
+      : item.is_private
+      ? colors.primary
+      : colors.primary;
+
     return (
       <PollItem
         roomName={item.name}
@@ -63,7 +69,7 @@ export default function RoomsScreen({ navigation }) {
         onCardPress={() =>
           navigation.navigate('Polling', { roomId: item.id, roomName: item.name })
         }
-        accentColor={isComplete ? colors.secondary : item.is_private ? colors.error : colors.primary}
+        accentColor={accentColor}
       />
     );
   };
@@ -134,7 +140,7 @@ const createStyles = (colors) =>
     },
     listContent: {
       paddingHorizontal: 16,
-      paddingTop: 20,
+      paddingTop: 0,
       paddingBottom: 0,
       gap: 12,
     },

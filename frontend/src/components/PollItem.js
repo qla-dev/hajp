@@ -18,7 +18,7 @@ export default function PollItem({
 }) {
   const { colors } = useTheme();
   const completion = total ? Math.min(Math.max(answered / total, 0), 1) : 0;
-  const accent = accentColor || colors.primary;
+  const accent = accentColor;
   const interactive = !!onCardPress;
   const Container = interactive ? TouchableOpacity : View;
   const containerProps = interactive ? { activeOpacity: 0.9, onPress: onCardPress } : {};

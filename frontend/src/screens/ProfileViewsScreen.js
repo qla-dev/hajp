@@ -168,8 +168,7 @@ const createStyles = (colors) =>
     listContent: {
       paddingHorizontal: 20,
       paddingTop: 20,
-      paddingBottom: 150,
-      gap: 12,
+      paddingBottom: 0,
     },
     bottomCta: {
       paddingHorizontal: 16,
@@ -184,6 +183,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
+      marginBottom: 12,
       padding: 16,
       borderRadius: 20,
       backgroundColor: colors.surface,
