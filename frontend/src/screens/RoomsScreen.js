@@ -63,7 +63,7 @@ export default function RoomsScreen({ navigation }) {
         onCardPress={() =>
           navigation.navigate('Polling', { roomId: item.id, roomName: item.name })
         }
-        accentColor={isComplete ? colors.error : item.is_private ? colors.error : colors.primary}
+        accentColor={isComplete ? colors.secondary : item.is_private ? colors.error : colors.primary}
       />
     );
   };
@@ -135,7 +135,7 @@ const createStyles = (colors) =>
     listContent: {
       paddingHorizontal: 16,
       paddingTop: 20,
-      paddingBottom: 150,
+      paddingBottom: 0,
       gap: 12,
     },
     emptyContainer: {
