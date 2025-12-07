@@ -168,7 +168,7 @@ const createStyles = (colors) =>
     listContent: {
       paddingHorizontal: 20,
       paddingTop: 20,
-      paddingBottom: 0,
+      paddingBottom: 80,
     },
     bottomCta: {
       paddingHorizontal: 16,
