@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Pressable, TouchableOpacity, Text, View } from 'react-native';
+import { StyleSheet, Pressable, TouchableOpacity, Text, View, registerCallableModule } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
@@ -141,37 +141,37 @@ function ProfileStackNavigator() {
         name="ProfileHome"
         component={ProfileScreen}
         options={({ navigation }) => ({
-          title: headerLabelMap.Profile,
-          gestureEnabled: false,
-          headerLeft: () => (
+        title: headerLabelMap.Profile,
+        gestureEnabled: false,
+        headerLeft: () => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Rank', { screen: 'RankRooms' })}
+            style={styles.glassButton}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.glassButtonLabel}>Sobe</Text>
+          </TouchableOpacity>
+        ),
+        headerRight: () => (
+          <View style={styles.headerActions}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('Rank', { screen: 'RankRooms' })}
-              style={styles.glassButton}
+              onPress={() => navigation.navigate('ProfileViews')}
+              style={[styles.glassButton, styles.eyeButton]}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text style={styles.glassButtonLabel}>Sobe</Text>
+              <Ionicons name="eye-outline" size={20} color={colors.text_primary} />
             </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <View style={styles.headerActions}>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('ProfileViews')}
-                style={[styles.glassButton, styles.eyeButton]}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Ionicons name="eye-outline" size={20} color={colors.text_primary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Settings')}
-                style={[styles.glassButton, styles.gearButton, styles.headerButtonSpacing]}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
-              </TouchableOpacity>
-            </View>
-          ),
-        })}
-      />
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Settings')}
+              style={[styles.glassButton, styles.gearButton, styles.headerButtonSpacing, styles.headerButton]}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
+            </TouchableOpacity>
+          </View>
+        ),
+      })}
+    />
       <ProfileStack.Screen
         name="ProfileFriends"
         component={ProfileScreen}
@@ -464,8 +464,21 @@ const createStyles = (colors, isDark) =>
     headerActions: {
       flexDirection: 'row',
       alignItems: 'center',
+      columnGap: 6,
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     eyeButton: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+    },
+    headerButton: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+      borderRadius: 18,
       paddingHorizontal: 10,
       paddingVertical: 6,
     },

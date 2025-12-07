@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 
-export default function BottomCTA({ label, onPress, iconName, emoji, fixed = false }) {
+export default function BottomCTA({ label, onPress, iconName, emoji, fixed = false, style }) {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
 
@@ -14,7 +14,7 @@ export default function BottomCTA({ label, onPress, iconName, emoji, fixed = fal
     <Container
       intensity={fixed ? 24 : 0}
       tint={isDark ? 'dark' : 'light'}
-      style={[styles.container, fixed && styles.containerFixed]}
+      style={[styles.container, fixed && styles.containerFixed, style]}
     >
       <TouchableOpacity style={styles.button} onPress={onPress}>
         {iconName ? (

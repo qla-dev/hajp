@@ -9,7 +9,7 @@ import {
   Image,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL, fetchProfileViews, getCurrentUser } from '../api';
 import BottomCTA from '../components/BottomCTA';
@@ -17,10 +17,10 @@ import BottomCTA from '../components/BottomCTA';
 export default function ProfileViewsScreen() {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const navigation = useNavigation();
   const [views, setViews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showFullList, setShowFullList] = useState(false);
 
   const loadViews = useCallback(async () => {
     setLoading(true);
@@ -28,15 +28,12 @@ export default function ProfileViewsScreen() {
       const current = await getCurrentUser();
       if (!current?.id) {
         setViews([]);
-        setShowFullList(false);
         return;
       }
       const { data } = await fetchProfileViews(current.id);
       setViews(data?.data || data || []);
-      setShowFullList(false);
     } catch {
       setViews([]);
-      setShowFullList(false);
     } finally {
       setLoading(false);
     }
@@ -101,7 +98,7 @@ export default function ProfileViewsScreen() {
       </View>
     );
 
-    if (index > 2 && !showFullList) {
+    if (index > 2) {
       return (
         <View style={styles.blurWrapper}>
           {visitorContent}
@@ -145,12 +142,13 @@ export default function ProfileViewsScreen() {
         }
         ListEmptyComponent={listEmptyComponent}
       />
-      {views.length > 3 && !showFullList && (
+      {views.length > 3 && (
         <BottomCTA
           label="Vidi ko ti gleda profil"
-          onPress={() => setShowFullList(true)}
+          onPress={() => navigation.navigate('Subscription')}
           iconName="eye-outline"
           fixed
+          style={styles.bottomCta}
         />
       )}
     </View>
@@ -168,6 +166,10 @@ const createStyles = (colors) =>
     listContent: {
       paddingBottom: 150,
       gap: 12,
+    },
+    bottomCta: {
+      paddingHorizontal: 16,
+      paddingBottom: 50,
     },
     emptyContainer: {
       flexGrow: 1,
