@@ -387,6 +387,10 @@ export default function MainTabs() {
                 height: 86,
                 paddingBottom: 24,
                 paddingTop: 6,
+                position: 'relative',
+                zIndex: 0,
+                elevation: 0,
+                shadowOpacity: 0,
               },
           tabBarLabelStyle: {
             fontSize: 12,

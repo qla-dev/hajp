@@ -117,8 +117,8 @@ export default function ProfileScreen({ navigation, route }) {
   }, []);
 
   const handleRoomCreate = useCallback(
-    async (roomName) => {
-      await createRoom({ name: roomName });
+    async (roomPayload) => {
+      await createRoom(roomPayload);
       await loadData();
     },
     [loadData],
