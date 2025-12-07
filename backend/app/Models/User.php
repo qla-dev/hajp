@@ -94,4 +94,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Vote::class);
     }
+
+    public function cashouts()
+    {
+        return $this->hasMany(CashoutHistory::class);
+    }
 }

@@ -16,6 +16,8 @@ import ProfileScreen from '../screens/ProfileScreen';
 import ProfileViewsScreen from '../screens/ProfileViewsScreen';
 import SuggestionsScreen from '../screens/SuggestionsScreen';
 import FriendsScreen from '../screens/FriendsScreen';
+import CashOutScreen from '../screens/CashOutScreen';
+import NextPollCountdownScreen from '../screens/NextPollCountdownScreen';
 
 const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
@@ -65,6 +67,22 @@ function HajpStackNavigator() {
             borderBottomColor: 'rgba(255,255,255,0.7)',
             borderBottomWidth: 1,
           },
+        }}
+      />
+      <HajpStack.Screen
+        name="CashOut"
+        component={CashOutScreen}
+        options={{
+          title: 'Isplata',
+          headerBackVisible: false,
+        }}
+      />
+      <HajpStack.Screen
+        name="NextPollCountdown"
+        component={NextPollCountdownScreen}
+        options={{
+          title: 'Čekanje',
+          headerBackVisible: false,
         }}
       />
     </HajpStack.Navigator>

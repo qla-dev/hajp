@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CashoutHistory;
 use App\Models\Question;
 use App\Models\Room;
 use App\Models\RoomMember;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class RoomController extends Controller
 {
@@ -92,6 +95,70 @@ class RoomController extends Controller
         });
 
         return response()->json(['data' => $payload]);
+    }
+
+    public function cashoutStatus(Request $request, Room $room)
+    {
+        $poll = $room->polls()->latest('created_at')->first();
+        if (!$poll) {
+            return response()->json(['message' => 'Nema prethodnih anketa'], 404);
+        }
+
+        $user = $request->user();
+        $nextPollAt = ($poll->updated_at ?? $poll->created_at ?? Carbon::now())->copy()->addHours(4);
+        $hasCashout = false;
+        if ($user) {
+            $hasCashout = CashoutHistory::where('user_id', $user->id)
+                ->where('poll_id', $poll->id)
+                ->exists();
+        }
+
+        return response()->json([
+            'poll_id' => $poll->id,
+            'last_poll_at' => ($poll->updated_at ?? $poll->created_at)->toIso8601String(),
+            'next_poll_at' => $nextPollAt->toIso8601String(),
+            'can_cashout' => !$hasCashout,
+            'cashout_amount' => 10,
+        ]);
+    }
+
+    public function cashout(Request $request, Room $room)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $poll = $room->polls()->latest('created_at')->first();
+        if (!$poll) {
+            return response()->json(['message' => 'Nema anketa za isplatu'], 404);
+        }
+
+        $existing = CashoutHistory::where('user_id', $user->id)
+            ->where('poll_id', $poll->id)
+            ->exists();
+        if ($existing) {
+            return response()->json(['message' => 'Već si podigao ovu isplatu'], 422);
+        }
+
+        /** @var CashoutHistory|null $history */
+        $history = null;
+        DB::transaction(function () use ($user, $poll, &$history) {
+            $history = CashoutHistory::create([
+                'user_id' => $user->id,
+                'poll_id' => $poll->id,
+            ]);
+            $user->increment('hajp_coins', 10);
+        });
+
+        $user->refresh();
+        $nextPollAt = ($poll->updated_at ?? $poll->created_at ?? Carbon::now())->copy()->addHours(4);
+
+        return response()->json([
+            'coins' => $user->coins,
+            'cashout' => $history,
+            'next_poll_at' => $nextPollAt->toIso8601String(),
+        ], 201);
     }
 
     public function activeQuestion(Request $request, Room $room)

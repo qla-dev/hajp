@@ -54,6 +54,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{room}/polling', [RoomController::class, 'activeQuestion']);
         Route::post('/questions/active/bulk', [RoomController::class, 'bulkActiveQuestions']);
         Route::get('/status', [RoomController::class, 'status']);
+        Route::get('/{room}/cashout/status', [RoomController::class, 'cashoutStatus']);
+        Route::post('/{room}/cashout', [RoomController::class, 'cashout']);
         Route::post('/{room}/join', [RoomController::class, 'join']);
     });
 

@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchActiveQuestion, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
+import { fetchActiveQuestion, fetchRoomCashoutStatus, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
 
 const { width } = Dimensions.get('window');
 
@@ -23,6 +23,21 @@ export default function PollingScreen({ route, navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const headerHeight = useHeaderHeight();
+  const handleNoActivePoll = useCallback(async () => {
+    if (!roomId) return;
+    try {
+      const { data } = await fetchRoomCashoutStatus(roomId);
+      const targetScreen = data?.can_cashout ? 'CashOut' : 'NextPollCountdown';
+      navigation.replace(targetScreen, {
+        roomId,
+        pollId: data?.poll_id,
+        nextPollAt: data?.next_poll_at,
+        cashoutAmount: data?.cashout_amount,
+      });
+    } catch (transitionError) {
+      console.error('Failed to determine next screen', transitionError);
+    }
+  }, [navigation, roomId]);
 
   useEffect(() => {
     loadQuestion();
@@ -36,6 +51,7 @@ export default function PollingScreen({ route, navigation }) {
     } else {
       setRefreshingQuestion(true);
     }
+
     try {
       const { data } = await fetchActiveQuestion(roomId);
       const incomingTotal = data?.total ?? 0;
@@ -49,20 +65,22 @@ export default function PollingScreen({ route, navigation }) {
         const idx = Math.max(0, (incomingIndex || 1) - 1);
         setBgColor(backgrounds[idx % backgrounds.length]);
       } else {
-        setQuestion(null);
-        setFinished(true);
-        setTotal(incomingTotal);
-        setIndex(incomingIndex || 0);
-        setBgColor(backgrounds[0]);
+        await handleNoActivePoll();
+        return;
       }
     } catch (error) {
+      if (error?.response?.status === 404) {
+        await handleNoActivePoll();
+        return;
+      }
       setQuestion(null);
       setFinished(false);
       console.error('Error loading active question:', error);
+    } finally {
+      setFirstLoad(false);
+      setLoading(false);
+      setRefreshingQuestion(false);
     }
-    setFirstLoad(false);
-    setLoading(false);
-    setRefreshingQuestion(false);
   };
 
   const handleVote = async (option) => {
