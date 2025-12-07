@@ -24,7 +24,7 @@ export const login = async (payload) => {
 };
 export const fetchRooms = () => api.get('/api/rooms');
 export const joinRoom = (roomId) => api.post(`/api/rooms/${roomId}/join`);
-export const fetchActiveQuestion = (roomId) => api.get(`/api/rooms/${roomId}/questions/active`);
+export const fetchActiveQuestion = (roomId) => api.get(`/api/rooms/${roomId}/polling`);
 export const fetchRoomsStatus = () => api.get('/api/rooms/status');
 export const fetchQuestionDetail = (id) => api.get(`/api/questions/${id}`);
 export const voteQuestion = (id, selected_option) => api.post(`/api/questions/${id}/vote`, { selected_option });
