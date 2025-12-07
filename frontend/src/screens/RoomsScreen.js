@@ -11,8 +11,6 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRooms, fetchActiveQuestion } from '../api';
 import PollItem from '../components/PollItem';
 
-const LIST_TOP_PADDING = 92;
-
 export default function RoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +68,7 @@ export default function RoomsScreen({ navigation }) {
       const { data } = await fetchRooms();
       setRooms(data || []);
     } catch (error) {
-      console.error('Gre?ka pri u?itavanju soba:', error);
+      console.error('Greška pri učitavanju soba:', error);
     } finally {
       if (showLoader) {
         setLoading(false);
@@ -80,7 +78,7 @@ export default function RoomsScreen({ navigation }) {
     }
   };
 
-  const renderRoom = ({ item, index }) => {
+  const renderRoom = ({ item }) => {
     const highlight = roomPolls[item.id];
     const baseTotal = item.polls_count ?? 20;
     const fallbackAnswered = Math.min(item.completed_polls ?? baseTotal, baseTotal);
@@ -89,8 +87,6 @@ export default function RoomsScreen({ navigation }) {
     const answered = highlight?.answered ?? fallbackAnswered;
     const isComplete = total > 0 && answered >= total;
     const emoji = highlight?.emoji || (item.type === 'Za žene' ? '🌸' : '⚡️');
-
-    const itemStyle = index === 0 ? { marginTop: 105 } : undefined;
 
     return (
       <PollItem
@@ -103,7 +99,6 @@ export default function RoomsScreen({ navigation }) {
           navigation.navigate('Polling', { roomId: item.id, roomName: item.name })
         }
         accentColor={isComplete ? colors.error : item.is_private ? colors.error : colors.primary}
-        style={itemStyle}
       />
     );
   };
@@ -124,28 +119,30 @@ export default function RoomsScreen({ navigation }) {
     );
   };
 
+  const listContentStyle = [
+    styles.listContent,
+    rooms.length === 0 && styles.emptyContainer,
+  ];
+
   return (
     <View style={styles.container}>
-      <View style={styles.section}>
-          <FlatList
-            data={rooms}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={renderRoom}
-            contentContainerStyle={styles.list}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={() => loadRooms({ showLoader: false })}
-                tintColor={colors.primary}
-                colors={[colors.primary]}
-                progressViewOffset={LIST_TOP_PADDING}
-              />
-            }
-            ListEmptyComponent={renderEmptyState}
-            ListEmptyComponentStyle={{ paddingTop: LIST_TOP_PADDING }}
+      <FlatList
+        data={rooms}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={renderRoom}
+        contentContainerStyle={listContentStyle}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadRooms({ showLoader: false })}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
           />
-      </View>
+        }
+        ListEmptyComponent={renderEmptyState}
+        contentInsetAdjustmentBehavior="always"
+      />
     </View>
   );
 }
@@ -155,14 +152,6 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-      marginTop: 0,
-      paddingHorizontal: 16,
-      paddingBottom: 0,
-    },
-    section: {
-      flex: 1,
-      paddingTop: 0,
-      borderBottomWidth: 0,
     },
     loadingText: {
       color: colors.text_secondary,
@@ -178,9 +167,15 @@ const createStyles = (colors) =>
       alignItems: 'center',
       paddingVertical: 32,
     },
-    list: {
-      paddingTop: 0,
-      paddingBottom: 0,
+    listContent: {
+      paddingHorizontal: 16,
+      paddingTop: 20,
+      paddingBottom: 150,
+      gap: 12,
+    },
+    emptyContainer: {
       flexGrow: 1,
+      justifyContent: 'center',
+      paddingBottom: 40,
     },
   });
