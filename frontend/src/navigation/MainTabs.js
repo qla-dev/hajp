@@ -18,6 +18,7 @@ import SuggestionsScreen from '../screens/SuggestionsScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import CashOutScreen from '../screens/CashOutScreen';
 import NextPollCountdownScreen from '../screens/NextPollCountdownScreen';
+import CreateRoomScreen from '../screens/CreateRoomScreen';
 
 const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
@@ -158,48 +159,53 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen
         name="ProfileHome"
         component={ProfileScreen}
-        options={({ navigation, route }) => {
-          const openAddRoomSheet = route?.params?.openAddRoomSheet;
-          return {
-            title: headerLabelMap.Profile,
-            gestureEnabled: false,
-            headerLeft: () => (
-              <View style={styles.headerLeftGroup}>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Rank', { screen: 'RankRooms' })}
-                  style={[styles.glassButton, styles.headerButton]}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text style={styles.glassButtonLabel}>Sobe</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => openAddRoomSheet?.()}
-                  style={[styles.headerAddButton, styles.headerButtonSpacing]}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Ionicons name="add" size={20} color={colors.text_primary} />
-                </TouchableOpacity>
-              </View>
-            ),
-            headerRight: () => (
-              <View style={styles.headerActions}>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('ProfileViews')}
-                  style={[styles.glassButton, styles.eyeButton]}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Ionicons name="eye-outline" size={20} color={colors.text_primary} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Settings')}
-                  style={[styles.glassButton, styles.gearButton, styles.headerButtonSpacing, styles.headerButton]}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
-                </TouchableOpacity>
-              </View>
-            ),
-          };
+        options={({ navigation }) => ({
+          title: headerLabelMap.Profile,
+          gestureEnabled: false,
+          headerLeft: () => (
+            <View style={styles.headerLeftGroup}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Rank', { screen: 'RankRooms' })}
+                style={[styles.glassButton, styles.headerButton]}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={styles.glassButtonLabel}>Sobe</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('CreateRoom')}
+                style={[styles.headerAddButton, styles.headerButtonSpacing]}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="add" size={20} color={colors.text_primary} />
+              </TouchableOpacity>
+            </View>
+          ),
+          headerRight: () => (
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('ProfileViews')}
+                style={[styles.glassButton, styles.eyeButton]}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="eye-outline" size={20} color={colors.text_primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Settings')}
+                style={[styles.glassButton, styles.gearButton, styles.headerButtonSpacing, styles.headerButton]}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
+              </TouchableOpacity>
+            </View>
+          ),
+        })}
+      />
+      <ProfileStack.Screen
+        name="CreateRoom"
+        component={CreateRoomScreen}
+        options={{
+          title: 'Dodaj sobu',
+          headerBackTitle: 'Nazad',
         }}
       />
       <ProfileStack.Screen
@@ -360,7 +366,7 @@ export default function MainTabs() {
         }
         if (
           route.name === 'Profile' &&
-          (focused === 'ProfileFriends' || focused === 'ProfileFriendsList' || focused === 'ProfileViews')
+        (focused === 'ProfileFriends' || focused === 'ProfileFriendsList' || focused === 'ProfileViews' || focused === 'CreateRoom')
         ) {
           hideTabBar = true;
         }

@@ -14,10 +14,9 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, recordProfileView, createRoom } from '../api';
+import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, recordProfileView } from '../api';
 import BottomCTA from '../components/BottomCTA';
 import SuggestionSlider from '../components/SuggestionSlider';
-import CreateRoomModal from '../components/CreateRoomModal';
 
 export default function ProfileScreen({ navigation, route }) {
   const [user, setUser] = useState(null);
@@ -30,7 +29,6 @@ export default function ProfileScreen({ navigation, route }) {
   const [friendStatusLoading, setFriendStatusLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const glowAnim = useRef(new Animated.Value(0)).current;
-  const modalRef = useRef(null);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -112,18 +110,6 @@ export default function ProfileScreen({ navigation, route }) {
     [loadVotes],
   );
 
-  const handleOpenAddRoomSheet = useCallback(() => {
-    modalRef.current?.open();
-  }, []);
-
-  const handleRoomCreate = useCallback(
-    async (roomPayload) => {
-      await createRoom(roomPayload);
-      await loadData();
-    },
-    [loadData],
-  );
-
   useEffect(() => {
     if (isOtherProfile && route?.params?.userId) {
       loadOtherProfile(route.params.userId);
@@ -161,9 +147,6 @@ export default function ProfileScreen({ navigation, route }) {
       recordProfileView(route.params.userId).catch(() => {});
     }
   }, [isOtherProfile, route?.params?.userId]);
-  useEffect(() => {
-    navigation.setParams({ openAddRoomSheet: handleOpenAddRoomSheet });
-  }, [navigation, handleOpenAddRoomSheet]);
   const hasActiveFriendship = friendStatus.exists && friendStatus.approved === 1;
   const isPrivateProfile = Boolean(user?.is_private);
   const showPrivateNotice = isOtherProfile && isPrivateProfile && !hasActiveFriendship;
@@ -408,8 +391,6 @@ export default function ProfileScreen({ navigation, route }) {
         )}
 
       </ScrollView>
-
-      <CreateRoomModal ref={modalRef} onCreate={handleRoomCreate} />
 
       {isMine && (
         <BottomCTA
