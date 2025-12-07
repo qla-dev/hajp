@@ -7,6 +7,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\ProfileView;
 use App\Models\User;
 
 class UserController extends Controller
@@ -163,6 +164,45 @@ class UserController extends Controller
         'is_private' => $user->is_private ?? 0,
             ],
         ]);
+    }
+
+    public function profileViews(User $user)
+    {
+        $views = DB::table('profile_views')
+            ->join('users as visitors', 'profile_views.visitor_id', '=', 'visitors.id')
+            ->where('profile_views.auth_user_id', $user->id)
+            ->orderByDesc('profile_views.updated_at')
+            ->limit(100)
+            ->selectRaw(
+                'visitors.id as visitor_id,
+                visitors.name,
+                visitors.username,
+                visitors.profile_photo,
+                visitors.sex,
+                profile_views.updated_at as viewed_at'
+            )
+            ->get();
+
+        return response()->json(['data' => $views]);
+    }
+
+    public function recordProfileView(Request $request, User $user)
+    {
+        $visitor = $request->user();
+
+        if (!$visitor || $visitor->id === $user->id) {
+            return response()->json(['message' => 'No view recorded.'], 200);
+        }
+
+        ProfileView::updateOrCreate(
+            [
+                'auth_user_id' => $user->id,
+                'visitor_id' => $visitor->id,
+            ],
+            []
+        );
+
+        return response()->json(['message' => 'Profile view recorded.'], 201);
     }
 
     public function roomsForUser(User $user)

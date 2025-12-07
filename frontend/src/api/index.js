@@ -59,5 +59,7 @@ export const fetchUserProfile = (userId) => api.get(`/api/users/${userId}`);
 export const fetchUserRoomsFor = (userId) => api.get(`/api/users/${userId}/rooms`);
 export const fetchUserFriendsCount = (userId) => api.get(`/api/users/${userId}/friends/count`);
 export const fetchFriendshipStatus = (userId) => api.get(`/api/users/${userId}/friendship/status`);
+export const fetchProfileViews = (userId) => api.get(`/api/users/${userId}/views`);
+export const recordProfileView = (userId) => api.post(`/api/users/${userId}/views`);
 
 export default api;

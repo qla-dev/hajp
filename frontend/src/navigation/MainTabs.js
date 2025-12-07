@@ -13,6 +13,7 @@ import RankRoomsScreen from '../screens/RankRoomsScreen';
 import RankingScreen from '../screens/RankingScreen';
 import LiveScreen from '../screens/LiveScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import ProfileViewsScreen from '../screens/ProfileViewsScreen';
 import SuggestionsScreen from '../screens/SuggestionsScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 
@@ -152,13 +153,22 @@ function ProfileStackNavigator() {
             </TouchableOpacity>
           ),
           headerRight: () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Settings')}
-              style={[styles.glassButton, styles.gearButton]}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('ProfileViews')}
+                style={[styles.glassButton, styles.eyeButton]}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="eye-outline" size={20} color={colors.text_primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Settings')}
+                style={[styles.glassButton, styles.gearButton, styles.headerButtonSpacing]}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
+              </TouchableOpacity>
+            </View>
           ),
         })}
       />
@@ -195,6 +205,14 @@ function ProfileStackNavigator() {
             </TouchableOpacity>
           ),
         })}
+      />
+      <ProfileStack.Screen
+        name="ProfileViews"
+        component={ProfileViewsScreen}
+        options={{
+          title: 'Pregledi profila',
+          headerBackTitle: 'Nazad',
+        }}
       />
       <ProfileStack.Screen
         name="ProfileFriendsList"
@@ -310,7 +328,10 @@ export default function MainTabs() {
         if (route.name === 'Hajp' && focused === 'Polling') {
           hideTabBar = true;
         }
-        if (route.name === 'Profile' && (focused === 'ProfileFriends' || focused === 'ProfileFriendsList')) {
+        if (
+          route.name === 'Profile' &&
+          (focused === 'ProfileFriends' || focused === 'ProfileFriendsList' || focused === 'ProfileViews')
+        ) {
           hideTabBar = true;
         }
         if (route.name === 'Friends' && focused === 'FriendProfile') {
@@ -439,6 +460,17 @@ const createStyles = (colors, isDark) =>
       color: colors.text_primary,
       fontSize: 17,
       fontWeight: '500',
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    eyeButton: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+    },
+    headerButtonSpacing: {
+      marginLeft: 6,
     },
   });
 

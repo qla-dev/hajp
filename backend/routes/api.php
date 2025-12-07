@@ -70,6 +70,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('users')->group(function () {
+        Route::get('/{user}/views', [UserController::class, 'profileViews']);
+        Route::post('/{user}/views', [UserController::class, 'recordProfileView']);
         Route::get('/{user}', [UserController::class, 'showPublic']);
         Route::get('/{user}/rooms', [UserController::class, 'roomsForUser']);
         Route::get('/{user}/friends/count', [UserController::class, 'friendsCount']);

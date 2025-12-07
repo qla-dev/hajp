@@ -14,7 +14,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend } from '../api';
+import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, recordProfileView } from '../api';
 import BottomCTA from '../components/BottomCTA';
 import SuggestionSlider from '../components/SuggestionSlider';
 
@@ -141,6 +141,12 @@ export default function ProfileScreen({ navigation, route }) {
 
   const isOtherProfile = route?.params?.isMine === false;
   const isMine = !isOtherProfile;
+
+  useEffect(() => {
+    if (isOtherProfile && route?.params?.userId) {
+      recordProfileView(route.params.userId).catch(() => {});
+    }
+  }, [isOtherProfile, route?.params?.userId]);
   const hasActiveFriendship = friendStatus.exists && friendStatus.approved === 1;
   const isPrivateProfile = Boolean(user?.is_private);
   const showPrivateNotice = isOtherProfile && isPrivateProfile && !hasActiveFriendship;
