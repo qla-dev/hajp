@@ -123,6 +123,11 @@ export default function ProfileViewsScreen() {
     </View>
   );
 
+  const listContentStyle = [
+    styles.listContent,
+    views.length === 0 && styles.emptyContainer,
+  ];
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -137,9 +142,8 @@ export default function ProfileViewsScreen() {
             colors={[colors.primary]}
           />
         }
-        contentContainerStyle={
-          views.length === 0 ? styles.emptyContainer : styles.listContent
-        }
+        contentContainerStyle={listContentStyle}
+        contentInsetAdjustmentBehavior="always"
         ListEmptyComponent={listEmptyComponent}
       />
       {views.length > 3 && (
@@ -159,14 +163,13 @@ const createStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.transparent,
-      marginTop: 120,
-      paddingHorizontal: 20,
+      backgroundColor: colors.background,
     },
     listContent: {
+      paddingHorizontal: 20,
+      paddingTop: 20,
       paddingBottom: 150,
       gap: 12,
-      paddingTop: 0,
     },
     bottomCta: {
       paddingHorizontal: 16,
