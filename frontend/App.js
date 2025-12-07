@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationLightTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config } from '@gluestack-ui/config';
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -120,8 +121,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

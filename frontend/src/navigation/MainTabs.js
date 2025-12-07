@@ -145,51 +145,63 @@ function ProfileStackNavigator() {
   const styles = useThemedStyles(createStyles);
 
   return (
-      <ProfileStack.Navigator
-        screenOptions={{
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerTitleAlign: 'center',
-          headerTintColor: colors.text_primary,
-          headerStyle: { backgroundColor: 'transparent' },
-          gestureResponseDistance: { horizontal: 260 },
-        }}
-      >
+    <ProfileStack.Navigator
+      screenOptions={{
+        headerTransparent: true,
+        headerShadowVisible: false,
+        headerTitleAlign: 'center',
+        headerTintColor: colors.text_primary,
+        headerStyle: { backgroundColor: 'transparent' },
+        gestureResponseDistance: { horizontal: 260 },
+      }}
+    >
       <ProfileStack.Screen
         name="ProfileHome"
         component={ProfileScreen}
-        options={({ navigation }) => ({
-        title: headerLabelMap.Profile,
-        gestureEnabled: false,
-        headerLeft: () => (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Rank', { screen: 'RankRooms' })}
-            style={styles.glassButton}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={styles.glassButtonLabel}>Sobe</Text>
-          </TouchableOpacity>
-        ),
-        headerRight: () => (
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('ProfileViews')}
-              style={[styles.glassButton, styles.eyeButton]}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Ionicons name="eye-outline" size={20} color={colors.text_primary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Settings')}
-              style={[styles.glassButton, styles.gearButton, styles.headerButtonSpacing, styles.headerButton]}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
-            </TouchableOpacity>
-          </View>
-        ),
-      })}
-    />
+        options={({ navigation, route }) => {
+          const openAddRoomSheet = route?.params?.openAddRoomSheet;
+          return {
+            title: headerLabelMap.Profile,
+            gestureEnabled: false,
+            headerLeft: () => (
+              <View style={styles.headerLeftGroup}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Rank', { screen: 'RankRooms' })}
+                  style={[styles.glassButton, styles.headerButton]}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text style={styles.glassButtonLabel}>Sobe</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => openAddRoomSheet?.()}
+                  style={[styles.headerButton, styles.headerButtonSpacing]}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="add" size={20} color={colors.text_primary} />
+                </TouchableOpacity>
+              </View>
+            ),
+            headerRight: () => (
+              <View style={styles.headerActions}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ProfileViews')}
+                  style={[styles.glassButton, styles.eyeButton]}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="eye-outline" size={20} color={colors.text_primary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Settings')}
+                  style={[styles.glassButton, styles.gearButton, styles.headerButtonSpacing, styles.headerButton]}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
+                </TouchableOpacity>
+              </View>
+            ),
+          };
+        }}
+      />
       <ProfileStack.Screen
         name="ProfileFriends"
         component={ProfileScreen}
@@ -479,14 +491,15 @@ const createStyles = (colors, isDark) =>
       fontSize: 17,
       fontWeight: '500',
     },
-    headerActions: {
+    headerLeftGroup: {
       flexDirection: 'row',
       alignItems: 'center',
-      columnGap: 6,
+      columnGap: 8,
     },
     headerActions: {
       flexDirection: 'row',
       alignItems: 'center',
+      columnGap: 6,
     },
     eyeButton: {
       paddingHorizontal: 10,

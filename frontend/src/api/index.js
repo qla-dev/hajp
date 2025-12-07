@@ -23,6 +23,7 @@ export const login = async (payload) => {
   return data;
 };
 export const fetchRooms = () => api.get('/api/rooms');
+export const createRoom = (payload) => api.post('/api/rooms', payload);
 export const joinRoom = (roomId) => api.post(`/api/rooms/${roomId}/join`);
 export const fetchActiveQuestion = (roomId) => api.get(`/api/rooms/${roomId}/polling`);
 export const fetchRoomsStatus = () => api.get('/api/rooms/status');
