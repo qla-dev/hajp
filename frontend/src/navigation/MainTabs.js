@@ -465,7 +465,7 @@ const createStyles = (colors, isDark) =>
     glassButtonLabel: {
       color: colors.text_primary,
       fontSize: 15,
-      fontWeight: '700',
+      fontWeight: '500',
     },
     backButton: {
       flexDirection: 'row',
