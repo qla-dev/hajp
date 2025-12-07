@@ -159,13 +159,14 @@ const createStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
-      paddingTop: 80,
+      backgroundColor: colors.transparent,
+      marginTop: 120,
       paddingHorizontal: 20,
     },
     listContent: {
       paddingBottom: 150,
       gap: 12,
+      paddingTop: 0,
     },
     bottomCta: {
       paddingHorizontal: 16,

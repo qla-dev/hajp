@@ -477,7 +477,6 @@ const createStyles = (colors, isDark) =>
     headerButton: {
       borderWidth: 1,
       borderColor: colors.border,
-      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
       borderRadius: 18,
       paddingHorizontal: 10,
       paddingVertical: 6,
