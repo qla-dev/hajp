@@ -168,8 +168,16 @@ class UserController extends Controller
 
     public function profileViews(User $user)
     {
+        $roomMemberships = DB::table('room_members')
+            ->selectRaw('user_id, MIN(room_id) as room_id')
+            ->groupBy('user_id');
+
         $views = DB::table('profile_views')
             ->join('users as visitors', 'profile_views.visitor_id', '=', 'visitors.id')
+            ->leftJoinSub($roomMemberships, 'rm', function ($join) {
+                $join->on('rm.user_id', '=', 'visitors.id');
+            })
+            ->leftJoin('rooms', 'rooms.id', '=', 'rm.room_id')
             ->where('profile_views.auth_user_id', $user->id)
             ->orderByDesc('profile_views.updated_at')
             ->limit(100)
@@ -179,7 +187,8 @@ class UserController extends Controller
                 visitors.username,
                 visitors.profile_photo,
                 visitors.sex,
-                profile_views.updated_at as viewed_at'
+                profile_views.updated_at as viewed_at,
+                rooms.name as room_name'
             )
             ->get();
 

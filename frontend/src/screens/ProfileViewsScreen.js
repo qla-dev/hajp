@@ -9,6 +9,7 @@ import {
   Image,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL, fetchProfileViews, getCurrentUser } from '../api';
@@ -72,6 +73,7 @@ export default function ProfileViewsScreen() {
   };
 
   const renderVisitor = ({ item, index }) => {
+    const isHidden = index > 2;
     const label = item.name || item.username || 'Korisnik';
     const username = item.username ? `@${item.username}` : null;
     const avatarUri = resolveAvatar(item.profile_photo);
@@ -81,33 +83,55 @@ export default function ProfileViewsScreen() {
       .slice(0, 2)
       .join('');
     const viewedAt = formatViewedAt(item.viewed_at);
-    const visitorContent = (
+    const genderLabel = item.sex
+      ? item.sex.toLowerCase().includes('female')
+        ? 'žena'
+        : 'muškarac'
+      : 'osoba';
+    const roomLabel = item.room_name;
+    const hasRoom = Boolean(roomLabel);
+    const truncatedRoom = hasRoom && roomLabel.length > 12 ? `${roomLabel.slice(0, 12)}…` : roomLabel;
+    const genderColor = genderLabel === 'žena' ? '#f472b6' : '#60a5fa';
+
+    return (
       <View style={styles.visitorRow}>
-        {avatarUri ? (
-          <Image source={{ uri: avatarUri }} style={styles.visitorAvatar} />
-        ) : (
-          <View style={[styles.visitorAvatar, styles.avatarFallback]}>
-            <Text style={styles.avatarFallbackText}>{initials}</Text>
-          </View>
-        )}
+        <View style={styles.avatarWrapper}>
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={styles.visitorAvatar} />
+          ) : (
+            <View style={[styles.visitorAvatar, styles.avatarFallback]}>
+              <Text style={styles.avatarFallbackText}>{initials}</Text>
+            </View>
+          )}
+          {isHidden && (
+            <BlurView intensity={15} tint="default" style={styles.avatarBlur} pointerEvents="none" />
+          )}
+        </View>
         <View style={styles.visitorInfo}>
-          <Text style={styles.visitorName}>{label}</Text>
-          {username ? <Text style={styles.visitorUsername}>{username}</Text> : null}
+          <View style={styles.hiddenLabelRow}>
+            {isHidden ? (
+              <>
+                <Text style={styles.visitorName}>Neko</Text>
+                <View style={styles.genderIconInline}>
+                  <Ionicons
+                    name="flame"
+                    size={16}
+                    color={genderColor}
+                  />
+                </View>
+                {hasRoom ? (
+                  <Text style={styles.visitorName}>{`iz sobe ${truncatedRoom}`}</Text>
+                ) : null}
+              </>
+            ) : (
+              <Text style={styles.visitorName}>{label}</Text>
+            )}
+          </View>
+          {!isHidden && username ? <Text style={styles.visitorUsername}>{username}</Text> : null}
           {viewedAt ? <Text style={styles.visitorMeta}>{`Pregledano ${viewedAt}`}</Text> : null}
         </View>
       </View>
     );
-
-    if (index > 2) {
-      return (
-        <View style={styles.blurWrapper}>
-          {visitorContent}
-          <BlurView intensity={85} tint="default" style={styles.blurOverlay} pointerEvents="none" />
-        </View>
-      );
-    }
-
-    return visitorContent;
   };
 
   const listEmptyComponent = () => (
@@ -167,8 +191,8 @@ const createStyles = (colors) =>
     },
     listContent: {
       paddingHorizontal: 20,
-      paddingTop: 20,
-      paddingBottom: 80,
+      paddingTop: 10,
+      paddingBottom: 75,
     },
     bottomCta: {
       paddingHorizontal: 16,
@@ -196,9 +220,23 @@ const createStyles = (colors) =>
       borderRadius: 27,
       backgroundColor: colors.secondary,
     },
+    avatarWrapper: {
+      position: 'relative',
+      width: 54,
+      height: 54,
+      borderRadius: 27,
+      overflow: 'hidden',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     avatarFallback: {
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    avatarBlur: {
+      ...StyleSheet.absoluteFillObject,
+      borderRadius: 27,
+      backgroundColor: 'transparent',
     },
     avatarFallbackText: {
       fontWeight: '800',
@@ -208,6 +246,15 @@ const createStyles = (colors) =>
     visitorInfo: {
       flex: 1,
       gap: 2,
+    },
+    hiddenLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    genderIconInline: {
+      marginHorizontal: 2,
+      paddingHorizontal: 2,
+      lineHeight: 18,
     },
     visitorName: {
       fontSize: 17,
@@ -221,18 +268,6 @@ const createStyles = (colors) =>
     visitorMeta: {
       fontSize: 12,
       color: colors.text_secondary,
-    },
-    blurWrapper: {
-      marginBottom: 12,
-      borderRadius: 20,
-      overflow: 'hidden',
-      borderWidth: 0,
-      position: 'relative',
-    },
-    blurOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      borderRadius: 20,
-      backgroundColor: 'rgba(0,0,0,0.04)',
     },
     emptyRow: {
       flex: 1,
