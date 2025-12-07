@@ -57,9 +57,6 @@ export default function NextPollCountdownScreen({ route, navigation }) {
           <Text style={styles.secondaryButtonText}>Pozovi prijatelja</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.backLink} onPress={() => navigation.navigate('Rooms')}>
-        <Text style={styles.backLinkText}>Back to rooms</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -118,14 +115,5 @@ const createStyles = (colors) =>
       color: colors.primary,
       fontSize: 15,
       fontWeight: '700',
-    },
-    backLink: {
-      marginTop: 32,
-      alignItems: 'center',
-    },
-    backLinkText: {
-      color: colors.text_primary,
-      fontSize: 15,
-      fontWeight: '600',
     },
   });

@@ -74,7 +74,7 @@ function HajpStackNavigator() {
         component={CashOutScreen}
         options={{
           title: 'Isplata',
-          headerBackVisible: false,
+          headerBackTitle: 'Nazad',
         }}
       />
       <HajpStack.Screen
@@ -82,7 +82,7 @@ function HajpStackNavigator() {
         component={NextPollCountdownScreen}
         options={{
           title: 'Čekanje',
-          headerBackVisible: false,
+          headerBackTitle: 'Nazad',
         }}
       />
     </HajpStack.Navigator>
@@ -343,7 +343,7 @@ export default function MainTabs() {
         let hideTabBar = false;
 
         // Hide tab bar only on Hajp > Polling, and Profile > ProfileFriends
-        if (route.name === 'Hajp' && focused === 'Polling') {
+        if (route.name === 'Hajp' && ['Polling', 'CashOut', 'NextPollCountdown'].includes(focused)) {
           hideTabBar = true;
         }
         if (

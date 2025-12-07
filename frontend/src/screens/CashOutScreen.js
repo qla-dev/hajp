@@ -1,13 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  ActivityIndicator,
-} from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { postRoomCashout } from '../api';
 
@@ -68,9 +60,6 @@ export default function CashOutScreen({ route, navigation }) {
           </TouchableOpacity>
         </Animated.View>
       </View>
-      <TouchableOpacity style={styles.backLink} onPress={() => navigation.navigate('Rooms')}>
-        <Text style={styles.backLinkText}>Back to rooms</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -136,14 +125,5 @@ const createStyles = (colors) =>
       color: colors.error,
       fontSize: 14,
       textAlign: 'center',
-    },
-    backLink: {
-      marginTop: 32,
-      alignItems: 'center',
-    },
-    backLinkText: {
-      color: colors.text_primary,
-      fontSize: 15,
-      fontWeight: '600',
     },
   });
