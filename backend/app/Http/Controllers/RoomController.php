@@ -47,6 +47,34 @@ class RoomController extends Controller
         ]);
     }
 
+    public function store(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $data = $request->validate([
+            'name' => 'required|string|max:100',
+            'type' => 'sometimes|string',
+            'is_private' => 'sometimes|boolean',
+        ]);
+
+        $room = Room::create([
+            'name' => $data['name'],
+            'type' => $data['type'] ?? 'public',
+            'is_private' => $data['is_private'] ?? false,
+        ]);
+
+        RoomMember::create([
+            'room_id' => $room->id,
+            'user_id' => $user->id,
+            'approved' => 1,
+        ]);
+
+        return response()->json(['data' => $room], 201);
+    }
+
     public function userRooms(Request $request)
     {
         $roomsQuery = $request->user()

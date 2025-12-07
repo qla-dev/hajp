@@ -51,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('rooms')->group(function () {
+        Route::post('/', [RoomController::class, 'store']);
         Route::get('/{room}/polling', [RoomController::class, 'activeQuestion']);
         Route::post('/questions/active/bulk', [RoomController::class, 'bulkActiveQuestions']);
         Route::get('/status', [RoomController::class, 'status']);
