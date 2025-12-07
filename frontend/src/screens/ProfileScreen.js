@@ -10,7 +10,6 @@ import {
   Animated,
   ActivityIndicator,
   PanResponder,
-  TextInput,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,7 +17,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, recordProfileView, createRoom } from '../api';
 import BottomCTA from '../components/BottomCTA';
 import SuggestionSlider from '../components/SuggestionSlider';
-import { Modalize } from 'react-native-modalize';
+import CreateRoomModal from '../components/CreateRoomModal';
 
 export default function ProfileScreen({ navigation, route }) {
   const [user, setUser] = useState(null);
@@ -32,8 +31,6 @@ export default function ProfileScreen({ navigation, route }) {
   const [connecting, setConnecting] = useState(false);
   const glowAnim = useRef(new Animated.Value(0)).current;
   const modalRef = useRef(null);
-  const [newRoomName, setNewRoomName] = useState('');
-  const [creatingRoom, setCreatingRoom] = useState(false);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -119,25 +116,13 @@ export default function ProfileScreen({ navigation, route }) {
     modalRef.current?.open();
   }, []);
 
-  const handleCloseAddRoomSheet = useCallback(() => {
-    modalRef.current?.close();
-    setNewRoomName('');
-  }, []);
-
-  const handleCreateRoom = useCallback(async () => {
-    const trimmed = newRoomName.trim();
-    if (!trimmed) return;
-    setCreatingRoom(true);
-    try {
-      await createRoom({ name: trimmed });
+  const handleRoomCreate = useCallback(
+    async (roomName) => {
+      await createRoom({ name: roomName });
       await loadData();
-      handleCloseAddRoomSheet();
-    } catch {
-      // ignore
-    } finally {
-      setCreatingRoom(false);
-    }
-  }, [newRoomName, handleCloseAddRoomSheet, loadData]);
+    },
+    [loadData],
+  );
 
   useEffect(() => {
     if (isOtherProfile && route?.params?.userId) {
@@ -424,40 +409,7 @@ export default function ProfileScreen({ navigation, route }) {
 
       </ScrollView>
 
-      <Modalize
-        ref={modalRef}
-        adjustToContentHeight
-        handleStyle={styles.modalHandle}
-        modalStyle={styles.modalizeModal}
-        onClosed={() => setNewRoomName('')}
-      >
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Kreiraj novu sobu</Text>
-          <TextInput
-            style={styles.modalInput}
-            placeholder="Naziv sobe"
-            placeholderTextColor={colors.text_secondary}
-            value={newRoomName}
-            onChangeText={setNewRoomName}
-            autoCapitalize="words"
-            selectionColor={colors.primary}
-          />
-          <TouchableOpacity
-            style={[
-              styles.modalButton,
-              (!newRoomName.trim() || creatingRoom) && styles.modalButtonDisabled,
-            ]}
-            onPress={handleCreateRoom}
-            disabled={!newRoomName.trim() || creatingRoom}
-          >
-            {creatingRoom ? (
-              <ActivityIndicator size="small" color={colors.textLight} />
-            ) : (
-              <Text style={styles.modalButtonText}>Dodaj sobu</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </Modalize>
+      <CreateRoomModal ref={modalRef} onCreate={handleRoomCreate} />
 
       {isMine && (
         <BottomCTA
@@ -823,48 +775,6 @@ const createStyles = (colors) =>
     emptyHype: {
       fontSize: 14,
       color: colors.text_secondary,
-    },
-    modalHandle: {
-      backgroundColor: colors.border,
-      width: 50,
-    },
-    modalizeModal: {
-      backgroundColor: colors.surface,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-    },
-    modalContent: {
-      padding: 24,
-      gap: 16,
-    },
-    modalTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: colors.text_primary,
-    },
-    modalInput: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 14,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      fontSize: 16,
-      color: colors.text_primary,
-      backgroundColor: colors.background,
-    },
-    modalButton: {
-      borderRadius: 14,
-      paddingVertical: 14,
-      alignItems: 'center',
-      backgroundColor: colors.primary,
-    },
-    modalButtonDisabled: {
-      opacity: 0.6,
-    },
-    modalButtonText: {
-      color: colors.textLight,
-      fontWeight: '700',
-      fontSize: 15,
     },
   });
 

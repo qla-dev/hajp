@@ -174,7 +174,7 @@ function ProfileStackNavigator() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => openAddRoomSheet?.()}
-                  style={[styles.headerButton, styles.headerButtonSpacing]}
+                  style={[styles.headerAddButton, styles.headerButtonSpacing]}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Ionicons name="add" size={20} color={colors.text_primary} />
@@ -494,7 +494,7 @@ const createStyles = (colors, isDark) =>
     headerLeftGroup: {
       flexDirection: 'row',
       alignItems: 'center',
-      columnGap: 8,
+      columnGap: 2,
     },
     headerActions: {
       flexDirection: 'row',
@@ -514,6 +514,12 @@ const createStyles = (colors, isDark) =>
     },
     headerButtonSpacing: {
       marginLeft: 6,
+    },
+    headerAddButton: {
+      borderWidth: 0,
+      paddingHorizontal: 10,
+      paddingLeft: 5,
+      paddingVertical: 6,
     },
   });
 
