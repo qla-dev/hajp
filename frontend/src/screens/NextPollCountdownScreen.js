@@ -1,13 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
+import LottieView from 'lottie-react-native';
 
 const pad = (value) => String(value).padStart(2, '0');
 
@@ -44,8 +38,17 @@ export default function NextPollCountdownScreen({ route, navigation }) {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
-      contentInsetAdjustmentBehavior="always"
+      contentInsetAdjustmentBehavior="never"
     >
+      <View style={styles.animationWrapper}>
+        <LottieView
+          source={{ uri: 'https://cdn.lordicon.com/hrbtmsnb.json' }}
+          autoPlay
+          loop
+          style={styles.lottie}
+          colorFilters={[{ keypath: '**', color: colors.secondary }]}
+        />
+      </View>
       <View style={styles.card}>
         <Text style={styles.title}>Igraj ponovo</Text>
         <Text style={styles.subtitle}>Nove ankete za</Text>
@@ -69,9 +72,9 @@ const createStyles = (colors) =>
     },
     content: {
       flexGrow: 1,
-      paddingTop: 24,
       paddingHorizontal: 20,
       justifyContent: 'center',
+      alignItems: 'center',
     },
     card: {
       alignItems: 'center',
@@ -85,6 +88,17 @@ const createStyles = (colors) =>
       shadowRadius: 12,
       shadowOffset: { width: 0, height: 8 },
       elevation: 3,
+    },
+    animationWrapper: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 16,
+      padding: 12,
+      backgroundColor: 'transparent',
+    },
+    lottie: {
+      width: 180,
+      height: 180,
     },
     title: {
       fontSize: 28,
@@ -108,11 +122,11 @@ const createStyles = (colors) =>
       paddingHorizontal: 32,
       borderRadius: 18,
       borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.background,
+      borderColor: colors.secondary,
+      backgroundColor: colors.surface,
     },
     secondaryButtonText: {
-      color: colors.primary,
+      color: colors.secondary,
       fontSize: 15,
       fontWeight: '700',
     },

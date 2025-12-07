@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { postRoomCashout } from '../api';
+import LottieView from 'lottie-react-native';
 
 export default function CashOutScreen({ route, navigation }) {
   const { roomId } = route.params || {};
@@ -44,8 +45,17 @@ export default function CashOutScreen({ route, navigation }) {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
-      contentInsetAdjustmentBehavior="always"
+      contentInsetAdjustmentBehavior="never"
     >
+      <View style={styles.animationWrapper}>
+        <LottieView
+          source={{ uri: 'https://cdn.lordicon.com/jvucoldz.json' }}
+          autoPlay
+          loop
+          style={styles.lottie}
+          colorFilters={[{ keypath: '**', color: colors.primary }]}
+        />
+      </View>
       <View style={styles.card}>
         <Text style={styles.title}>Čestitamo!</Text>
         <Text style={styles.subtitle}>Možete podići 10 coinova za zadnju anketu.</Text>
@@ -55,7 +65,7 @@ export default function CashOutScreen({ route, navigation }) {
             {loading ? (
               <ActivityIndicator color={colors.text_primary} />
             ) : (
-            <Text style={styles.buttonText}>Isplate · 10 coinova</Text>
+            <Text style={styles.buttonText}>Isplata · 10 coinova</Text>
             )}
           </TouchableOpacity>
         </Animated.View>
@@ -72,9 +82,9 @@ const createStyles = (colors) =>
     },
     content: {
       flexGrow: 1,
-      paddingTop: 24,
       paddingHorizontal: 20,
       justifyContent: 'center',
+      alignItems: 'center',
     },
     card: {
       alignItems: 'center',
@@ -88,6 +98,17 @@ const createStyles = (colors) =>
       shadowRadius: 12,
       shadowOffset: { width: 0, height: 8 },
       elevation: 3,
+    },
+    animationWrapper: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 24,
+      padding: 16,
+      backgroundColor: 'transparent',
+    },
+    lottie: {
+      width: 180,
+      height: 180,
     },
     title: {
       fontSize: 28,
