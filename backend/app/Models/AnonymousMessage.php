@@ -7,11 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AnonymousMessage extends Model
 {
-    protected $fillable = ['inbox_id','message','metadata'];
-    protected $casts = ['metadata' => 'array'];
+    protected $fillable = ['user_id', 'message', 'style_id'];
 
-    public function inbox(): BelongsTo
+    public function style(): BelongsTo
     {
-        return $this->belongsTo(AnonymousInbox::class, 'inbox_id');
+        return $this->belongsTo(ShareLinkStyle::class, 'style_id');
     }
 }

@@ -1,0 +1,64 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\AnonymousMessage;
+use App\Models\ShareLinkStyle;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+
+class ShareLinkController extends Controller
+{
+    public function show(string $user, string $slug)
+    {
+        $userModel = User::where('username', $user)->firstOrFail();
+        $style = ShareLinkStyle::where('slug', $slug)->first();
+
+        return view('share.send_anonymous_message', $this->buildData($userModel, $slug, $style));
+    }
+
+    public function success(Request $request, string $user, string $slug)
+    {
+        $userModel = User::where('username', $user)->firstOrFail();
+        $style = ShareLinkStyle::where('slug', $slug)->first();
+
+        $data = $this->buildData($userModel, $slug, $style);
+        $data['tapCount'] = 216;
+
+        if ($request->isMethod('post')) {
+            $message = trim($request->input('message', ''));
+            if ($message) {
+                AnonymousMessage::create([
+                    'user_id' => $userModel->id,
+                    'message' => $message,
+                    'style_id' => $style?->id,
+                ]);
+            }
+            return response()->json(['status' => 'saved']);
+        }
+
+        return view('share.success', $data);
+    }
+
+    protected function buildData(User $user, string $slug, ?ShareLinkStyle $style): array
+    {
+        $gradientStart = $style?->color ?? '#ff5193';
+        $gradientEnd = $style?->bg ?? '#ff8c29';
+        $question = $style?->question ?? 'send me anonymous messages!';
+        $profilePhoto = $user->profile_photo ? url($user->profile_photo) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name ?? $user->username);
+
+        return [
+            'username' => $user->username,
+            'displayName' => $user->name ?? '@' . $user->username,
+            'profilePhoto' => $profilePhoto,
+            'question' => $question,
+            'link' => url("/{$user->username}/{$slug}"),
+            'slug' => $slug,
+            'gradientStart' => $gradientStart,
+            'gradientEnd' => $gradientEnd,
+            'tapCount' => 256,
+            'isPremium' => (bool) ($style?->premium ?? false),
+        ];
+    }
+}
