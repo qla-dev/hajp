@@ -19,6 +19,8 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import { updateCoinBalance } from '../utils/coinHeaderTracker';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
+const coinSoundAsset = require('../../assets/sounds/coins.mp3');
 
 export default function CashOutScreen({ route, navigation }) {
   const { roomId } = route.params || {};
@@ -33,8 +35,34 @@ export default function CashOutScreen({ route, navigation }) {
   const styles = useThemedStyles(createStyles);
   const confettiTimer = useRef(null);
   const confettiRef = useRef(null);
+  const coinSoundRef = useRef(null);
 
   useEffect(() => () => clearTimeout(confettiTimer.current), []);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(coinSoundAsset, { shouldPlay: false });
+        if (isMounted) {
+          coinSoundRef.current = sound;
+        } else {
+          await sound.unloadAsync();
+        }
+      } catch (loadError) {
+        console.warn('Failed to load coin sound', loadError);
+      }
+    })();
+    return () => {
+      isMounted = false;
+      coinSoundRef.current?.unloadAsync();
+      coinSoundRef.current = null;
+    };
+  }, []);
+
+  const playCoinSound = () => {
+    coinSoundRef.current?.replayAsync().catch(() => {});
+  };
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -51,6 +79,7 @@ export default function CashOutScreen({ route, navigation }) {
     if (!roomId) return;
     setLoading(true);
     setErrorMessage('');
+    playCoinSound();
     try {
       await Haptics.selectionAsync();
       const { data } = await postRoomCashout(roomId);
