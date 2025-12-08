@@ -1,12 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchActiveQuestion, fetchRoomCashoutStatus, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
 
 const { width } = Dimensions.get('window');
+let Haptics;
+if (Platform.OS !== 'android') {
+  // defer loading the native module on Android because it may not be available in the current build
+  Haptics = require('expo-haptics');
+}
 
 export default function PollingScreen({ route, navigation }) {
   const { roomId } = route.params || {};
@@ -85,7 +89,7 @@ export default function PollingScreen({ route, navigation }) {
 
   const handleVote = async (option) => {
     if (!question) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    Haptics?.impactAsync?.(Haptics?.ImpactFeedbackStyle?.Medium)?.catch(() => {});
     try {
       await voteQuestion(question.id, option);
       await loadQuestion();
@@ -96,7 +100,7 @@ export default function PollingScreen({ route, navigation }) {
 
   const handleShuffle = async () => {
     if (!question) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Haptics?.impactAsync?.(Haptics?.ImpactFeedbackStyle?.Light)?.catch(() => {});
     try {
       const { data } = await refreshQuestionOptions(question.id);
       setQuestion({ ...question, ...data });
@@ -110,7 +114,7 @@ export default function PollingScreen({ route, navigation }) {
       await loadQuestion();
       return;
     }
-    Haptics.selectionAsync().catch(() => {});
+    Haptics?.selectionAsync?.()?.catch(() => {});
     try {
       await skipQuestion(question.id);
     } catch {}
