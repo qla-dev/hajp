@@ -180,7 +180,7 @@ export default function EditProfileScreen({ navigation, route }) {
     return (
       <View style={[styles.container, styles.fullscreenLoader]}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Ucitavanje informacija</Text>
+        <Text style={styles.loadingText}>Učitavanje informacija</Text>
       </View>
     );
   }

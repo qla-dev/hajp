@@ -58,6 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{room}/cashout/status', [RoomController::class, 'cashoutStatus']);
         Route::post('/{room}/cashout', [RoomController::class, 'cashout']);
         Route::post('/{room}/join', [RoomController::class, 'join']);
+        Route::post('/{room}/cover', [RoomController::class, 'uploadCover']);
     });
 
     Route::prefix('subscription')->group(function () {

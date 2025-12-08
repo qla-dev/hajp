@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
+import React, { useCallback, useLayoutEffect, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Switch,
   ActivityIndicator,
+  ImageBackground,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import FormTextInput from '../components/FormTextInput';
 import { createRoom } from '../api';
+
+const FALLBACK_COVER =
+  'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80';
 
 const vibeOptions = [
   { key: 'zabava', label: 'Zabava u gradu', icon: 'musical-notes-outline' },
@@ -33,19 +35,65 @@ const privacyOptions = [
 export default function CreateRoomScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
-  const insets = useSafeAreaInsets();
 
   const [name, setName] = useState('');
   const [tagline, setTagline] = useState('');
   const [description, setDescription] = useState('');
-  const [coverUrl, setCoverUrl] = useState('');
+  const [coverAsset, setCoverAsset] = useState(null);
   const [selectedVibe, setSelectedVibe] = useState(vibeOptions[0].key);
   const [isPrivate, setIsPrivate] = useState(false);
   const [is18Over, setIs18Over] = useState(false);
   const [creating, setCreating] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = async () => {
+  const isSaveDisabled = creating || !name.trim();
+  const emptyContent = !name && !tagline && !description && !coverAsset;
+  const scrollStyles = [styles.contentContainer, emptyContent && styles.emptyContainer];
+  const coverPreviewUri = coverAsset?.uri || FALLBACK_COVER;
+
+  const handlePickCover = useCallback(async () => {
+    console.log('CreateRoomScreen: handlePickCover triggered');
+    try {
+      const current = await ImagePicker.getMediaLibraryPermissionsAsync();
+      let status = current.status;
+      if (status !== 'granted' && status !== 'limited') {
+        const request = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        status = request.status;
+      }
+      if (status !== 'granted' && status !== 'limited') {
+        Alert.alert('Dozvola potrebna', 'Odobri pristup galeriji kako bi postavio cover sobe.');
+        return;
+      }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+
+      if (result.canceled || !result.assets?.length) {
+        return;
+      }
+
+      const asset = result.assets[0];
+      const filename = asset.fileName || `room_cover_${Date.now()}.jpg`;
+      const extension = filename.split('.').pop() || 'jpg';
+      const mimeType = `image/${extension.toLowerCase()}`;
+
+      setCoverAsset({
+        uri: asset.uri,
+        name: filename,
+        type: mimeType,
+      });
+      setCoverUrl('');
+    } catch (error) {
+      console.error('CreateRoomScreen handlePickCover failed', error);
+      Alert.alert('Greška', 'Nismo mogli otvoriti galeriju, pokušaj ponovo.');
+    }
+  }, []);
+
+  const handleSave = useCallback(async () => {
     if (!name.trim()) {
       setErrorMessage('Naziv sobe je obavezan.');
       return;
@@ -54,16 +102,31 @@ export default function CreateRoomScreen({ navigation }) {
     setErrorMessage('');
     setCreating(true);
 
+    const payload = {
+      name: name.trim(),
+      tagline: tagline.trim() || undefined,
+      description: description.trim() || undefined,
+      type: selectedVibe,
+      is_private: isPrivate,
+      is_18_over: is18Over,
+    };
     try {
-      await createRoom({
-        name: name.trim(),
-        tagline: tagline.trim() || undefined,
-        description: description.trim() || undefined,
-        cover_url: coverUrl.trim() || undefined,
-        type: selectedVibe,
-        is_private: isPrivate,
-        is_18_over: is18Over,
-      });
+      if (coverAsset) {
+        const formData = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formData.append(key, value);
+          }
+        });
+        formData.append('cover', {
+          uri: coverAsset.uri,
+          name: coverAsset.name,
+          type: coverAsset.type || 'image/jpeg',
+        });
+        await createRoom(formData);
+      } else {
+        await createRoom(payload);
+      }
       navigation.goBack();
     } catch (error) {
       console.error('Neuspjeh pri kreiranju sobe', error);
@@ -71,39 +134,68 @@ export default function CreateRoomScreen({ navigation }) {
     } finally {
       setCreating(false);
     }
-  };
+  }, [
+    name,
+    tagline,
+    description,
+    coverAsset,
+    selectedVibe,
+    isPrivate,
+    is18Over,
+    navigation,
+  ]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={handleSave}
+          disabled={isSaveDisabled}
+          style={[styles.saveButton, isSaveDisabled && styles.saveButtonDisabled]}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          {creating ? (
+            <ActivityIndicator size="small" color={colors.primary} />
+          ) : (
+            <Text style={styles.saveButtonText}>Spasi</Text>
+          )}
+        </TouchableOpacity>
+      ),
+    });
+  }, [colors.primary, creating, handleSave, isSaveDisabled, navigation, styles]);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 110 : 80}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={scrollStyles}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      contentInsetAdjustmentBehavior="always"
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.headerSpacer} />
+      <View style={styles.previewWrapper}>
+        <ImageBackground source={{ uri: coverPreviewUri }} style={styles.coverPreview} imageStyle={styles.coverPreviewImage}>
+          <View style={styles.coverOverlay}>
+            <TouchableOpacity
+              style={styles.coverCameraBadge}
+              onPress={handlePickCover}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="camera-outline" size={20} color={colors.text_primary} />
+            </TouchableOpacity>
+          </View>
+        </ImageBackground>
+      </View>
 
+      <View style={styles.sectionGroup}>
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Naziv sobe</Text>
-          <FormTextInput
-            value={name}
-            onChangeText={setName}
-            placeholder="Unesi naziv sobe"
-            style={styles.input}
-          />
+          <FormTextInput value={name} onChangeText={setName} placeholder="Unesi naziv sobe" style={styles.input} />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Tagline</Text>
-          <FormTextInput
-            value={tagline}
-            onChangeText={setTagline}
-            placeholder="Kratka poruka ili moto"
-            style={styles.input}
-          />
+          <FormTextInput value={tagline} onChangeText={setTagline} placeholder="Kratka poruka ili moto" style={styles.input} />
         </View>
 
         <View style={styles.section}>
@@ -120,18 +212,6 @@ export default function CreateRoomScreen({ navigation }) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Cover link</Text>
-          <FormTextInput
-            value={coverUrl}
-            onChangeText={setCoverUrl}
-            placeholder="https://example.com/cover.jpg"
-            style={styles.input}
-            keyboardType="url"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.section}>
           <Text style={styles.sectionLabel}>Vibe</Text>
           <View style={styles.chipRow}>
             {vibeOptions.map((option) => {
@@ -139,11 +219,7 @@ export default function CreateRoomScreen({ navigation }) {
               return (
                 <TouchableOpacity
                   key={option.key}
-                  style={[
-                    styles.chip,
-                    active && styles.chipActive,
-                    { borderColor: active ? colors.primary : colors.border },
-                  ]}
+                  style={[styles.chip, active && styles.chipActive]}
                   onPress={() => setSelectedVibe(option.key)}
                   activeOpacity={0.8}
                 >
@@ -151,7 +227,6 @@ export default function CreateRoomScreen({ navigation }) {
                     name={option.icon}
                     size={20}
                     color={active ? colors.textLight : colors.text_secondary}
-                    style={styles.chipIcon}
                   />
                   <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>{option.label}</Text>
                 </TouchableOpacity>
@@ -163,17 +238,12 @@ export default function CreateRoomScreen({ navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Privatnost</Text>
           <View style={styles.privacyRow}>
-            {privacyOptions.map((option, index) => {
+            {privacyOptions.map((option) => {
               const active = isPrivate === option.value;
               return (
                 <TouchableOpacity
                   key={option.key}
-                  style={[
-                    styles.privacyButton,
-                    active && styles.privacyActive,
-                    index === 0 && { marginRight: 8 },
-                    index === 1 && { marginLeft: 8 },
-                  ]}
+                  style={[styles.privacyButton, active && styles.privacyActive]}
                   onPress={() => setIsPrivate(option.value)}
                   activeOpacity={0.8}
                 >
@@ -195,79 +265,122 @@ export default function CreateRoomScreen({ navigation }) {
           <Text style={styles.sectionLabel}>18+ prostor</Text>
           <View style={styles.switchRow}>
             <View>
-              <Text style={styles.switchLabel}>
-                {is18Over ? 'Samo za 18+' : 'Otvoreno za sve uzraste'}
-              </Text>
+              <Text style={styles.switchLabel}>{is18Over ? 'Samo za 18+' : 'Otvoreno za sve uzraste'}</Text>
               <Text style={styles.switchSubLabel}>
                 {is18Over ? 'Sadržaj prilagođen odraslima' : 'Dozvoljeno mlađima od 18'}
               </Text>
             </View>
-            <Switch
-              value={is18Over}
-              onValueChange={setIs18Over}
-              thumbColor={is18Over ? colors.primary : colors.surface}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              ios_backgroundColor={colors.border}
-            />
+            <TouchableOpacity
+              style={[styles.toggle, is18Over && styles.toggleActive]}
+              onPress={() => setIs18Over((prev) => !prev)}
+            >
+              <Ionicons
+                name={is18Over ? 'checkmark-circle' : 'ellipse-outline'}
+                size={24}
+                color={is18Over ? colors.primary : colors.text_secondary}
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
         {errorMessage ? <Text style={styles.errorLabel}>{errorMessage}</Text> : null}
 
-        <View style={{ height: Math.max(insets.bottom + 60, 60) }} />
-      </ScrollView>
-
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-        <TouchableOpacity
-          style={[styles.cta, creating && styles.ctaDisabled]}
-          onPress={handleSubmit}
-          activeOpacity={0.8}
-          disabled={creating}
-        >
-          {creating ? (
-            <ActivityIndicator color={colors.textLight} />
-          ) : (
-            <Text style={styles.ctaLabel}>Dodaj sobu</Text>
-          )}
-        </TouchableOpacity>
+        <View style={{ height: 40 }} />
       </View>
-    </KeyboardAvoidingView>
+    </ScrollView>
   );
 }
 
 const createStyles = (colors) =>
   StyleSheet.create({
-    screen: {
+    container: {
       flex: 1,
       backgroundColor: colors.background,
     },
-    scrollContent: {
+    contentContainer: {
       paddingHorizontal: 16,
+      paddingTop: 10,
       paddingBottom: 40,
     },
-    headerSpacer: {
-      height: 32,
+    emptyContainer: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      paddingBottom: 20,
+    },
+    previewWrapper: {
+      marginTop: 0,
+      marginBottom: 12,
+    },
+    coverPreview: {
+      height: 200,
+      borderRadius: 20,
+      overflow: 'hidden',
+      backgroundColor: colors.surface,
+      justifyContent: 'flex-end',
+    },
+    coverPreviewImage: {
+      resizeMode: 'cover',
+    },
+    coverOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+      justifyContent: 'space-between',
+      padding: 16,
+    },
+    coverLabel: {
+      color: '#fff',
+      fontWeight: '700',
+      fontSize: 16,
+    },
+    coverActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      width: '100%',
+    },
+    coverButtonText: {
+      color: '#fff',
+      fontWeight: '600',
+      fontSize: 15,
+    },
+    coverCameraBadge: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface,
+      borderWidth: 2,
+      borderColor: colors.background,
+      shadowColor: colors.primary,
+      shadowOpacity: 0.25,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 4,
+    },
+    sectionGroup: {
+      marginTop: 12,
     },
     section: {
-      marginBottom: 16,
+      marginBottom: 20,
     },
     sectionLabel: {
-      fontSize: 15,
       fontWeight: '600',
       color: colors.text_secondary,
       marginBottom: 8,
-      textTransform: 'uppercase',
+      fontSize: 13,
       letterSpacing: 0.4,
+      textTransform: 'uppercase',
     },
     input: {
-      backgroundColor: colors.surface,
       borderRadius: 16,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
       borderWidth: 1,
       borderColor: colors.border,
-      color: colors.text_primary,
+      backgroundColor: colors.surface,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
       fontSize: 16,
+      color: colors.text_primary,
     },
     multiline: {
       minHeight: 100,
@@ -276,6 +389,7 @@ const createStyles = (colors) =>
     chipRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
+      gap: 10,
     },
     chip: {
       flexDirection: 'row',
@@ -284,18 +398,17 @@ const createStyles = (colors) =>
       paddingHorizontal: 14,
       borderRadius: 16,
       borderWidth: 1,
+      borderColor: colors.border,
       backgroundColor: colors.surface,
-      marginBottom: 10,
       marginRight: 10,
+      marginBottom: 10,
     },
     chipActive: {
-      backgroundColor: colors.primary,
-    },
-    chipIcon: {
-      marginRight: 8,
+      backgroundColor: colors.transparent,
+      borderColor: colors.primary,
     },
     chipLabel: {
-      fontSize: 14,
+      marginLeft: 8,
       color: colors.text_secondary,
     },
     chipLabelActive: {
@@ -303,25 +416,25 @@ const createStyles = (colors) =>
     },
     privacyRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      gap: 12,
     },
     privacyButton: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: 16,
+      paddingVertical: 14,
+      borderRadius: 18,
       borderWidth: 1,
       borderColor: colors.border,
-      paddingVertical: 14,
       backgroundColor: colors.surface,
+      gap: 8,
     },
     privacyActive: {
       borderColor: colors.primary,
       backgroundColor: colors.surfaceDark,
     },
     privacyLabel: {
-      marginLeft: 8,
       fontWeight: '600',
       color: colors.text_secondary,
     },
@@ -334,38 +447,39 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     switchLabel: {
-      fontSize: 15,
       fontWeight: '600',
       color: colors.text_primary,
+      fontSize: 15,
     },
     switchSubLabel: {
-      fontSize: 13,
       color: colors.text_secondary,
+      fontSize: 13,
+    },
+    toggle: {
+      padding: 6,
+      borderRadius: 50,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    toggleActive: {
+      borderColor: colors.primary,
     },
     errorLabel: {
       color: colors.error,
       fontSize: 13,
-      marginBottom: 12,
+      marginTop: 4,
     },
-    footer: {
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-      paddingHorizontal: 16,
-      backgroundColor: colors.background,
+    saveButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 18,
     },
-    cta: {
-      height: 54,
-      borderRadius: 28,
-      backgroundColor: colors.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
+    saveButtonDisabled: {
+      opacity: 0.6,
     },
-    ctaDisabled: {
-      opacity: 0.7,
-    },
-    ctaLabel: {
-      color: colors.textLight,
+    saveButtonText: {
+      color: colors.text_primary,
+      fontWeight: '600',
       fontSize: 16,
-      fontWeight: '700',
     },
   });

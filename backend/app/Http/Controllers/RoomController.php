@@ -8,9 +8,11 @@ use App\Models\Room;
 use App\Models\RoomMember;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class RoomController extends Controller
 {
@@ -58,13 +60,28 @@ class RoomController extends Controller
             'name' => 'required|string|max:100',
             'type' => 'sometimes|string',
             'is_private' => 'sometimes|boolean',
+            'is_18_over' => 'sometimes|boolean',
+            'tagline' => 'sometimes|nullable|string',
+            'description' => 'sometimes|nullable|string',
+            'cover_url' => 'sometimes|nullable|url',
+            'cover' => 'sometimes|image|max:5120',
         ]);
 
-        $room = Room::create([
+        $payload = [
             'name' => $data['name'],
             'type' => $data['type'] ?? 'public',
             'is_private' => $data['is_private'] ?? false,
-        ]);
+            'is_18_over' => $data['is_18_over'] ?? false,
+            'tagline' => $data['tagline'] ?? null,
+            'description' => $data['description'] ?? null,
+            'cover_url' => $data['cover_url'] ?? null,
+        ];
+
+        if ($request->hasFile('cover')) {
+            $payload['cover_url'] = $this->saveCoverFile($request->file('cover'));
+        }
+
+        $room = Room::create($payload);
 
         RoomMember::create([
             'room_id' => $room->id,
@@ -73,6 +90,24 @@ class RoomController extends Controller
         ]);
 
         return response()->json(['data' => $room], 201);
+    }
+
+    public function uploadCover(Request $request, Room $room)
+    {
+        $user = $request->user();
+        if (!$user || !$user->rooms()->where('rooms.id', $room->id)->exists()) {
+            return response()->json(['message' => 'Nedostatak ovlašćenja'], 403);
+        }
+
+        $request->validate([
+            'cover' => 'required|image|max:5120',
+        ]);
+
+        $coverPath = $this->saveCoverFile($request->file('cover'));
+        $room->cover_url = $coverPath;
+        $room->save();
+
+        return response()->json(['data' => $room]);
     }
 
     public function userRooms(Request $request)
@@ -289,5 +324,15 @@ class RoomController extends Controller
             'poll_id' => $poll->id,
             'answered' => $answered,
         ];
+    }
+
+    private function saveCoverFile(UploadedFile $file): string
+    {
+        $coverDir = public_path('assets/images/room-covers');
+        File::ensureDirectoryExists($coverDir);
+        $extension = $file->getClientOriginalExtension() ?: 'jpg';
+        $filename = uniqid('room_cover_') . '.' . $extension;
+        $file->move($coverDir, $filename);
+        return '/assets/images/room-covers/' . $filename;
     }
 }
