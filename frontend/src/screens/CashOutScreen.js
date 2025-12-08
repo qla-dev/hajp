@@ -10,13 +10,15 @@ import {
   UIManager,
   findNodeHandle,
   Easing,
+  Dimensions,
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { postRoomCashout, fetchCoinBalance } from '../api';
 import LottieView from 'lottie-react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
-import { getCoinHeaderLayout, updateCoinBalance } from '../utils/coinHeaderTracker';
+import { updateCoinBalance } from '../utils/coinHeaderTracker';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 
 export default function CashOutScreen({ route, navigation }) {
   const { roomId } = route.params || {};
@@ -24,8 +26,8 @@ export default function CashOutScreen({ route, navigation }) {
   const [errorMessage, setErrorMessage] = useState('');
   const [celebrating, setCelebrating] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
+  const [transferCoins, setTransferCoins] = useState([]);
   const pulse = useRef(new Animated.Value(1)).current;
-  const transferAnim = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const buttonRef = useRef(null);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -50,18 +52,20 @@ export default function CashOutScreen({ route, navigation }) {
     setLoading(true);
     setErrorMessage('');
     try {
+      await Haptics.selectionAsync();
       const { data } = await postRoomCashout(roomId);
       setCelebrating(true);
       const animationPromise = animateCoinTransfer();
       const refreshPromise = refreshCoinTotals();
       await Promise.allSettled([animationPromise, refreshPromise]);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       confettiTimer.current = setTimeout(() => {
         navigation.replace('NextPollCountdown', {
           roomId,
           pollId: data?.cashout?.poll_id,
           nextPollAt: data?.next_poll_at,
         });
-      }, 5000);
+      }, 2000);
     } catch (err) {
       setErrorMessage(err?.response?.data?.message ?? 'Greška pri isplati.');
     } finally {
@@ -79,28 +83,55 @@ export default function CashOutScreen({ route, navigation }) {
     });
 
   const animateCoinTransfer = async () => {
-    const headerLayout = getCoinHeaderLayout();
-    if (!headerLayout) return;
     const buttonLayout = await measureButton();
     if (!buttonLayout) return;
     const coinSize = 26;
     const startX = buttonLayout.pageX + buttonLayout.width / 2 - coinSize / 2;
     const startY = buttonLayout.pageY + buttonLayout.height / 2 - coinSize / 2;
-    const endX = headerLayout.x + headerLayout.width / 2 - coinSize / 2;
-    const endY = headerLayout.y + headerLayout.height / 2 - coinSize / 2;
-    transferAnim.setValue({ x: startX, y: startY });
+    const horizontalInset = 12;
+    const verticalInset = 20;
+    const screenWidth = Dimensions.get('window').width;
+    const endX = screenWidth - coinSize - horizontalInset;
+    const endY = verticalInset;
+    const coins = Array.from({ length: 10 }, (_, index) => ({
+      id: `${Date.now()}-${index}`,
+      anim: new Animated.ValueXY({ x: startX, y: startY }),
+      fade: new Animated.Value(1),
+      target: {
+        x: endX + (index % 2 === 0 ? 4 : -4) * (index / 2),
+        y: endY - index * 1.5,
+      },
+    }));
+    setTransferCoins(coins);
     setShowTransfer(true);
-    await new Promise((resolve) => {
-      Animated.timing(transferAnim, {
-        toValue: { x: endX, y: endY },
-        duration: 1600,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }).start(() => {
-        setTimeout(() => setShowTransfer(false), 300);
-        resolve();
-      });
-    });
+    await Promise.all(
+      coins.map(
+        ({ anim, fade, target }, index) =>
+          new Promise((resolve) => {
+            Animated.parallel([
+              Animated.timing(anim, {
+                toValue: target,
+                duration: 1500,
+                delay: index * 80,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: false,
+              }),
+              Animated.sequence([
+                Animated.delay(index * 80 + 1000),
+                Animated.timing(fade, {
+                  toValue: 0,
+                  duration: 400,
+                  useNativeDriver: false,
+                }),
+              ]),
+            ]).start(() => resolve());
+          }),
+      ),
+    );
+    setTimeout(() => {
+      setShowTransfer(false);
+      setTransferCoins([]);
+    }, 300);
   };
 
   const refreshCoinTotals = async () => {
@@ -140,7 +171,7 @@ export default function CashOutScreen({ route, navigation }) {
               disabled={loading || celebrating}
             >
               {loading ? (
-                <ActivityIndicator color={colors.text_primary} />
+                <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.buttonText}>Isplata · 10 coinova</Text>
               )}
@@ -148,19 +179,22 @@ export default function CashOutScreen({ route, navigation }) {
           </Animated.View>
         </View>
       </ScrollView>
-      {showTransfer && (
-        <Animated.View
-          style={[
-            styles.transferCoin,
-            {
-              transform: transferAnim.getTranslateTransform(),
-            },
-          ]}
-          pointerEvents="none"
-        >
-          <Ionicons name="logo-bitcoin" size={22} color={colors.primary} />
-        </Animated.View>
-      )}
+      {showTransfer &&
+        transferCoins.map((coin) => (
+          <Animated.View
+            key={coin.id}
+            style={[
+              styles.transferCoin,
+              {
+                transform: coin.anim.getTranslateTransform(),
+                opacity: coin.fade,
+              },
+            ]}
+            pointerEvents="none"
+          >
+            <Ionicons name="logo-bitcoin" size={18} color={colors.primary} />
+          </Animated.View>
+        ))}
       {celebrating && (
         <View style={styles.confettiWrapper} pointerEvents="none">
           <ConfettiCannon

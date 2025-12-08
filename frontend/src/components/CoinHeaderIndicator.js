@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, findNodeHandle, UIManager, Platform, Dimensions } from 'react-native';
+import { TouchableOpacity, View, Text, StyleSheet, findNodeHandle, UIManager, Platform, Dimensions, InteractionManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
@@ -43,22 +43,35 @@ export default function CoinHeaderIndicator({ onPress }) {
 
   useEffect(() => subscribeToCoinBalance(setCoins), []);
 
-  useEffect(() => {
-    const measure = () => {
-      if (!containerRef.current) return;
-      const handle = findNodeHandle(containerRef.current);
-      if (!handle) return;
-      UIManager.measure(handle, (_x, _y, width, height, pageX, pageY) => {
+  const measureLayout = useCallback(() => {
+    if (!containerRef.current) return;
+    const handle = findNodeHandle(containerRef.current);
+    if (!handle) return;
+    InteractionManager.runAfterInteractions(() => {
+      UIManager.measureInWindow(handle, (pageX, pageY, width, height) => {
         setCoinHeaderLayout({ x: pageX, y: pageY, width, height });
       });
-    };
-    measure();
-    const listener = Platform.OS === 'web' ? null : Dimensions.addEventListener?.('change', measure);
-    return () => listener?.remove?.();
+    });
   }, []);
 
+  useEffect(() => {
+    measureLayout();
+    const pending = setInterval(measureLayout, 500);
+    const listener = Platform.OS === 'web' ? null : Dimensions.addEventListener?.('change', measureLayout);
+    return () => {
+      clearInterval(pending);
+      listener?.remove?.();
+    };
+  }, [measureLayout]);
+
   return (
-    <TouchableOpacity ref={containerRef} style={styles.button} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity
+      ref={containerRef}
+      style={styles.button}
+      onPress={onPress}
+      onLayout={measureLayout}
+      activeOpacity={0.8}
+    >
       <View style={styles.iconWrapper}>
         <Ionicons name="logo-bitcoin" size={20} color={colors.primary} />
       </View>
