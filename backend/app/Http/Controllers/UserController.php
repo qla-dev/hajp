@@ -79,6 +79,12 @@ class UserController extends Controller
         return response()->json(['user' => $user, 'message' => 'Profilna slika je uklonjena.']);
     }
 
+    public function coins(Request $request)
+    {
+        $user = $request->user();
+        return response()->json(['coins' => $user->coins ?? 0]);
+    }
+
     public function friendSuggestions(Request $request)
     {
         $user = $request->user();

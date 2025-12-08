@@ -19,6 +19,7 @@ import FriendsScreen from '../screens/FriendsScreen';
 import CashOutScreen from '../screens/CashOutScreen';
 import NextPollCountdownScreen from '../screens/NextPollCountdownScreen';
 import CreateRoomScreen from '../screens/CreateRoomScreen';
+import CoinHeaderIndicator from '../components/CoinHeaderIndicator';
 
 const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
@@ -56,7 +57,18 @@ function HajpStackNavigator() {
         headerStyle: { backgroundColor: 'transparent' },
       }}
     >
-      <HajpStack.Screen name="Rooms" component={RoomsScreen} options={{ title: 'Ankete' }} />
+      <HajpStack.Screen
+        name="Rooms"
+        component={RoomsScreen}
+        options={({ navigation }) => ({
+          title: 'Ankete',
+          headerRight: () => (
+            <CoinHeaderIndicator
+              onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+            />
+          ),
+        })}
+      />
       <HajpStack.Screen
         name="Polling"
         component={PollingScreen}
@@ -106,7 +118,18 @@ function RankStackNavigator() {
         headerStyle: { backgroundColor: 'transparent' },
       }}
     >
-    <RankStack.Screen name="Live" component={LiveScreen} options={{ title: 'Uživo' }} />
+    <RankStack.Screen
+      name="Live"
+      component={LiveScreen}
+      options={({ navigation }) => ({
+        title: 'Uživo',
+        headerRight: () => (
+          <CoinHeaderIndicator
+            onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+          />
+        ),
+      })}
+    />
     <RankStack.Screen
       name="LiveFriendProfile"
       component={ProfileScreen}
@@ -277,7 +300,18 @@ function HajpoviStackNavigator() {
         headerStyle: { backgroundColor: 'transparent' },
       }}
     >
-      <HajpoviStack.Screen name="Hajpovi" component={HajpoviScreen} options={{ title: headerLabelMap.Inbox }} />
+      <HajpoviStack.Screen
+        name="Hajpovi"
+        component={HajpoviScreen}
+        options={({ navigation }) => ({
+          title: headerLabelMap.Inbox,
+          headerRight: () => (
+            <CoinHeaderIndicator
+              onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+            />
+          ),
+        })}
+      />
     </HajpoviStack.Navigator>
   );
 }
@@ -300,10 +334,15 @@ function FriendsStackNavigator() {
       <FriendsStack.Screen
         name="Suggestions"
         component={SuggestionsScreen}
-        options={{
+        options={({ navigation }) => ({
           title: 'Mreža',
           headerBackVisible: false,
-        }}
+          headerRight: () => (
+            <CoinHeaderIndicator
+              onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+            />
+          ),
+        })}
       />
       <FriendsStack.Screen
         name="FriendsList"
