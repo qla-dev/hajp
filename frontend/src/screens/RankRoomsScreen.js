@@ -53,7 +53,7 @@ export default function RankRoomsScreen({ navigation }) {
           loading ? (
             <View style={styles.loader}>
               <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.loadingText}>Učitavam sobe</Text>
+              <Text style={styles.loadingText}>Učitavanje</Text>
             </View>
           ) : null
         }
