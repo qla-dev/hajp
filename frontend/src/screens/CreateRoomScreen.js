@@ -86,7 +86,6 @@ export default function CreateRoomScreen({ navigation }) {
         name: filename,
         type: mimeType,
       });
-      setCoverUrl('');
     } catch (error) {
       console.error('CreateRoomScreen handlePickCover failed', error);
       Alert.alert('Greška', 'Nismo mogli otvoriti galeriju, pokušaj ponovo.');
@@ -111,11 +110,17 @@ export default function CreateRoomScreen({ navigation }) {
       is_18_over: is18Over,
     };
     try {
+      const serializeValue = (value) => {
+        if (typeof value === 'boolean') {
+          return value ? '1' : '0';
+        }
+        return value;
+      };
       if (coverAsset) {
         const formData = new FormData();
         Object.entries(payload).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
-            formData.append(key, value);
+            formData.append(key, serializeValue(value));
           }
         });
         formData.append('cover', {
@@ -127,10 +132,22 @@ export default function CreateRoomScreen({ navigation }) {
       } else {
         await createRoom(payload);
       }
-      navigation.goBack();
+      setCreating(false);
+      Alert.alert('Soba je kreirana', 'Nova soba je spremljena.', [
+        {
+          text: 'Uredu',
+          onPress: () => {
+            navigation.navigate('ProfileHome');
+          },
+        },
+      ]);
     } catch (error) {
       console.error('Neuspjeh pri kreiranju sobe', error);
-      setErrorMessage('Neuspješno kreiranje sobe, pokušaj ponovo.');
+      const backendMessage =
+        error?.response?.data?.message || error?.response?.data?.errors?.name?.[0];
+      setErrorMessage(
+        backendMessage || 'Neuspješno kreiranje sobe, pokušaj ponovo.',
+      );
     } finally {
       setCreating(false);
     }
@@ -226,7 +243,7 @@ export default function CreateRoomScreen({ navigation }) {
                   <Ionicons
                     name={option.icon}
                     size={20}
-                    color={active ? colors.textLight : colors.text_secondary}
+                    color={active ? colors.primary : colors.text_secondary}
                   />
                   <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>{option.label}</Text>
                 </TouchableOpacity>
@@ -404,15 +421,16 @@ const createStyles = (colors) =>
       marginBottom: 10,
     },
     chipActive: {
-      backgroundColor: colors.transparent,
+      backgroundColor: colors.surface,
       borderColor: colors.primary,
+      color: colors.primary,
     },
     chipLabel: {
       marginLeft: 8,
       color: colors.text_secondary,
     },
     chipLabelActive: {
-      color: colors.textLight,
+      color: colors.primary,
     },
     privacyRow: {
       flexDirection: 'row',

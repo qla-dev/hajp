@@ -13,6 +13,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class RoomController extends Controller
 {
@@ -56,16 +58,30 @@ class RoomController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $data = $request->validate([
-            'name' => 'required|string|max:100',
-            'type' => 'sometimes|string',
-            'is_private' => 'sometimes|boolean',
-            'is_18_over' => 'sometimes|boolean',
-            'tagline' => 'sometimes|nullable|string',
-            'description' => 'sometimes|nullable|string',
-            'cover_url' => 'sometimes|nullable|url',
-            'cover' => 'sometimes|image|max:5120',
+        Log::info('Room creation attempt', [
+            'user_id' => $user->id,
+            'payload' => $request->except(['cover']),
         ]);
+
+        try {
+            $data = $request->validate([
+                'name' => 'required|string|max:100',
+                'type' => 'sometimes|string',
+                'is_private' => 'sometimes|boolean',
+                'is_18_over' => 'sometimes|boolean',
+                'tagline' => 'sometimes|nullable|string',
+                'description' => 'sometimes|nullable|string',
+                'cover_url' => 'sometimes|nullable|url',
+                'cover' => 'sometimes|image|max:5120',
+            ]);
+        } catch (ValidationException $exception) {
+            Log::warning('Room creation validation failed', [
+                'user_id' => $user->id,
+                'errors' => $exception->errors(),
+                'payload' => $request->except(['cover']),
+            ]);
+            throw $exception;
+        }
 
         $payload = [
             'name' => $data['name'],
@@ -82,6 +98,11 @@ class RoomController extends Controller
         }
 
         $room = Room::create($payload);
+
+        Log::info('Room created', [
+            'room_id' => $room->id,
+            'user_id' => $user->id,
+        ]);
 
         RoomMember::create([
             'room_id' => $room->id,
@@ -106,6 +127,12 @@ class RoomController extends Controller
         $coverPath = $this->saveCoverFile($request->file('cover'));
         $room->cover_url = $coverPath;
         $room->save();
+
+        Log::info('Room cover updated', [
+            'room_id' => $room->id,
+            'user_id' => $user->id,
+            'cover_url' => $coverPath,
+        ]);
 
         return response()->json(['data' => $room]);
     }

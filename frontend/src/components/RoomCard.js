@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
+import { baseURL } from '../api';
 
 const FALLBACK_COVER =
   'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1440&q=80';
@@ -9,7 +10,10 @@ const FALLBACK_COVER =
 export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
-  const coverUri = room.cover_url || room.cover || FALLBACK_COVER;
+  const normalizedCoverUrl = room.cover_url || room.cover;
+  const coverUri = normalizedCoverUrl
+    ? `${baseURL.replace(/\/$/, '')}${normalizedCoverUrl}`
+    : FALLBACK_COVER;
   const memberCount = room.members_count ?? room.members ?? 0;
   const privacyLabel = room.is_private ? 'Privatna' : 'Javna';
   const typeLabel = room.type || 'Vibe';
