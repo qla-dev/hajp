@@ -1,16 +1,21 @@
-import React, { useCallback, useState } from 'react';
-import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { TouchableOpacity, View, Text, StyleSheet, findNodeHandle, UIManager, Platform, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchCoinBalance } from '../api';
-
-let cachedCoins = null;
+import {
+  setCoinHeaderLayout,
+  subscribeToCoinBalance,
+  updateCoinBalance,
+  getCachedCoinBalance,
+} from '../utils/coinHeaderTracker';
 
 export default function CoinHeaderIndicator({ onPress }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
-  const [coins, setCoins] = useState(cachedCoins ?? 0);
+  const [coins, setCoins] = useState(getCachedCoinBalance());
+  const containerRef = useRef(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -21,8 +26,7 @@ export default function CoinHeaderIndicator({ onPress }) {
           const { data } = await fetchCoinBalance();
           const nextCoins = data?.coins ?? 0;
           if (isMounted) {
-            setCoins(nextCoins);
-            cachedCoins = nextCoins;
+            updateCoinBalance(nextCoins);
           }
         } catch (error) {
           console.warn('Failed to load coins', error);
@@ -37,8 +41,24 @@ export default function CoinHeaderIndicator({ onPress }) {
     }, []),
   );
 
+  useEffect(() => subscribeToCoinBalance(setCoins), []);
+
+  useEffect(() => {
+    const measure = () => {
+      if (!containerRef.current) return;
+      const handle = findNodeHandle(containerRef.current);
+      if (!handle) return;
+      UIManager.measure(handle, (_x, _y, width, height, pageX, pageY) => {
+        setCoinHeaderLayout({ x: pageX, y: pageY, width, height });
+      });
+    };
+    measure();
+    const listener = Platform.OS === 'web' ? null : Dimensions.addEventListener?.('change', measure);
+    return () => listener?.remove?.();
+  }, []);
+
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity ref={containerRef} style={styles.button} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.iconWrapper}>
         <Ionicons name="logo-bitcoin" size={20} color={colors.primary} />
       </View>

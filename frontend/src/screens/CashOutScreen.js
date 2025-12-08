@@ -1,16 +1,32 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
+import {
+  ScrollView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  ActivityIndicator,
+  UIManager,
+  findNodeHandle,
+  Easing,
+} from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { postRoomCashout } from '../api';
+import { postRoomCashout, fetchCoinBalance } from '../api';
 import LottieView from 'lottie-react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import { getCoinHeaderLayout, updateCoinBalance } from '../utils/coinHeaderTracker';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function CashOutScreen({ route, navigation }) {
   const { roomId } = route.params || {};
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [celebrating, setCelebrating] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(false);
   const pulse = useRef(new Animated.Value(1)).current;
+  const transferAnim = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+  const buttonRef = useRef(null);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const confettiTimer = useRef(null);
@@ -36,6 +52,9 @@ export default function CashOutScreen({ route, navigation }) {
     try {
       const { data } = await postRoomCashout(roomId);
       setCelebrating(true);
+      const animationPromise = animateCoinTransfer();
+      const refreshPromise = refreshCoinTotals();
+      await Promise.allSettled([animationPromise, refreshPromise]);
       confettiTimer.current = setTimeout(() => {
         navigation.replace('NextPollCountdown', {
           roomId,
@@ -47,6 +66,49 @@ export default function CashOutScreen({ route, navigation }) {
       setErrorMessage(err?.response?.data?.message ?? 'Greška pri isplati.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const measureButton = () =>
+    new Promise((resolve) => {
+      const node = findNodeHandle(buttonRef.current);
+      if (!node) return resolve(null);
+      UIManager.measure(node, (_x, _y, width, height, pageX, pageY) => {
+        resolve({ width, height, pageX, pageY });
+      });
+    });
+
+  const animateCoinTransfer = async () => {
+    const headerLayout = getCoinHeaderLayout();
+    if (!headerLayout) return;
+    const buttonLayout = await measureButton();
+    if (!buttonLayout) return;
+    const coinSize = 26;
+    const startX = buttonLayout.pageX + buttonLayout.width / 2 - coinSize / 2;
+    const startY = buttonLayout.pageY + buttonLayout.height / 2 - coinSize / 2;
+    const endX = headerLayout.x + headerLayout.width / 2 - coinSize / 2;
+    const endY = headerLayout.y + headerLayout.height / 2 - coinSize / 2;
+    transferAnim.setValue({ x: startX, y: startY });
+    setShowTransfer(true);
+    await new Promise((resolve) => {
+      Animated.timing(transferAnim, {
+        toValue: { x: endX, y: endY },
+        duration: 1600,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }).start(() => {
+        setTimeout(() => setShowTransfer(false), 300);
+        resolve();
+      });
+    });
+  };
+
+  const refreshCoinTotals = async () => {
+    try {
+      const { data } = await fetchCoinBalance();
+      updateCoinBalance(data?.coins ?? 0);
+    } catch (refreshErr) {
+      console.warn('Failed to refresh coins after cashout', refreshErr);
     }
   };
 
@@ -71,7 +133,12 @@ export default function CashOutScreen({ route, navigation }) {
           <Text style={styles.subtitle}>Možete podići 10 coinova za zadnju anketu.</Text>
           {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
           <Animated.View style={[styles.buttonWrapper, { transform: [{ scale: pulse }] }]}>
-            <TouchableOpacity style={styles.button} onPress={handleCashout} disabled={loading || celebrating}>
+            <TouchableOpacity
+              ref={buttonRef}
+              style={styles.button}
+              onPress={handleCashout}
+              disabled={loading || celebrating}
+            >
               {loading ? (
                 <ActivityIndicator color={colors.text_primary} />
               ) : (
@@ -81,6 +148,19 @@ export default function CashOutScreen({ route, navigation }) {
           </Animated.View>
         </View>
       </ScrollView>
+      {showTransfer && (
+        <Animated.View
+          style={[
+            styles.transferCoin,
+            {
+              transform: transferAnim.getTranslateTransform(),
+            },
+          ]}
+          pointerEvents="none"
+        >
+          <Ionicons name="logo-bitcoin" size={22} color={colors.primary} />
+        </Animated.View>
+      )}
       {celebrating && (
         <View style={styles.confettiWrapper} pointerEvents="none">
           <ConfettiCannon
@@ -179,5 +259,24 @@ const createStyles = (colors) =>
     confettiWrapper: {
       ...StyleSheet.absoluteFillObject,
       zIndex: 20,
+    },
+    transferCoin: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: colors.primary,
+      shadowOpacity: 0.35,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 6,
+      zIndex: 35,
     },
   });
