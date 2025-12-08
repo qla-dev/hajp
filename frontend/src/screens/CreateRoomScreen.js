@@ -19,16 +19,26 @@ const FALLBACK_COVER =
   'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80';
 
 const vibeOptions = [
-  { key: 'zabava', label: 'Zabava u gradu', icon: 'musical-notes-outline' },
-  { key: 'biznis', label: 'Biznis okruženje', icon: 'briefcase-outline' },
   { key: 'skola', label: 'Školsko okruženje', icon: 'school-outline' },
   { key: 'univerzitet', label: 'Studentski kutak', icon: 'book-outline' },
+  { key: 'biznis', label: 'Biznis okruženje', icon: 'briefcase-outline' },
+  { key: 'tech', label: 'Tech & startupi', icon: 'hardware-chip-outline' },
+  { key: 'zabava', label: 'Zabava u gradu', icon: 'musical-notes-outline' },
   { key: 'gaming', label: 'Gaming arena', icon: 'game-controller-outline' },
   { key: 'pop kultura', label: 'Pop kultura', icon: 'tv-outline' },
+  { key: 'muzika', label: 'Muzički jam', icon: 'headset-outline' },
+  { key: 'sport', label: 'Sportski duh', icon: 'football-outline' },
+  { key: 'art', label: 'Kreativni kutak', icon: 'brush-outline' },
+  { key: 'putovanja', label: 'Putnička energija', icon: 'airplane-outline' },
+  { key: 'wellness', label: 'Chill & wellness', icon: 'leaf-outline' },
+  { key: 'food', label: 'Foodies', icon: 'pizza-outline' },
+  { key: 'kino', label: 'Filmska noć', icon: 'film-outline' },
+  { key: 'moda', label: 'Street & moda', icon: 'shirt-outline' },
+  { key: 'drustvo', label: 'Društvene igre', icon: 'game-controller-outline' },
 ];
 
 const privacyOptions = [
-  { key: 'public', label: 'Javno', icon: 'globe-outline', value: false },
+  { key: 'public', label: 'Javna', icon: 'globe-outline', value: false },
   { key: 'private', label: 'Privatna', icon: 'lock-closed-outline', value: true },
 ];
 
@@ -390,13 +400,13 @@ const createStyles = (colors) =>
       textTransform: 'uppercase',
     },
     input: {
-      borderRadius: 16,
+      borderRadius: 12,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.surface,
       paddingHorizontal: 16,
-      paddingVertical: 12,
-      fontSize: 16,
+      paddingVertical: 14,
+      fontSize: 15,
       color: colors.text_primary,
     },
     multiline: {
@@ -413,12 +423,12 @@ const createStyles = (colors) =>
       alignItems: 'center',
       paddingVertical: 10,
       paddingHorizontal: 14,
-      borderRadius: 16,
+      borderRadius: 12,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.surface,
-      marginRight: 10,
-      marginBottom: 10,
+      marginRight: 0,
+      marginBottom: 0,
     },
     chipActive: {
       backgroundColor: colors.surface,
@@ -442,7 +452,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 14,
-      borderRadius: 18,
+      borderRadius: 12,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.surface,
@@ -450,7 +460,7 @@ const createStyles = (colors) =>
     },
     privacyActive: {
       borderColor: colors.primary,
-      backgroundColor: colors.surfaceDark,
+      backgroundColor: colors.surface,
     },
     privacyLabel: {
       fontWeight: '600',
