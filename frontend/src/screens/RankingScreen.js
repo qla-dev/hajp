@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRoomRanking } from '../api';
@@ -33,14 +34,19 @@ export default function RankingScreen({ route, navigation }) {
   const [activePeriod, setActivePeriod] = useState(PERIODS[0].key);
   const [ranking, setRanking] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   const loadRanking = useCallback(
-    async (period) => {
+    async (period, { useLoading = true } = {}) => {
       if (!roomId) return;
-      setLoading(true);
+      if (useLoading) {
+        setLoading(true);
+      } else {
+        setRefreshing(true);
+      }
       setError('');
       try {
         const { data } = await fetchRoomRanking(roomId, period);
@@ -49,7 +55,11 @@ export default function RankingScreen({ route, navigation }) {
         console.error('Greška pri učitavanju rang liste:', err);
         setError('Neuspešno učitavanje rang liste');
       } finally {
-        setLoading(false);
+        if (useLoading) {
+          setLoading(false);
+        } else {
+          setRefreshing(false);
+        }
       }
     },
     [roomId],
@@ -118,13 +128,21 @@ export default function RankingScreen({ route, navigation }) {
         </View>
       ) : (
         <FlatList
-          data={ranking}
-          keyExtractor={(item) => String(item.user_id)}
-          renderItem={renderRow}
-          contentContainerStyle={styles.list}
-          ListEmptyComponent={emptyComponent}
-          showsVerticalScrollIndicator={false}
-        />
+        data={ranking}
+        keyExtractor={(item) => String(item.user_id)}
+        renderItem={renderRow}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadRanking(activePeriod, { useLoading: false })}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+        ListEmptyComponent={emptyComponent}
+        showsVerticalScrollIndicator={false}
+      />
       )}
     </View>
   );

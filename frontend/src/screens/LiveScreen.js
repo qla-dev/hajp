@@ -30,7 +30,6 @@ export default function LiveScreen({ navigation }) {
       try {
         const response = await fetchFriendActivities(page, PAGE_LIMIT);
         const { data, meta } = response.data;
-        console.log('activities result', data?.length, meta);
         setActivities((prev) => (append ? [...prev, ...data] : data));
         setActivityPage(page);
         setHasMoreActivities(meta?.has_more ?? false);

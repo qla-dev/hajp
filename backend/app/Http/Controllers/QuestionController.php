@@ -132,11 +132,6 @@ class QuestionController extends Controller
 
         $limit = max(1, (int) $request->query('limit', 10));
         $page = max(1, (int) $request->query('page', 1));
-        Log::info('activities request', [
-            'user_id' => $user->id,
-            'page' => $page,
-            'limit' => $limit,
-        ]);
 
         $friendships = DB::table('friendships')
             ->where('approved', 1)
@@ -198,11 +193,6 @@ class QuestionController extends Controller
             ],
         ];
 
-        Log::info('activities response', [
-            'user_id' => $user->id,
-            'items' => count($votes),
-            'meta' => $response['meta'],
-        ]);
 
         return response()->json($response);
     }
