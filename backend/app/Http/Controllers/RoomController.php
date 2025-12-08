@@ -262,12 +262,15 @@ class RoomController extends Controller
             default => $now->copy()->startOfDay(),
         };
 
-        $rank = Vote::query()
+        $filteredVotes = Vote::query()
             ->whereNotNull('selected_user_id')
             ->whereBetween('created_at', [$start, $now])
             ->whereHas('question.poll', function ($query) use ($room) {
                 $query->where('room_id', $room->id);
-            })
+            });
+
+        $totalFiltered = $filteredVotes->count();
+        $rank = (clone $filteredVotes)
             ->select('selected_user_id')
             ->selectRaw('COUNT(*) as hajps')
             ->with('selectedUser:id,name,username,profile_photo')
@@ -284,7 +287,6 @@ class RoomController extends Controller
                     'hajps' => (int) $entry->hajps,
                 ];
             });
-
         return response()->json(['data' => $rank]);
     }
 

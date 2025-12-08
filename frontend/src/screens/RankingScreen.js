@@ -44,7 +44,7 @@ export default function RankingScreen({ route, navigation }) {
       setError('');
       try {
         const { data } = await fetchRoomRanking(roomId, period);
-        setRanking(data ?? []);
+        setRanking(data?.data ?? []);
       } catch (err) {
         console.error('Greška pri učitavanju rang liste:', err);
         setError('Neuspešno učitavanje rang liste');
@@ -140,8 +140,8 @@ const createStyles = (colors, isDark) =>
     tabs: {
       flexDirection: 'row',
       gap: 8,
-      marginBottom: 12,
-      paddingTop: 85,
+      paddingBottom: 16,
+      paddingTop: 90,
     },
     tabButton: {
       flex: 1,
@@ -175,8 +175,6 @@ const createStyles = (colors, isDark) =>
       fontSize: 16,
     },
     list: {
-      flexGrow: 1,
-      justifyContent: 'center',
       paddingBottom: 32,
     },
     row: {
