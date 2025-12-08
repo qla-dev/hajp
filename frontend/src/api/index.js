@@ -71,5 +71,6 @@ export const fetchUserFriendsCount = (userId) => api.get(`/api/users/${userId}/f
 export const fetchFriendshipStatus = (userId) => api.get(`/api/users/${userId}/friendship/status`);
 export const fetchProfileViews = (userId) => api.get(`/api/users/${userId}/views`);
 export const recordProfileView = (userId) => api.post(`/api/users/${userId}/views`);
+export const fetchRoomRanking = (roomId, period = 'day') => api.get(`/api/rooms/${roomId}/rank/${period}`);
 
 export default api;

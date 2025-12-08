@@ -33,7 +33,10 @@ export default function RankRoomsScreen({ navigation }) {
   };
 
   const renderRoom = ({ item }) => (
-    <TouchableOpacity style={styles.roomCard} onPress={() => navigation.navigate('Ranking', { roomId: item.id })}>
+    <TouchableOpacity
+      style={styles.roomCard}
+      onPress={() => navigation.navigate('Ranking', { roomId: item.id, roomName: item.name })}
+    >
       <Text style={styles.roomName}>{item.name}</Text>
       {item.is_18_over ? <Text style={styles.roomBadge}>18+</Text> : null}
     </TouchableOpacity>

@@ -7,6 +7,7 @@ use App\Models\Question;
 use App\Models\Room;
 use App\Models\RoomMember;
 use App\Models\User;
+use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -249,6 +250,42 @@ class RoomController extends Controller
             'cashout' => $history,
             'next_poll_at' => $nextPollAt->toIso8601String(),
         ], 201);
+    }
+
+    public function rank(Request $request, Room $room, string $period)
+    {
+        $period = strtolower($period);
+        $now = Carbon::now();
+        $start = match ($period) {
+            'week' => $now->copy()->startOfWeek(),
+            'month' => $now->copy()->startOfMonth(),
+            default => $now->copy()->startOfDay(),
+        };
+
+        $rank = Vote::query()
+            ->whereNotNull('selected_user_id')
+            ->whereBetween('created_at', [$start, $now])
+            ->whereHas('question.poll', function ($query) use ($room) {
+                $query->where('room_id', $room->id);
+            })
+            ->select('selected_user_id')
+            ->selectRaw('COUNT(*) as hajps')
+            ->with('selectedUser:id,name,username,profile_photo')
+            ->groupBy('selected_user_id')
+            ->orderByDesc('hajps')
+            ->limit(25)
+            ->get()
+            ->map(function ($entry) {
+                return [
+                    'user_id' => $entry->selected_user_id,
+                    'name' => $entry->selectedUser?->name ?? 'Neko',
+                    'username' => $entry->selectedUser?->username,
+                    'profile_photo' => $entry->selectedUser?->profile_photo,
+                    'hajps' => (int) $entry->hajps,
+                ];
+            });
+
+        return response()->json(['data' => $rank]);
     }
 
     public function activeQuestion(Request $request, Room $room)
