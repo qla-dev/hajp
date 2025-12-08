@@ -67,14 +67,14 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-      paddingTop: 4,
-      paddingHorizontal: 16,
-      paddingBottom: 4,
+      paddingTop: 0,
+      paddingBottom: 0,
     },
     loader: {
       flex: 1,
-      justifyContent: 'center',
       alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 60,
     },
     loadingText: {
       color: colors.text_secondary,
@@ -82,8 +82,10 @@ const createStyles = (colors) =>
       marginTop: 12,
     },
     list: {
-      paddingTop: 95,
-      paddingBottom: 4,
+      flexGrow: 1,
+      paddingTop: 0,
+      paddingBottom: 8,
+      paddingHorizontal: 16,
     },
     roomCard: {
       backgroundColor: colors.surface,
