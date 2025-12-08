@@ -239,7 +239,7 @@ const createStyles = (colors, isDark) =>
       marginBottom: 20,
     },
     optionButton: {
-      backgroundColor: isDark ? 'rgba(0,0,0,0.45)' : 'rgba(255, 255, 255, 0.92)',
+      backgroundColor: '#ffffff',
       height: 72,
       paddingHorizontal: 16,
       borderRadius: 12,
@@ -248,10 +248,10 @@ const createStyles = (colors, isDark) =>
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
-      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.75)',
+      borderColor: '#ffffff',
     },
     optionText: {
-      color: isDark ? colors.textLight : colors.text_primary,
+      color: '#000000',
       fontSize: 15,
       fontWeight: '600',
       textAlign: 'center',
