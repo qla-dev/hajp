@@ -85,10 +85,15 @@ function HajpStackNavigator() {
       <HajpStack.Screen
         name="CashOut"
         component={CashOutScreen}
-        options={{
+        options={({ navigation }) => ({
           title: 'Isplata',
           headerBackTitle: 'Nazad',
-        }}
+          headerRight: () => (
+            <CoinHeaderIndicator
+              onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+            />
+          ),
+        })}
       />
       <HajpStack.Screen
         name="NextPollCountdown"
