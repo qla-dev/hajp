@@ -53,12 +53,33 @@ class ShareLinkController extends Controller
             'displayName' => $user->name ?? '@' . $user->username,
             'profilePhoto' => $profilePhoto,
             'question' => $question,
-            'link' => url("/{$user->username}/{$slug}"),
+            'link' => url("/share/{$user->username}/{$slug}"),
             'slug' => $slug,
             'gradientStart' => $gradientStart,
             'gradientEnd' => $gradientEnd,
             'tapCount' => 256,
             'isPremium' => (bool) ($style?->premium ?? false),
+        ];
+    }
+
+    public function messages(User $user)
+    {
+        $messages = AnonymousMessage::where('user_id', $user->id)
+            ->with('style:id,slug,question,color,bg')
+            ->latest()
+            ->get();
+
+        return [
+            'messages' => $messages->map(function (AnonymousMessage $message) {
+                return [
+                    'id' => $message->id,
+                    'message' => $message->message,
+                    'question' => $message->style?->question,
+                    'slug' => $message->style?->slug,
+                    'style' => $message->style?->only(['question', 'slug', 'color', 'bg']),
+                    'created_at' => $message->created_at,
+                ];
+            }),
         ];
     }
 }

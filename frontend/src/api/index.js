@@ -50,6 +50,7 @@ export const subscribe = () => api.post('/api/subscription/subscribe');
 export const getInbox = (userId) => api.get(`/api/anonymous/inbox/${userId}`);
 export const sendAnonMessage = (inbox_id, message, metadata) => api.post('/api/anonymous/message', { inbox_id, message, metadata });
 export const fetchShareStyles = () => api.get('/api/share/styles');
+export const fetchShareMessages = (userId) => api.get(`/api/share/${userId}/messages`);
 export const fetchUserRooms = () => api.get('/api/user/rooms');
 export const getCurrentUser = async () => {
   const { data } = await api.get('/api/user');

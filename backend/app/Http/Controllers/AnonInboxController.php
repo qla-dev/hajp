@@ -2,35 +2,43 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AnonymousInbox;
 use App\Models\AnonymousMessage;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class AnonInboxController extends Controller
 {
     public function show(User $user)
     {
-        $inbox = AnonymousInbox::firstOrCreate(
-            ['user_id' => $user->id],
-            ['share_link' => config('app.url') . '/inbox/' . Str::uuid()]
-        );
-        $inbox->load('messages');
-        return $inbox;
+        $messages = AnonymousMessage::where('user_id', $user->id)
+            ->with('style:id,question,slug,color,bg')
+            ->orderByDesc('id')
+            ->get();
+
+        return [
+            'messages' => $messages->map(function (AnonymousMessage $message) {
+                return [
+                    'id' => $message->id,
+                    'message' => $message->message,
+                    'question' => $message->style?->question,
+                    'style' => $message->style?->only(['question', 'slug', 'color', 'bg']),
+                    'created_at' => $message->created_at,
+                ];
+            }),
+        ];
     }
 
     public function createMessage(Request $request)
     {
         $data = $request->validate([
-            'inbox_id' => 'required|integer|exists:anonymous_inboxes,id',
+            'user_id' => 'required|integer|exists:users,id',
             'message' => 'required|string',
-            'metadata' => 'array',
+            'style_id' => 'nullable|integer|exists:share_link_styles,id',
         ]);
         $msg = AnonymousMessage::create([
-            'inbox_id' => $data['inbox_id'],
+            'user_id' => $data['user_id'],
             'message' => $data['message'],
-            'metadata' => $data['metadata'] ?? null,
+            'style_id' => $data['style_id'] ?? null,
         ]);
         return response()->json($msg, 201);
     }

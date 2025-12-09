@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchMyVotes, getInbox, getCurrentUser } from '../api';
+import { fetchMyVotes, fetchShareMessages, getCurrentUser } from '../api';
 import BottomCTA from '../components/BottomCTA';
 
 const TAB_ANKETE = 'ankete';
@@ -39,20 +39,23 @@ export default function HajpoviScreen({ navigation }) {
     }
   }, []);
 
-  const loadMessages = useCallback(async (targetUser) => {
-    try {
-      const resolvedUser = targetUser || (await loadUser());
-      if (resolvedUser) {
-        const { data } = await getInbox(resolvedUser.id);
-        setMessages(data?.messages || []);
-      } else {
+  const loadMessages = useCallback(
+    async (targetUser) => {
+      try {
+        const resolvedUser = targetUser || (await loadUser());
+        if (resolvedUser) {
+          const { data } = await fetchShareMessages(resolvedUser.id);
+          setMessages(data?.messages || []);
+        } else {
+          setMessages([]);
+        }
+      } catch (error) {
         setMessages([]);
+        console.error('Greška pri učitavanju poruka:', error);
       }
-    } catch (error) {
-      setMessages([]);
-      console.error('Greška pri učitavanju poruka:', error);
-    }
-  }, [loadUser]);
+    },
+    [loadUser],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -102,8 +105,8 @@ export default function HajpoviScreen({ navigation }) {
   };
 
   const renderMessage = ({ item }) => {
-    const metadata = item.metadata || {};
-    const from = metadata.gender ? `Od: ${metadata.gender}` : 'Anonimno';
+    const questionLabel = item.question || item.style?.question || 'Anonimna poruka';
+    const from = `Pitanje: ${questionLabel}`;
     const ts = item.created_at
       ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       : 'Upravo sada';

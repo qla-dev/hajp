@@ -8,6 +8,8 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\AnonInboxController;
+use App\Http\Controllers\ShareLinkController;
+use App\Http\Controllers\ShareLinkStyleController;
 use App\Http\Controllers\UserController;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -32,7 +34,8 @@ Route::get('/anonymous/inbox/{user}', [AnonInboxController::class, 'show']);
 
 Route::post('/anonymous/message', [AnonInboxController::class, 'createMessage']);
 
-Route::get('/share/styles', [App\Http\Controllers\ShareLinkStyleController::class, 'index']);
+Route::get('/share/styles', [ShareLinkStyleController::class, 'index']);
+Route::get('/share/{user}/messages', [ShareLinkController::class, 'messages']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

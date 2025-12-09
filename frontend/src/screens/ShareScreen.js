@@ -94,7 +94,8 @@ export default function ShareScreen() {
   const shareLink = useMemo(() => {
     const username = user?.username || 'username';
     const slug = activeTopic.slug || activeTopic.topic;
-    return `https://hajp.app/share/${username}/${slug}`;
+    const cleanBase = (baseURL || '').replace(/\/+$/, '') || 'https://hajp.app';
+    return `${cleanBase}/share/${username}/${slug}`;
   }, [activeTopic.slug, activeTopic.topic, user?.username]);
 
   const avatarUri = useMemo(() => {
