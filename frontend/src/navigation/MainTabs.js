@@ -19,6 +19,7 @@ import FriendsScreen from '../screens/FriendsScreen';
 import CashOutScreen from '../screens/CashOutScreen';
 import NextPollCountdownScreen from '../screens/NextPollCountdownScreen';
 import CreateRoomScreen from '../screens/CreateRoomScreen';
+import RoomVibeSelection from '../screens/RoomVibeSelection';
 import CoinHeaderIndicator from '../components/CoinHeaderIndicator';
 
 const Tab = createBottomTabNavigator();
@@ -237,6 +238,14 @@ function ProfileStackNavigator() {
         }}
       />
       <ProfileStack.Screen
+        name="RoomVibeSelection"
+        component={RoomVibeSelection}
+        options={{
+          title: 'Odaberi vibe',
+          headerBackTitle: 'Nazad',
+        }}
+      />
+      <ProfileStack.Screen
         name="ProfileFriends"
         component={ProfileScreen}
         options={({ navigation }) => ({
@@ -410,7 +419,7 @@ export default function MainTabs() {
         }
         if (
           route.name === 'Profile' &&
-        (focused === 'ProfileFriends' || focused === 'ProfileFriendsList' || focused === 'ProfileViews' || focused === 'CreateRoom')
+        (focused === 'ProfileFriends' || focused === 'ProfileFriendsList' || focused === 'ProfileViews' || focused === 'CreateRoom' || focused === 'RoomVibeSelection')
         ) {
           hideTabBar = true;
         }
