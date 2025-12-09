@@ -1,5 +1,6 @@
 {
   "expo": {
+    "sdkVersion": "54.0.0",
     "name": "frontend",
     "slug": "frontend",
     "version": "1.0.0",
@@ -19,10 +20,16 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.kulasinn.frontend"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0774aebf-7264-4db5-a93d-cb233484e86a"
+      }
     }
   }
 }
