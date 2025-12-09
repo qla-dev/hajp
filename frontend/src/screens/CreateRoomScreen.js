@@ -19,26 +19,126 @@ const FALLBACK_COVER =
   'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80';
 
 const vibeOptions = [
-  { key: 'skolska-raja', label: 'Školska raja', icon: 'school-outline' },
-  { key: 'porodica', label: 'Porodica', icon: 'home-outline' },
-  { key: 'fakultetske-kolege', label: 'Fakultetske kolege', icon: 'book-outline' },
-  { key: 'posao', label: 'Ekipica s posla', icon: 'briefcase-outline' },
-  { key: 'najbolji-prijatelji', label: 'Najbolji prijatelji', icon: 'people-outline' },
-  { key: 'komsiluk', label: 'Komšiluk', icon: 'location-outline' },
-  { key: 'influenserska', label: 'Influenserska', icon: 'camera-outline' },
-  { key: 'sport', label: 'Sportska ekipa', icon: 'football-outline' },
-  { key: 'izlasci', label: 'Noćni izlasci', icon: 'wine-outline' },
-  { key: 'travel', label: 'Travel ekipa', icon: 'airplane-outline' },
-  { key: 'gejmeri', label: 'Gejmerska ekipa', icon: 'game-controller-outline' },
-  { key: 'kreativci', label: 'Kreativci', icon: 'brush-outline' },
-  { key: 'chill', label: 'Chill zajednica', icon: 'leaf-outline' },
-  { key: 'street-fashion', label: 'Street & Fashion ekipa', icon: 'shirt-outline' },
-  { key: 'foodie', label: 'Foodie ekipa', icon: 'pizza-outline' },
-  { key: 'poezija', label: 'Poezija & literarni', icon: 'reader-outline' },
-  { key: 'film', label: 'Filmski klub', icon: 'film-outline' },
-  { key: 'diy', label: 'DIY lab', icon: 'construct-outline' },
-  { key: 'podcast', label: 'Podcast sesija', icon: 'mic-outline' },
-  { key: 'retro', label: 'Retro vibra', icon: 'logo-apple-appstore' },
+  {
+    key: 'skolska-raja',
+    label: 'Školska raja',
+    icon: 'school-outline',
+    description: 'Razred, odjeljenje i ekipa iz klupa.',
+  },
+  {
+    key: 'porodica',
+    label: 'Porodica',
+    icon: 'home-outline',
+    description: 'Dom, rodbina i kućne grupe u jednoglasnom raspoloženju.',
+  },
+  {
+    key: 'fakultetske-kolege',
+    label: 'Fakultetske kolege',
+    icon: 'book-outline',
+    description: 'Studenti, kolegiji, domovi i sve zajedničke teme fakulteta.',
+  },
+  {
+    key: 'posao',
+    label: 'Ekipica s posla',
+    icon: 'briefcase-outline',
+    description: 'Kancelarija, timovi i pomalo birokratski štimung.',
+  },
+  {
+    key: 'najbolji-prijatelji',
+    label: 'Najbolji prijatelji',
+    icon: 'people-outline',
+    description: 'Uža raja, core grupa koja prati svaki dan.',
+  },
+  {
+    key: 'komsiluk',
+    label: 'Komšiluk',
+    icon: 'location-outline',
+    description: 'Kvart, zgrada i lokalna četa.',
+  },
+  {
+    key: 'influenserska',
+    label: 'Influenserska',
+    icon: 'camera-outline',
+    description: 'Reels, kampanje i zajednički brand momenti.',
+  },
+  {
+    key: 'sport',
+    label: 'Sportska ekipa',
+    icon: 'football-outline',
+    description: 'Treninzi, utakmice i navijačka energija.',
+  },
+  {
+    key: 'izlasci',
+    label: 'Noćni izlasci',
+    icon: 'wine-outline',
+    description: 'Klubovi, barovi i vikend žurka.',
+  },
+  {
+    key: 'travel',
+    label: 'Travel ekipa',
+    icon: 'airplane-outline',
+    description: 'Tripovi, destinacije i zajedničke avanture.',
+  },
+  {
+    key: 'gejmeri',
+    label: 'Gejmerska ekipa',
+    icon: 'game-controller-outline',
+    description: 'Squadovi, co-op sesije i Discord vibe.',
+  },
+  {
+    key: 'kreativci',
+    label: 'Kreativci',
+    icon: 'brush-outline',
+    description: 'Crtači, dizajneri i muzičari razmjenjuju inspiraciju.',
+  },
+  {
+    key: 'chill',
+    label: 'Chill zajednica',
+    icon: 'leaf-outline',
+    description: 'Relaks vibra, kasni chatovi i opuštena druženja.',
+  },
+  {
+    key: 'street-fashion',
+    label: 'Street & Fashion ekipa',
+    icon: 'shirt-outline',
+    description: 'Outfiti, street style i modne preporuke.',
+  },
+  {
+    key: 'foodie',
+    label: 'Foodie ekipa',
+    icon: 'pizza-outline',
+    description: 'Hrana, preporuke i gurmanski planovi.',
+  },
+  {
+    key: 'poezija',
+    label: 'Poezija & literarni',
+    icon: 'reader-outline',
+    description: 'Kratki stihovi, knjige i pjesnički flow.',
+  },
+  {
+    key: 'film',
+    label: 'Filmski klub',
+    icon: 'film-outline',
+    description: 'Filmske večeri, preporuke i kritike.',
+  },
+  {
+    key: 'diy',
+    label: 'DIY lab',
+    icon: 'construct-outline',
+    description: 'Uradi sam projekti i kreativno eksperimentiranje.',
+  },
+  {
+    key: 'podcast',
+    label: 'Podcast sesija',
+    icon: 'mic-outline',
+    description: 'Razgovori, storytelling i snimateljske priče.',
+  },
+  {
+    key: 'retro',
+    label: 'Retro vibra',
+    icon: 'logo-apple-appstore',
+    description: 'Old-school playlist, kasete i vintage inspiracija.',
+  },
 ];
 
 const privacyOptions = [
@@ -248,19 +348,29 @@ export default function CreateRoomScreen({ navigation }) {
             {vibeOptions.map((option) => {
               const active = selectedVibe === option.key;
               return (
-                <TouchableOpacity
-                  key={option.key}
-                  style={[styles.chip, active && styles.chipActive]}
-                  onPress={() => setSelectedVibe(option.key)}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons
-                    name={option.icon}
-                    size={20}
-                    color={active ? colors.primary : colors.text_secondary}
-                  />
-                  <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>{option.label}</Text>
-                </TouchableOpacity>
+            <TouchableOpacity
+              key={option.key}
+              style={[styles.chip, active && styles.chipActive]}
+              onPress={() => setSelectedVibe(option.key)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.chipIconColumn}>
+                <Ionicons
+                  name={option.icon}
+                  size={32}
+                  color={active ? colors.primary : colors.text_secondary}
+                  style={styles.chipIcon}
+                />
+              </View>
+              <View style={styles.chipTextColumn}>
+                <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>{option.label}</Text>
+                {option.description ? (
+                  <Text style={styles.chipDescription} numberOfLines={2}>
+                    {option.description}
+                  </Text>
+                ) : null}
+              </View>
+            </TouchableOpacity>
               );
             })}
           </View>
@@ -418,30 +528,53 @@ const createStyles = (colors) =>
       paddingTop: 12,
     },
     chipRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexDirection: 'column',
       gap: 10,
     },
     chip: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 10,
-      paddingHorizontal: 14,
-      borderRadius: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 14,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.surface,
       marginRight: 0,
       marginBottom: 0,
+      gap: 12,
+      width: '100%',
+      minHeight: 86,
     },
     chipActive: {
       backgroundColor: colors.surface,
       borderColor: colors.primary,
-      color: colors.primary,
+    },
+    chipIconColumn: {
+      width: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    chipIcon: {
+      marginLeft: 0,
+    },
+    chipTextColumn: {
+      flex: 1,
+      justifyContent: 'center',
+      minHeight: 60,
     },
     chipLabel: {
-      marginLeft: 8,
       color: colors.text_secondary,
+      fontWeight: '600',
+    },
+    chipLabelActive: {
+      color: colors.primary,
+    },
+    chipDescription: {
+      fontSize: 12,
+      color: colors.text_secondary,
+      opacity: 0.75,
+      marginTop: 2,
     },
     chipLabelActive: {
       color: colors.primary,
