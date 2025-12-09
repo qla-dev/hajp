@@ -32,6 +32,8 @@ Route::get('/anonymous/inbox/{user}', [AnonInboxController::class, 'show']);
 
 Route::post('/anonymous/message', [AnonInboxController::class, 'createMessage']);
 
+Route::get('/share/styles', [App\Http\Controllers\ShareLinkStyleController::class, 'index']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 

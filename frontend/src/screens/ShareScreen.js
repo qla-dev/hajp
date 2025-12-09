@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground, Dimensions, Alert, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions, Alert, FlatList } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { getCurrentUser, baseURL } from '../api';
+import { fetchShareStyles, getCurrentUser, baseURL } from '../api';
 import ShareInstructionModal from '../components/ShareInstructionModal';
 
 const { width } = Dimensions.get('window');
@@ -14,21 +14,24 @@ const CARD_SPACING = 14;
 const topics = [
   {
     key: 'anon',
-    title: 'Pošalji mi anonimnu poruku',
-    topic: 'anon',
-    background: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=60',
+    slug: 'anon',
+    question: 'Šta bi volio/voljela da znaš o meni?',
+    color: '#ff4d70',
+    bg: '#fcdad6',
   },
   {
     key: 'threewords',
-    title: 'Opiši me u 3 riječi',
-    topic: '3words',
-    background: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=60',
+    slug: 'threewords',
+    question: 'Opiši me u tri riječi',
+    color: '#a855f7',
+    bg: '#f3e3fe',
   },
   {
     key: 'hotseat',
-    title: 'Postavi mi hot seat pitanje',
-    topic: 'hotseat',
-    background: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=800&q=60',
+    slug: 'hotseat',
+    question: 'Postavi mi hot seat pitanje',
+    color: '#f97316',
+    bg: '#ffe4d0',
   },
 ];
 
@@ -39,6 +42,7 @@ export default function ShareScreen() {
   const [user, setUser] = useState(null);
   const [index, setIndex] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [shareStyles, setShareStyles] = useState([]);
 
   const loadUser = useCallback(async () => {
     try {
@@ -55,20 +59,43 @@ export default function ShareScreen() {
 
   const onScrollEnd = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
-    const newIndex = Math.round(offsetX / (CARD_WIDTH + CARD_SPACING));
+    const rawIndex = Math.round(offsetX / (CARD_WIDTH + CARD_SPACING));
+    const maxIndex = cardItems.length - 1;
+    const newIndex = Math.min(Math.max(rawIndex, 0), maxIndex);
     if (newIndex !== index) {
       setIndex(newIndex);
       Haptics.selectionAsync().catch(() => {});
     }
   };
 
-  const activeTopic = topics[index] || topics[0];
+  const loadStyles = useCallback(async () => {
+    try {
+      const { data } = await fetchShareStyles();
+      setShareStyles(Array.isArray(data) ? data : []);
+    } catch {
+      setShareStyles([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadStyles();
+  }, [loadStyles]);
+
+  const cardItems = shareStyles.length ? shareStyles : topics;
+  const effectiveIndex = Math.min(index, cardItems.length - 1);
+  const activeTopic = cardItems[effectiveIndex] || topics[0];
+
+  useEffect(() => {
+    if (index > cardItems.length - 1 && cardItems.length > 0) {
+      setIndex(cardItems.length - 1);
+    }
+  }, [cardItems.length, index]);
 
   const shareLink = useMemo(() => {
     const username = user?.username || 'username';
-    const cleanBase = (baseURL || '').replace(/\/+$/, '');
-    return `https://hajp.app/${username}/${activeTopic.topic}`;
-  }, [activeTopic.topic, user?.username]);
+    const slug = activeTopic.slug || activeTopic.topic;
+    return `https://hajp.app/share/${username}/${slug}`;
+  }, [activeTopic.slug, activeTopic.topic, user?.username]);
 
   const avatarUri = useMemo(() => {
     if (user?.profile_photo) {
@@ -117,25 +144,25 @@ export default function ShareScreen() {
       <ScrollView style={styles.scroll} contentInsetAdjustmentBehavior="always">
         <FlatList
           ref={flatListRef}
-          data={topics}
-          keyExtractor={(item) => item.key}
+          data={cardItems}
+          keyExtractor={(item) => item.slug ?? item.key ?? String(item.id ?? item.slug)}
           renderItem={({ item }) => (
-            <View style={styles.cardWrapper}>
-              <ImageBackground source={{ uri: item.background }} style={styles.bigCard} imageStyle={styles.cardImage}>
-                <View style={styles.cardOverlay}>
-                  <View style={styles.avatarWrapper}>
-                    {avatarUri ? (
-                      <Image source={{ uri: avatarUri }} style={styles.avatar} />
-                    ) : (
-                      <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                        <Text style={styles.avatarInitial}>{avatarInitial}</Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={styles.cardTitle}>{item.title}</Text>
+          <View style={styles.cardWrapper}>
+            <View style={[styles.bigCard, { backgroundColor: item.bg || colors.surface }]}>
+              <View style={[styles.cardOverlay, { backgroundColor: item.color ? `${item.color}aa` : 'rgba(0,0,0,0.35)' }]}>
+                <View style={styles.avatarWrapper}>
+                  {avatarUri ? (
+                    <Image source={{ uri: avatarUri }} style={styles.avatar} />
+                  ) : (
+                    <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                      <Text style={styles.avatarInitial}>{avatarInitial}</Text>
+                    </View>
+                  )}
                 </View>
-              </ImageBackground>
+                <Text style={styles.cardTitle}>{item.question || item.title}</Text>
+              </View>
             </View>
+          </View>
           )}
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -143,12 +170,12 @@ export default function ShareScreen() {
           onMomentumScrollEnd={onScrollEnd}
           contentContainerStyle={styles.carouselContent}
           snapToAlignment="start"
-          snapToOffsets={topics.map((_, i) => i * (CARD_WIDTH + CARD_SPACING))}
+          snapToOffsets={cardItems.map((_, i) => i * (CARD_WIDTH + CARD_SPACING))}
           disableIntervalMomentum
           ItemSeparatorComponent={() => <View style={{ width: CARD_SPACING }} />}
         />
         <View style={styles.pagination}>
-          {topics.map((_, dotIdx) => (
+          {cardItems.map((_, dotIdx) => (
             <View key={dotIdx} style={[styles.dot, dotIdx === index && styles.dotActive]} />
           ))}
         </View>
