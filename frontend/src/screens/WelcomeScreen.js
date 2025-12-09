@@ -15,7 +15,7 @@ export default function WelcomeScreen({ navigation }) {
         <Text style={styles.welcomeText}>DOBRODOŠLI U</Text>
         <View style={styles.logoContainer}>
           <SvgUri
-            width={220}
+            width={300}
             height={80}
             uri={logoUri}
             preserveAspectRatio="xMidYMid meet"
