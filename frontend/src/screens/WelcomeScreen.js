@@ -1,6 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 import { useThemedStyles } from '../theme/darkMode';
+import { baseURL } from '../api';
+
+const logoUri = `${baseURL}/img/logo.svg`;
 
 export default function WelcomeScreen({ navigation }) {
   const styles = useThemedStyles(createStyles);
@@ -10,8 +14,13 @@ export default function WelcomeScreen({ navigation }) {
       <View style={styles.content}>
         <Text style={styles.welcomeText}>DOBRODOŠLI U</Text>
         <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>HAJP</Text>
-          <Text style={styles.logoEmoji}>🔥</Text>
+          <SvgUri
+            width={220}
+            height={80}
+            uri={logoUri}
+            preserveAspectRatio="xMidYMid meet"
+            style={styles.logoImage}
+          />
         </View>
 
         <View style={styles.featuresContainer}>
@@ -71,16 +80,9 @@ const createStyles = (colors) =>
       marginTop: 8,
       marginBottom: 40,
     },
-    logoText: {
-      fontSize: 64,
-      fontWeight: '900',
-      color: colors.primary,
-      letterSpacing: -2,
-    },
-    logoEmoji: {
-      fontSize: 48,
-      marginLeft: -8,
-      color: colors.secondary,
+    logoImage: {
+      width: 220,
+      height: 80,
     },
     featuresContainer: {
       flexDirection: 'row',
