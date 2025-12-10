@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { StyleSheet, Pressable, TouchableOpacity, Text, View, registerCallableModule } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
@@ -37,11 +37,11 @@ const headerLabelMap = {
 };
 
 const iconMap = {
-  Hajp: { active: 'home', inactive: 'home-outline' },
-  Friends: { active: 'planet', inactive: 'planet-outline' },
-  Rank: { active: 'radio', inactive: 'radio-outline' },
-  Inbox: { active: 'flame', inactive: 'flame-outline' },
-  Profile: { active: 'person', inactive: 'person-outline' },
+  Hajp: { active: 'home', inactive: 'home_outlined' },
+  Friends: { active: 'groups', inactive: 'groups' },
+  Rank: { active: 'broadcast_on_personal', inactive: 'broadcast_on_personal' },
+  Inbox: { active: 'local_fire_department', inactive: 'local_fire_department_outlined' },
+  Profile: { active: 'person', inactive: 'person' },
 };
 
 
@@ -463,14 +463,11 @@ export default function MainTabs() {
             const icons = iconMap[route.name] || iconMap.Hajp;
             const iconName = isFocused ? icons.active : icons.inactive;
             const baseSize = route.name === 'Hajp' ? Math.max(size - 1, 16) : size;
-            const customSize = route.name === "hue" ? baseSize + 9 : baseSize;
-            const stroke = route.name === "hue" ? 5.2 : 5.3;
             return (
-              <Ionicons
+              <MaterialIcons
                 name={iconName}
-                size={customSize}
+                size={baseSize}
                 color={color}
-                strokeWidth={stroke}
               />
             );
           },
