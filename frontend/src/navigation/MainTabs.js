@@ -29,7 +29,7 @@ const HajpoviStack = createNativeStackNavigator();
 const FriendsStack = createNativeStackNavigator();
 
 const headerLabelMap = {
-  Hajp: 'Ankete',
+  Hajp: 'Hajpaj',
   Inbox: 'Hajpovi',
   Rank: 'Uživo',
   Friends: 'Mreža',
@@ -58,11 +58,11 @@ function HajpStackNavigator() {
         headerStyle: { backgroundColor: 'transparent' },
       }}
     >
-      <HajpStack.Screen
+        <HajpStack.Screen
         name="Rooms"
         component={RoomsScreen}
         options={({ navigation }) => ({
-          title: 'Ankete',
+          title: 'Hajpaj',
           headerRight: () => (
             <CoinHeaderIndicator
               onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
@@ -462,15 +462,17 @@ export default function MainTabs() {
           tabBarIcon: ({ focused: isFocused, color, size }) => {
             const icons = iconMap[route.name] || iconMap.Hajp;
             const iconName = isFocused ? icons.active : icons.inactive;
-              // Bigger size only for Friends
-  const customSize = route.name === "hue" ? size + 9 : size;
-
-  // Thicker stroke only for Friends
-  const stroke = route.name === "hue" ? 5.2 : 5.3;
-            return <Ionicons  name={iconName}
-      size={customSize}
-      color={color}
-      strokeWidth={stroke} />;
+            const baseSize = route.name === 'Hajp' ? Math.max(size - 1, 16) : size;
+            const customSize = route.name === "hue" ? baseSize + 9 : baseSize;
+            const stroke = route.name === "hue" ? 5.2 : 5.3;
+            return (
+              <Ionicons
+                name={iconName}
+                size={customSize}
+                color={color}
+                strokeWidth={stroke}
+              />
+            );
           },
         };
       }}
