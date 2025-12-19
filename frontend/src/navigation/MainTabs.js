@@ -1,8 +1,9 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { MaterialIcons } from '@expo/vector-icons';
-import { StyleSheet, Pressable, TouchableOpacity, Text, View, registerCallableModule } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import RemixIcon from 'react-native-remix-icon';
+import { StyleSheet, Pressable, TouchableOpacity, Text, View } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
@@ -37,11 +38,15 @@ const headerLabelMap = {
 };
 
 const iconMap = {
-  Hajp: { active: 'home', inactive: 'home_outlined' },
-  Friends: { active: 'groups', inactive: 'groups' },
-  Rank: { active: 'broadcast_on_personal', inactive: 'broadcast_on_personal' },
-  Inbox: { active: 'local_fire_department', inactive: 'local_fire_department_outlined' },
-  Profile: { active: 'person', inactive: 'person' },
+  Hajp: { active: 'home-line', inactive: 'home-line' },
+  Friends: { active: 'group-line', inactive: 'group-line' },
+  Rank: { active: 'broadcast-fill', inactive: 'broadcast-line' },
+  Inbox: { active: 'fire-line', inactive: 'fire-line' },
+  Profile: { active: 'user-line', inactive: 'user-line' },
+};
+
+const iconTransformMap = {
+  Hajp: { transform: [{ scaleY: 1 }] },
 };
 
 
@@ -405,6 +410,7 @@ function FriendsStackNavigator() {
 
 export default function MainTabs() {
   const { colors } = useTheme();
+  const tabBarBorderColor = colors.borderLight || colors.border;
 
   return (
     <Tab.Navigator
@@ -441,7 +447,7 @@ export default function MainTabs() {
             ? { display: 'none' }
             : {
                 backgroundColor: colors.surface,
-                borderTopColor: colors.border,
+                borderTopColor: tabBarBorderColor,
                 borderTopWidth: 1,
                 height: 86,
                 paddingBottom: 24,
@@ -463,11 +469,13 @@ export default function MainTabs() {
             const icons = iconMap[route.name] || iconMap.Hajp;
             const iconName = isFocused ? icons.active : icons.inactive;
             const baseSize = route.name === 'Hajp' ? Math.max(size - 1, 16) : size;
+            const iconStyle = iconTransformMap[route.name];
             return (
-              <MaterialIcons
+              <RemixIcon
                 name={iconName}
                 size={baseSize}
                 color={color}
+                style={iconStyle}
               />
             );
           },
