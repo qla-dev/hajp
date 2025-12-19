@@ -51,6 +51,8 @@ const iconTransformMap = {
   Hajp: { transform: [{ scaleY: 1 }] },
 };
 
+const PROFILE_ICON_SIZE = 26;
+
 
 function HajpStackNavigator() {
   const { colors } = useTheme();
@@ -509,8 +511,12 @@ export default function MainTabs() {
           tabBarIcon: ({ focused: isFocused, color, size }) => {
             if (route.name === 'Profile') {
               const borderColor = isFocused ? colors.primary : colors.border;
+              const containerStyle = [
+                tabStyles.profileIconContainer,
+                { borderColor, backgroundColor: profileAvatarUri ? colors.surface : colors.secondary },
+              ];
               return (
-                <View style={[tabStyles.profileIconContainer, { borderColor }]}>
+                <View style={containerStyle}>
                   {profileAvatarUri ? (
                     <Image source={{ uri: profileAvatarUri }} style={tabStyles.profileIconImage} />
                   ) : (
@@ -654,24 +660,23 @@ const createStyles = (colors, isDark) =>
       paddingVertical: 6,
     },
     profileIconContainer: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      width: PROFILE_ICON_SIZE,
+      height: PROFILE_ICON_SIZE,
+      borderRadius: PROFILE_ICON_SIZE / 2,
       borderWidth: 1,
       borderColor: colors.border,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.surface,
       overflow: 'hidden',
     },
     profileIconImage: {
       width: '100%',
       height: '100%',
-      borderRadius: 18,
+      borderRadius: PROFILE_ICON_SIZE / 2,
       resizeMode: 'cover',
     },
     profileIconInitials: {
-      color: colors.text_primary,
+      color: colors.textLight,
       fontSize: 12,
       fontWeight: '700',
     },
