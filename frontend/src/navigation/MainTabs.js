@@ -23,6 +23,7 @@ import CreateRoomScreen from '../screens/CreateRoomScreen';
 import RoomVibeSelection from '../screens/RoomVibeSelection';
 import CoinHeaderIndicator from '../components/CoinHeaderIndicator';
 import { baseURL, getCurrentUser } from '../api';
+import { addProfileUpdatedListener } from '../utils/profileEvents';
 
 const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
@@ -439,8 +440,14 @@ export default function MainTabs() {
       }
     };
     loadUser();
+    const unsubscribe = addProfileUpdatedListener((user) => {
+      if (!isMounted) return;
+      setProfileUser(user);
+      setProfileAvatarUri(resolveAvatar(user?.profile_photo));
+    });
     return () => {
       isMounted = false;
+      unsubscribe();
     };
   }, []);
 

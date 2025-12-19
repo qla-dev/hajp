@@ -5,6 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import FormTextInput from '../components/FormTextInput';
 import { getCurrentUser, updateCurrentUser, uploadProfilePhoto, removeProfilePhoto, baseURL } from '../api';
+import { emitProfileUpdated } from '../utils/profileEvents';
 
 const genderOptions = [
   { key: 'girl', label: 'Žensko', icon: 'female-outline' },
@@ -42,11 +43,12 @@ export default function EditProfileScreen({ navigation, route }) {
 
   const isDirty = ['name', 'email', 'sex'].some((key) => form[key] !== initialValues[key]);
 
-  const applyUser = useCallback((userData) => {
-    const normalized = normalizeUser(userData);
-    setForm(normalized);
-    setInitialValues(normalized);
-  }, []);
+const applyUser = useCallback((userData) => {
+  const normalized = normalizeUser(userData);
+  setForm(normalized);
+  setInitialValues(normalized);
+  emitProfileUpdated(userData);
+}, []);
 
   const loadUser = useCallback(async () => {
     setLoading(true);
