@@ -677,7 +677,7 @@ const createStyles = (colors, isDark) =>
     },
     profileIconInitials: {
       color: colors.textLight,
-      fontSize: 12,
+      fontSize: 10,
       fontWeight: '700',
     },
   });
