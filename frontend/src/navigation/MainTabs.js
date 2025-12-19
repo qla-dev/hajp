@@ -24,6 +24,7 @@ import RoomVibeSelection from '../screens/RoomVibeSelection';
 import CoinHeaderIndicator from '../components/CoinHeaderIndicator';
 import { baseURL, getCurrentUser } from '../api';
 import { addProfileUpdatedListener } from '../utils/profileEvents';
+import UserRoomsScreen from '../screens/UserRoomsScreen';
 
 const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
@@ -203,7 +204,7 @@ function ProfileStackNavigator() {
           headerLeft: () => (
             <View style={styles.headerLeftGroup}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('Rank', { screen: 'RankRooms' })}
+                onPress={() => navigation.navigate('UserRooms')}
                 style={[styles.glassButton, styles.headerButton]}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
@@ -235,8 +236,16 @@ function ProfileStackNavigator() {
                 <Ionicons name="settings-outline" size={20} color={colors.text_primary} />
               </TouchableOpacity>
             </View>
-          ),
-        })}
+        ),
+      })}
+      />
+      <ProfileStack.Screen
+        name="UserRooms"
+        component={UserRoomsScreen}
+        options={{
+          title: 'Sobe',
+          headerBackTitle: 'Nazad',
+        }}
       />
       <ProfileStack.Screen
         name="CreateRoom"
