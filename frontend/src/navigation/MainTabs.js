@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import RemixIcon from 'react-native-remix-icon';
-import { StyleSheet, Pressable, TouchableOpacity, Text, View } from 'react-native';
+import { StyleSheet, Pressable, TouchableOpacity, Text, View, Image } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
@@ -22,6 +22,7 @@ import NextPollCountdownScreen from '../screens/NextPollCountdownScreen';
 import CreateRoomScreen from '../screens/CreateRoomScreen';
 import RoomVibeSelection from '../screens/RoomVibeSelection';
 import CoinHeaderIndicator from '../components/CoinHeaderIndicator';
+import { baseURL, getCurrentUser } from '../api';
 
 const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
@@ -410,6 +411,39 @@ function FriendsStackNavigator() {
 
 export default function MainTabs() {
   const { colors } = useTheme();
+  const tabStyles = useThemedStyles(createStyles);
+  const [profileUser, setProfileUser] = useState(null);
+  const [profileAvatarUri, setProfileAvatarUri] = useState(null);
+  const profileInitials = useMemo(() => {
+    const label = (profileUser?.name || profileUser?.username || 'Korisnik').trim() || 'Korisnik';
+    return label
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
+  }, [profileUser?.name, profileUser?.username]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (!isMounted) return;
+        setProfileUser(user);
+        setProfileAvatarUri(resolveAvatar(user?.profile_photo));
+      } catch {
+        if (!isMounted) return;
+        setProfileUser(null);
+        setProfileAvatarUri(null);
+      }
+    };
+    loadUser();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const tabBarBorderColor = colors.borderLight || colors.border;
 
   return (
@@ -466,6 +500,19 @@ export default function MainTabs() {
           tabBarLabel: headerLabelMap[route.name] || route.name,
           tabBarButton: (props) => <HapticTabButton {...props} />,
           tabBarIcon: ({ focused: isFocused, color, size }) => {
+            if (route.name === 'Profile') {
+              const borderColor = isFocused ? colors.primary : colors.border;
+              return (
+                <View style={[tabStyles.profileIconContainer, { borderColor }]}>
+                  {profileAvatarUri ? (
+                    <Image source={{ uri: profileAvatarUri }} style={tabStyles.profileIconImage} />
+                  ) : (
+                    <Text style={tabStyles.profileIconInitials}>{profileInitials}</Text>
+                  )}
+                </View>
+              );
+            }
+
             const icons = iconMap[route.name] || iconMap.Hajp;
             const iconName = isFocused ? icons.active : icons.inactive;
             const baseSize = route.name === 'Hajp' ? Math.max(size - 1, 16) : size;
@@ -525,6 +572,14 @@ function HapticTabButton({ children, onPress, onLongPress, accessibilityState, s
     </Pressable>
   );
 }
+
+const resolveAvatar = (photo) => {
+  if (!photo) return null;
+  if (/^https?:\/\//i.test(photo)) return photo;
+  const cleanBase = (baseURL || '').replace(/\/+$/, '');
+  const cleanPath = photo?.replace(/^\/+/, '') || '';
+  return `${cleanBase}/${cleanPath}`;
+};
 
 const createStyles = (colors, isDark) =>
   StyleSheet.create({
@@ -590,6 +645,28 @@ const createStyles = (colors, isDark) =>
       paddingHorizontal: 10,
       paddingLeft: 5,
       paddingVertical: 6,
+    },
+    profileIconContainer: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface,
+      overflow: 'hidden',
+    },
+    profileIconImage: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 18,
+      resizeMode: 'cover',
+    },
+    profileIconInitials: {
+      color: colors.text_primary,
+      fontSize: 12,
+      fontWeight: '700',
     },
   });
 
