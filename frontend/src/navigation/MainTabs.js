@@ -243,7 +243,7 @@ function ProfileStackNavigator() {
         name="UserRooms"
         component={UserRoomsScreen}
         options={{
-          title: 'Sobe',
+          title: 'Moje sobe',
           headerBackTitle: 'Nazad',
         }}
       />

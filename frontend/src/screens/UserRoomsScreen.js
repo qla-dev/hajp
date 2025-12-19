@@ -50,9 +50,12 @@ export default function UserRoomsScreen({ navigation }) {
   }, []);
 
   useEffect(() => {
-    loadOwnedRooms();
-    loadMemberRooms();
-  }, [loadOwnedRooms, loadMemberRooms]);
+    if (activeTab === TAB_MY_ROOMS) {
+      loadOwnedRooms();
+    } else {
+      loadMemberRooms();
+    }
+  }, [activeTab, loadOwnedRooms, loadMemberRooms]);
 
   const renderedRooms = useMemo(
     () => (activeTab === TAB_MY_ROOMS ? ownedRooms : memberRooms),
@@ -62,6 +65,29 @@ export default function UserRoomsScreen({ navigation }) {
   const loading = activeTab === TAB_MY_ROOMS ? loadingOwned : loadingMember;
   const onRefresh = activeTab === TAB_MY_ROOMS ? loadOwnedRooms : loadMemberRooms;
 
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Učitavanje</Text>
+        </View>
+      );
+    }
+
+    return (
+      <FlatList
+        data={renderedRooms}
+        keyExtractor={(item, index) => String(item.id ?? item.name ?? index)}
+        renderItem={renderRoom}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+        }
+        ListEmptyComponent={renderEmpty}
+      />
+    );
+  };
   const renderRoom = ({ item }) => (
     <TouchableOpacity
       style={styles.roomCard}
@@ -81,19 +107,17 @@ export default function UserRoomsScreen({ navigation }) {
     </TouchableOpacity>
   );
 
-  const renderEmpty = () => (
-    loading ? (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Ucitavanje</Text>
-      </View>
-    ) : (
+  const renderEmpty = () => {
+    if (loading) {
+      return null;
+    }
+    return (
       <View style={styles.emptyState}>
         <Text style={styles.emptyTitle}>Nema soba</Text>
         <Text style={styles.emptySubtitle}>Jos nema soba u ovoj kategoriji. Pokusaj ponovo kasnije.</Text>
       </View>
-    )
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -106,22 +130,13 @@ export default function UserRoomsScreen({ navigation }) {
             disabled={activeTab === tab}
           >
             <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab === TAB_MY_ROOMS ? 'Moje sobe' : 'Sobe gdje sam clan'}
+              {tab === TAB_MY_ROOMS ? 'Sobe gdje sam admin' : 'Sobe gdje sam član'}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <FlatList
-        data={renderedRooms}
-        keyExtractor={(item, index) => String(item.id ?? item.name ?? index)}
-        renderItem={renderRoom}
-        contentContainerStyle={styles.list}
-        refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
-        }
-        ListEmptyComponent={renderEmpty}
-      />
+      {renderContent()}
     </View>
   );
 }
@@ -146,6 +161,7 @@ const createStyles = (colors, isDark) =>
       borderWidth: 1,
       borderColor: colors.border,
       alignItems: 'center',
+      textAlign: 'center',
     },
     tabButtonActive: {
       borderColor: colors.primary,
@@ -155,8 +171,8 @@ const createStyles = (colors, isDark) =>
       fontSize: 14,
       fontWeight: '700',
       color: colors.text_secondary,
-      textTransform: 'uppercase',
       letterSpacing: 0.2,
+      textAlign: 'center',
     },
     tabTextActive: {
       color: colors.primary,
@@ -189,12 +205,6 @@ const createStyles = (colors, isDark) =>
       fontSize: 12,
       color: colors.text_secondary,
     },
-    loader: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 40,
-    },
     loadingText: {
       color: colors.text_secondary,
       fontSize: 16,
@@ -216,5 +226,11 @@ const createStyles = (colors, isDark) =>
       fontSize: 14,
       color: colors.text_secondary,
       textAlign: 'center',
+    },
+    centerContent: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 40,
     },
   });

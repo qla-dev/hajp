@@ -170,6 +170,7 @@ const createStyles = (colors, isDark) =>
       fontSize: 14,
       fontWeight: '700',
       color: colors.text_secondary,
+      textAlign: 'center',
     },
     tabTextActive: {
       color: colors.primary,
