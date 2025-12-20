@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Modalize } from 'react-native-modalize';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { joinRoomByCode } from '../api';
@@ -7,41 +7,33 @@ import { joinRoomByCode } from '../api';
 const InviteCodeBottomSheet = React.forwardRef(({ onJoinSuccess, onClose }, ref) => {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   const resetState = () => {
     setCode('');
-    setError('');
     setLoading(false);
   };
-
-  useEffect(() => {
-    if (!error) return undefined;
-
-    const timer = setTimeout(() => setError(''), 2600);
-    return () => clearTimeout(timer);
-  }, [error]);
 
   const handleJoin = useCallback(async () => {
     const trimmed = (code || '').trim();
     if (!trimmed) {
-      setError('Unesi kod');
+      Alert.alert('Greška', 'Unesi kod');
       return;
     }
     setLoading(true);
-    setError('');
     try {
-      await joinRoomByCode(trimmed);
+      const response = await joinRoomByCode(trimmed);
+      const payload = response?.data;
+      const roomName = payload?.room_name || 'sobi';
+      Alert.alert('Uspjeh', `Uspješno si se pridružio sobi: ${roomName}`);
       onJoinSuccess?.();
       ref?.current?.close();
     } catch (joinError) {
       const message =
         joinError?.response?.data?.message ||
-        joinError?.message ||
-        'Neuspelo pridruživanje';
-      setError(message);
+        'Uneseni kod ne pripada ni jednoj sobi. Pokušaj ponovo';
+      Alert.alert('Greška', message);
     } finally {
       setLoading(false);
     }
@@ -72,7 +64,6 @@ const InviteCodeBottomSheet = React.forwardRef(({ onJoinSuccess, onClose }, ref)
           autoCapitalize="characters"
           autoCorrect={false}
         />
-        {!!error && <Text style={styles.error}>{error}</Text>}
         <TouchableOpacity style={styles.submit} onPress={handleJoin} disabled={loading}>
           {loading ? (
             <ActivityIndicator color={colors.textLight} />
@@ -136,10 +127,5 @@ const createStyles = (colors) =>
       fontSize: 16,
       fontWeight: '700',
       letterSpacing: 0.5,
-    },
-    error: {
-      color: colors.error,
-      fontSize: 13,
-      marginBottom: 8,
     },
   });

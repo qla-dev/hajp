@@ -49,6 +49,8 @@ class RoomController extends Controller
         return response()->json([
             'status' => $approved ? 'joined' : 'requested',
             'room_id' => $room->id,
+            'room_name' => $room->name,
+            'message' => "Uspješno si se pridružio sobi: {$room->name}",
         ]);
     }
 
@@ -60,7 +62,7 @@ class RoomController extends Controller
 
         $room = Room::where('code', $data['code'])->first();
         if (!$room) {
-            return response()->json(['message' => 'Kod nije vazeci'], 404);
+            return response()->json(['message' => 'Uneseni kod ne pripada ni jednoj sobi. Pokušaj ponovo'], 404);
         }
 
         return $this->join($request, $room);
