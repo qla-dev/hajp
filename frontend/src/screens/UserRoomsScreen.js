@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchUserRooms } from '../api';
 import { useRoomSheet } from '../context/roomSheetContext';
@@ -83,6 +84,17 @@ export default function UserRoomsScreen({ navigation }) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.navigate('ProfileHome')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="chevron-back" size={22} color={colors.text_primary} />
+          <Text style={styles.backLabel}>Nazad</Text>
+        </TouchableOpacity>
+      ),
+      headerBackVisible: false,
       headerRight: () => (
         <TouchableOpacity
           style={styles.headerTextButton}
@@ -93,7 +105,17 @@ export default function UserRoomsScreen({ navigation }) {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, openInviteSheet, styles, handleJoinSuccess]);
+  }, [navigation, openInviteSheet, styles, handleJoinSuccess, colors.text_primary]);
+
+  useEffect(() => {
+    const beforeRemove = navigation.addListener('beforeRemove', (event) => {
+      if (event.data.action.type === 'POP') {
+        event.preventDefault();
+        navigation.navigate('ProfileHome');
+      }
+    });
+    return beforeRemove;
+  }, [navigation]);
 
   const renderContent = () => {
     if (loading) {
@@ -267,5 +289,17 @@ const createStyles = (colors, isDark) =>
       fontSize: 17,
       fontWeight: '500',
       letterSpacing: 0.2,
+    },
+    backButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 4,
+      paddingVertical: 4,
+    },
+    backLabel: {
+      marginLeft: 4,
+      color: colors.text_primary,
+      fontSize: 17,
+      fontWeight: '500',
     },
   });

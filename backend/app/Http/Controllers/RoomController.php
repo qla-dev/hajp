@@ -421,8 +421,9 @@ class RoomController extends Controller
 
     private function generateRoomCode(): string
     {
+        $lettersCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         do {
-            $letters = strtoupper(Str::random(3));
+            $letters = substr(str_shuffle($lettersCharacters), 0, 3);
             $numbers = str_pad((string) mt_rand(0, 999), 3, '0', STR_PAD_LEFT);
             $code = "{$letters}{$numbers}";
         } while (Room::where('code', $code)->exists());

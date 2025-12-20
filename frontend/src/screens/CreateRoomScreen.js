@@ -143,9 +143,9 @@ export default function CreateRoomScreen({ navigation }) {
       setCreating(false);
       Alert.alert('Soba je kreirana', 'Nova soba je spremljena.', [
         {
-          text: 'Uredu',
+          text: 'U redu',
           onPress: () => {
-            navigation.navigate('ProfileHome');
+            navigation.navigate('UserRooms');
           },
         },
       ]);
