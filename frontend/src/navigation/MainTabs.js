@@ -28,7 +28,7 @@ import { addProfileUpdatedListener } from '../utils/profileEvents';
 import UserRoomsScreen from '../screens/UserRoomsScreen';
 
 const logoUri = `${baseURL}/img/logo.svg`;
-const POLLING_LOGO_STYLE = { width: 140, height: 38 };
+const POLLING_LOGO_STYLE = { width: 110, height: 38 };
 const POLLING_LOGO_CONTAINER_STYLE = {
   width: POLLING_LOGO_STYLE.width,
   height: POLLING_LOGO_STYLE.height,
@@ -36,7 +36,7 @@ const POLLING_LOGO_CONTAINER_STYLE = {
   justifyContent: 'center',
 };
 
-const PollingHeaderLogo = ({ color = '#fff' }) => (
+const AppHeaderLogo = ({ color = '#fff' }) => (
   <View style={POLLING_LOGO_CONTAINER_STYLE}>
     <SvgUri
       width={POLLING_LOGO_STYLE.width}
@@ -64,7 +64,7 @@ const HajpoviStack = createNativeStackNavigator();
 const FriendsStack = createNativeStackNavigator();
 
 const headerLabelMap = {
-  Hajp: 'Hajpaj',
+  Hajp: 'Hajp',
   Inbox: 'Hajpovi',
   Rank: 'Uživo',
   Friends: 'Mreža',
@@ -99,11 +99,11 @@ function HajpStackNavigator() {
         headerStyle: { backgroundColor: 'transparent' },
       }}
     >
-        <HajpStack.Screen
+      <HajpStack.Screen
         name="Rooms"
         component={RoomsScreen}
         options={({ navigation }) => ({
-          title: 'Hajpaj',
+          headerTitle: () => <AppHeaderLogo color={colors.text_primary} />,
           headerRight: () => (
             <CoinHeaderIndicator
               onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
@@ -115,7 +115,7 @@ function HajpStackNavigator() {
         name="Polling"
         component={PollingScreen}
         options={{
-          headerTitle: () => <PollingHeaderLogo color={colors.textLight} />,
+          headerTitle: () => <AppHeaderLogo color={colors.textLight} />,
           headerTintColor: colors.textLight,
           headerStyle: {
             backgroundColor: 'transparent',
