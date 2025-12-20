@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Alert, Share, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Modalize } from 'react-native-modalize';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
+import { baseURL } from '../api';
 
 const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, modalHeight = 700 }, ref) => {
   const [copied, setCopied] = useState(false);
@@ -63,8 +65,29 @@ const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, modalHeight = 700
 
   const handleCopyCode = async () => {
     if (!invitationCode) return;
+    Haptics.selectionAsync().catch(() => {});
     await Clipboard.setStringAsync(invitationCode);
     setCopied(true);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    Alert.alert('Kod kopiran!', `Pozivni kod sobe ${room?.name || 'Hajp'} je ${invitationCode}`, [
+      { text: 'U redu' },
+    ]);
+  };
+
+  const invitationLink = `${baseURL}/room/invite-code/${invitationCode}`;
+
+  const handleShareCode = async () => {
+    if (!invitationCode) return;
+    Haptics.selectionAsync().catch(() => {});
+    try {
+      await Share.share({
+        message: `Pozivni kod sobe ${room?.name || 'Hajp'}: ${invitationCode}\nOtvori ${invitationLink}`,
+        url: invitationLink,
+        title: `${room?.name || 'Hajp'} | Pozivni kod`,
+      });
+    } catch (error) {
+      console.error('Share failed', error);
+    }
   };
 
   const memberCount = room ? room.members ?? room.members_count ?? 0 : 0;
@@ -89,10 +112,16 @@ const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, modalHeight = 700
               <Text style={styles.sectionTitle}>Pozivni kod</Text>
               <Text style={styles.invitationCode}>{invitationCode}</Text>
             </View>
-            <TouchableOpacity style={styles.copyButton} onPress={handleCopyCode}>
-              <Ionicons name="copy-outline" size={20} color={colors.text_primary} />
-              <Text style={styles.copyLabel}>{copied ? 'Kopirano' : 'Kopiraj'}</Text>
-            </TouchableOpacity>
+            <View style={styles.copyActions}>
+              <TouchableOpacity style={styles.copyButton} onPress={handleCopyCode}>
+                <Ionicons name="copy-outline" size={20} color={colors.text_primary} />
+                <Text style={styles.copyLabel}>{copied ? 'Kopirano' : 'Kopiraj'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.copyButton, styles.shareButton]} onPress={handleShareCode}>
+                <Ionicons name="share-social-outline" size={20} color={colors.text_primary} />
+                <Text style={styles.copyLabel}>Podijeli</Text>
+              </TouchableOpacity>
+            </View>
           </View>
           <View style={[styles.banner, { shadowColor: colors.primary }]}>
             <Text style={styles.roomName}>{room.name}</Text>
@@ -279,6 +308,14 @@ const createStyles = (colors, isDark) =>
       borderWidth: 1,
       borderColor: colors.text_secondary,
       backgroundColor: colors.surface,
+    },
+    shareButton: {
+      backgroundColor: isDark ? colors.surface : colors.surface,
+    },
+    copyActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     copyLabel: {
       color: colors.text_secondary,

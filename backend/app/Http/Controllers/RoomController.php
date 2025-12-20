@@ -31,6 +31,7 @@ class RoomController extends Controller
             'tagline',
             'description',
             'is_private',
+            'code',
         ]);
     }
 
