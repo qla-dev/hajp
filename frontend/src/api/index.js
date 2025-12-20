@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-// export const baseURL = process.env.REACT_NATIVE_API_URL || 'http://hajp.app/api';
-export const baseURL = process.env.REACT_NATIVE_API_URL || 'http://192.168.0.26:8000/api';
+// export const baseURL = process.env.REACT_NATIVE_API_URL || 'http://hajp.app/';
+export const baseURL = (process.env.REACT_NATIVE_API_URL || 'http://192.168.0.26:8000').replace(/\/$/, '');
 
-const api = axios.create({ baseURL });
+const api = axios.create({ baseURL: `${baseURL}/api` });
 
 api.interceptors.request.use((config) => {
   const token = global.__HAJP_TOKEN__;
