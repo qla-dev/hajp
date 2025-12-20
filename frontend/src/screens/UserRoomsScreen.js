@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRooms, fetchUserRooms } from '../api';
+import { useRoomSheet } from '../context/roomSheetContext';
 
 const TAB_MY_ROOMS = 'my';
 const TAB_MEMBER_ROOMS = 'member';
@@ -22,6 +23,7 @@ export default function UserRoomsScreen({ navigation }) {
   const [loadingMember, setLoadingMember] = useState(true);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { openRoomSheet } = useRoomSheet();
 
   const loadOwnedRooms = useCallback(async () => {
     setLoadingOwned(true);
@@ -65,6 +67,13 @@ export default function UserRoomsScreen({ navigation }) {
   const loading = activeTab === TAB_MY_ROOMS ? loadingOwned : loadingMember;
   const onRefresh = activeTab === TAB_MY_ROOMS ? loadOwnedRooms : loadMemberRooms;
 
+  const handleRoomPress = useCallback(
+    (room) => {
+      openRoomSheet(room);
+    },
+    [openRoomSheet],
+  );
+
   const renderContent = () => {
     if (loading) {
       return (
@@ -92,12 +101,7 @@ export default function UserRoomsScreen({ navigation }) {
     <TouchableOpacity
       style={styles.roomCard}
       activeOpacity={0.8}
-      onPress={() =>
-        navigation.navigate('Rank', {
-          screen: 'Ranking',
-          params: { roomId: item.id, roomName: item.name },
-        })
-      }
+      onPress={() => handleRoomPress(item)}
     >
       <Text style={styles.roomName}>{item.name}</Text>
       {!!item.tagline && <Text style={styles.roomTagline}>{item.tagline}</Text>}

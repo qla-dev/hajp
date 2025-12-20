@@ -19,6 +19,7 @@ import ShareScreen from './src/screens/ShareScreen';
 import SendAnonymousMessageScreen from './src/screens/SendAnonymousMessageScreen';
 import ShareLinkScreen from './src/screens/ShareLinkScreen';
 import MainTabs from './src/navigation/MainTabs';
+import { RoomSheetProvider } from './src/context/roomSheetContext';
 import { ThemeProvider, useTheme } from './src/theme/darkMode';
 
 const RootStack = createNativeStackNavigator();
@@ -107,15 +108,17 @@ function AppContent() {
   }, [colors, isDark]);
 
   return (
-    <GluestackUIProvider config={config}>
-      <NavigationContainer theme={navigationTheme}>
-        <RootStack.Navigator initialRouteName="Auth" screenOptions={{ headerShown: false, animation: 'default' }}>
-          <RootStack.Screen name="Auth" component={AuthStackNavigator} />
-          <RootStack.Screen name="Main" component={MainStackNavigator} />
-        </RootStack.Navigator>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
-      </NavigationContainer>
-    </GluestackUIProvider>
+    <RoomSheetProvider>
+      <GluestackUIProvider config={config}>
+        <NavigationContainer theme={navigationTheme}>
+          <RootStack.Navigator initialRouteName="Auth" screenOptions={{ headerShown: false, animation: 'default' }}>
+            <RootStack.Screen name="Auth" component={AuthStackNavigator} />
+            <RootStack.Screen name="Main" component={MainStackNavigator} />
+          </RootStack.Navigator>
+          <StatusBar style={isDark ? 'light' : 'dark'} />
+        </NavigationContainer>
+      </GluestackUIProvider>
+    </RoomSheetProvider>
   );
 }
 
