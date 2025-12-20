@@ -10,6 +10,13 @@ const InviteCodeBottomSheet = React.forwardRef(({ onJoinSuccess, onClose }, ref)
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
+  const handleCodeChange = useCallback((text) => {
+    const cleaned = text.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    setCode(cleaned);
+  }, []);
+
+  const [inputFocused, setInputFocused] = useState(false);
+
   const resetState = () => {
     setCode('');
     setLoading(false);
@@ -59,11 +66,14 @@ const InviteCodeBottomSheet = React.forwardRef(({ onJoinSuccess, onClose }, ref)
           value={code}
           placeholder="ABC123"
           placeholderTextColor={colors.text_secondary}
-          onChangeText={(text) => setCode(text)}
-          style={styles.input}
+          onChangeText={handleCodeChange}
+          onFocus={() => setInputFocused(true)}
+          onBlur={() => setInputFocused(false)}
+          style={[styles.input, inputFocused && { borderColor: colors.primary }]}
           autoCapitalize="characters"
           autoCorrect={false}
           autoFocus
+          maxLength={6}
         />
         <TouchableOpacity style={styles.submit} onPress={handleJoin} disabled={loading}>
           {loading ? (
@@ -119,14 +129,19 @@ const createStyles = (colors) =>
       marginTop: 12,
       marginBottom: 20,
       backgroundColor: colors.primary,
-      borderRadius: 14,
-      paddingVertical: 14,
+      borderRadius: 30,
+      paddingVertical: 18,
       alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: colors.primary,
+      shadowOpacity: 0.25,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 8,
     },
     submitText: {
       color: colors.textLight,
-      fontSize: 16,
+      fontSize: 18,
       fontWeight: '700',
-      letterSpacing: 0.5,
     },
   });
