@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import RemixIcon from 'react-native-remix-icon';
+import { SvgUri } from 'react-native-svg';
 import { StyleSheet, Pressable, TouchableOpacity, Text, View, Image } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
@@ -25,6 +26,36 @@ import CoinHeaderIndicator from '../components/CoinHeaderIndicator';
 import { baseURL, getCurrentUser } from '../api';
 import { addProfileUpdatedListener } from '../utils/profileEvents';
 import UserRoomsScreen from '../screens/UserRoomsScreen';
+
+const logoUri = `${baseURL}/img/logo.svg`;
+const POLLING_LOGO_STYLE = { width: 140, height: 38 };
+const POLLING_LOGO_CONTAINER_STYLE = {
+  width: POLLING_LOGO_STYLE.width,
+  height: POLLING_LOGO_STYLE.height,
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const PollingHeaderLogo = ({ color = '#fff' }) => (
+  <View style={POLLING_LOGO_CONTAINER_STYLE}>
+    <SvgUri
+      width={POLLING_LOGO_STYLE.width}
+      height={POLLING_LOGO_STYLE.height}
+      uri={logoUri}
+      preserveAspectRatio="xMidYMid meet"
+      fill={color}
+      style={[
+        POLLING_LOGO_STYLE,
+        {
+          tintColor: color,
+          color,
+          borderRadius: 12,
+          paddingVertical: 4,
+        },
+      ]}
+    />
+  </View>
+);
 
 const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
@@ -84,7 +115,7 @@ function HajpStackNavigator() {
         name="Polling"
         component={PollingScreen}
         options={{
-          title: 'Hajp',
+          headerTitle: () => <PollingHeaderLogo color={colors.textLight} />,
           headerTintColor: colors.textLight,
           headerStyle: {
             backgroundColor: 'transparent',
