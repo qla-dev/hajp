@@ -15,6 +15,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, recordProfileView } from '../api';
+import { useMenuRefresh } from '../context/menuRefreshContext';
 import BottomCTA from '../components/BottomCTA';
 import SuggestionSlider from '../components/SuggestionSlider';
 
@@ -198,6 +199,14 @@ export default function ProfileScreen({ navigation, route }) {
       : 'Profil';
     navigation.setOptions?.({ title });
   }, [navigation, user]);
+
+  const { registerMenuRefresh } = useMenuRefresh();
+  useEffect(() => {
+    const unsubscribe = registerMenuRefresh('Profile', () => {
+      loadData();
+    });
+    return unsubscribe;
+  }, [loadData, registerMenuRefresh]);
 
   useEffect(() => {
     Animated.loop(

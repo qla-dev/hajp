@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator }
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchMyVotes, fetchShareMessages, getCurrentUser } from '../api';
+import { useMenuRefresh } from '../context/menuRefreshContext';
 import BottomCTA from '../components/BottomCTA';
 
 const TAB_ANKETE = 'ankete';
@@ -77,6 +78,22 @@ export default function HajpoviScreen({ navigation }) {
       isMounted = false;
     };
   }, [activeTab, loadUser, loadVotes, loadMessages]);
+
+  const refreshContent = useCallback(() => {
+    if (activeTab === TAB_ANKETE) {
+      loadVotes();
+    } else {
+      loadMessages();
+    }
+  }, [activeTab, loadVotes, loadMessages]);
+
+  const { registerMenuRefresh } = useMenuRefresh();
+  useEffect(() => {
+    const unsubscribe = registerMenuRefresh('Inbox', () => {
+      refreshContent();
+    });
+    return unsubscribe;
+  }, [refreshContent, registerMenuRefresh]);
 
   const renderVote = ({ item }) => {
     const voterSex = item?.user?.sex;

@@ -15,6 +15,7 @@ import RoomSuggestions from '../components/RoomSuggestions';
 import SuggestionGrid from '../components/SuggestionGrid';
 import FriendListItem from '../components/FriendListItem';
 import { fetchFriendRequests, approveFriendRequest } from '../api';
+import { useMenuRefresh } from '../context/menuRefreshContext';
 
 export default function SuggestionsScreen({ navigation }) {
   const { colors } = useTheme();
@@ -77,14 +78,13 @@ export default function SuggestionsScreen({ navigation }) {
     setRefreshing(false);
   }, [loadRequests]);
 
+  const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
-    const unsubscribe = navigation.addListener('tabPress', () => {
-      if (navigation.isFocused()) {
-        onRefresh();
-      }
+    const unsubscribe = registerMenuRefresh('Friends', () => {
+      onRefresh();
     });
     return unsubscribe;
-  }, [navigation, onRefresh]);
+  }, [onRefresh, registerMenuRefresh]);
 
   const handleGridCardPress = useCallback(
     (item) => {

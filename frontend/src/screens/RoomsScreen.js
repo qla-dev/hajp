@@ -10,7 +10,7 @@ import {
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRoomsStatus, fetchUserRooms } from '../api';
 import PollItem from '../components/PollItem';
-import { useHomeRefresh } from '../context/homeRefreshContext';
+import { useMenuRefresh } from '../context/menuRefreshContext';
 
 export default function RoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
@@ -53,13 +53,13 @@ export default function RoomsScreen({ navigation }) {
     }
   }, []);
 
-  const { registerHomeRefresh } = useHomeRefresh();
+  const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
-    const unsubscribe = registerHomeRefresh(() => {
+    const unsubscribe = registerMenuRefresh('Hajp', () => {
       loadRooms({ showLoader: false });
     });
     return unsubscribe;
-  }, [loadRooms, registerHomeRefresh]);
+  }, [loadRooms, registerMenuRefresh]);
 
   useEffect(() => {
     loadRooms();

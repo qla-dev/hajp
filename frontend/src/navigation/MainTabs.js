@@ -26,7 +26,7 @@ import CoinHeaderIndicator from '../components/CoinHeaderIndicator';
 import { baseURL, getCurrentUser } from '../api';
 import { addProfileUpdatedListener } from '../utils/profileEvents';
 import UserRoomsScreen from '../screens/UserRoomsScreen';
-import { HomeRefreshProvider, useHomeRefresh } from '../context/homeRefreshContext';
+import { MenuRefreshProvider, useMenuRefresh } from '../context/menuRefreshContext';
 
 const logoUri = `${baseURL}/img/logo.svg`;
 const POLLING_LOGO_STYLE = { width: 110, height: 38 };
@@ -455,9 +455,9 @@ function FriendsStackNavigator() {
 
 export default function MainTabs() {
   return (
-    <HomeRefreshProvider>
+    <MenuRefreshProvider>
       <MainTabsContent />
-    </HomeRefreshProvider>
+    </MenuRefreshProvider>
   );
 }
 
@@ -475,7 +475,7 @@ function MainTabsContent() {
       .slice(0, 2)
       .join('');
   }, [profileUser?.name, profileUser?.username]);
-  const { triggerHomeRefresh } = useHomeRefresh();
+  const { triggerMenuRefresh } = useMenuRefresh();
 
   useEffect(() => {
     let isMounted = true;
@@ -597,9 +597,10 @@ function MainTabsContent() {
         component={HajpStackNavigator}
         options={{ headerShown: false }}
         listeners={({ navigation }) => ({
-          tabPress: () => {
+          tabPress: (e) => {
             if (navigation.isFocused()) {
-              triggerHomeRefresh();
+              e.preventDefault();
+              triggerMenuRefresh('Hajp');
             }
           },
         })}
@@ -610,14 +611,55 @@ function MainTabsContent() {
         options={{ headerShown: false }}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
-            e.preventDefault();
-            navigation.navigate('Friends', { screen: 'Suggestions' });
+            if (navigation.isFocused()) {
+              e.preventDefault();
+              triggerMenuRefresh('Friends');
+            } else {
+              e.preventDefault();
+              navigation.navigate('Friends', { screen: 'Suggestions' });
+            }
           },
         })}
       />
-      <Tab.Screen name="Rank" component={RankStackNavigator} options={{ headerShown: false }} />
-      <Tab.Screen name="Inbox" component={HajpoviStackNavigator} options={{ headerShown: false }} />
-      <Tab.Screen name="Profile" component={ProfileStackNavigator} options={{ headerShown: false }} />
+      <Tab.Screen
+        name="Rank"
+        component={RankStackNavigator}
+        options={{ headerShown: false }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (navigation.isFocused()) {
+              e.preventDefault();
+              triggerMenuRefresh('Rank');
+            }
+          },
+        })}
+      />
+      <Tab.Screen
+        name="Inbox"
+        component={HajpoviStackNavigator}
+        options={{ headerShown: false }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (navigation.isFocused()) {
+              e.preventDefault();
+              triggerMenuRefresh('Inbox');
+            }
+          },
+        })}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileStackNavigator}
+        options={{ headerShown: false }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (navigation.isFocused()) {
+              e.preventDefault();
+              triggerMenuRefresh('Profile');
+            }
+          },
+        })}
+      />
     </Tab.Navigator>
   );
 }

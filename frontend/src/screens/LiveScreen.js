@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchFriendActivities } from '../api';
+import { useMenuRefresh } from '../context/menuRefreshContext';
 import RankRoomsScreen from './RankRoomsScreen';
 import ActivityItem from '../components/ActivityItem';
 
@@ -55,6 +56,16 @@ export default function LiveScreen({ navigation }) {
       loadActivities(1);
     }
   }, [activeTab, loadActivities]);
+
+  const { registerMenuRefresh } = useMenuRefresh();
+  useEffect(() => {
+    const unsubscribe = registerMenuRefresh('Rank', () => {
+      if (activeTab === TAB_ACTIVITY) {
+        loadActivities(1);
+      }
+    });
+    return unsubscribe;
+  }, [activeTab, loadActivities, registerMenuRefresh]);
 
   const handleLoadMore = () => {
     if (!hasMoreActivities || loadingMoreActivities || loadingActivities) return;
