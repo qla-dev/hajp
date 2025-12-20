@@ -152,7 +152,14 @@ export default function ProfileScreen({ navigation, route }) {
   const showPrivateNotice = isOtherProfile && isPrivateProfile && !hasActiveFriendship;
 
   const username = user?.name ? user.name.toLowerCase().replace(' ', '') : 'gost';
-  const displayedRooms = (roomSummary.rooms || []).slice(0, 3);
+  const normalizedRooms = (roomSummary.rooms || [])
+    .map((room) => {
+      if (typeof room === 'string') return room;
+      if (room?.name) return room.name;
+      return '';
+    })
+    .filter(Boolean);
+  const displayedRooms = normalizedRooms.slice(0, 3);
   const remainingRooms = Math.max((roomSummary.total || 0) - displayedRooms.length, 0);
   const roomLine =
     displayedRooms.length > 0

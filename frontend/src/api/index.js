@@ -52,7 +52,8 @@ export const getInbox = (userId) => api.get(`/anonymous/inbox/${userId}`);
 export const sendAnonMessage = (inbox_id, message, metadata) => api.post('/anonymous/message', { inbox_id, message, metadata });
 export const fetchShareStyles = () => api.get('/share/styles');
 export const fetchShareMessages = (userId) => api.get(`/share/${userId}/messages`);
-export const fetchUserRooms = () => api.get('/user/rooms');
+const buildUserRoomsPath = (userId, role = 'user') => `/user/${userId}/rooms/${role}`;
+export const fetchUserRooms = (role = 'user') => api.get(buildUserRoomsPath('me', role));
 export const getCurrentUser = async () => {
   const { data } = await api.get('/user');
   return data;
@@ -70,7 +71,7 @@ export const addFriend = (userId) => api.post(`/friends/${userId}/add`);
 export const removeFriend = (userId) => api.delete(`/friends/${userId}/remove`);
 export const approveFriendRequest = (userId) => api.post(`/friends/${userId}/approve`);
 export const fetchUserProfile = (userId) => api.get(`/user/${userId}`);
-export const fetchUserRoomsFor = (userId) => api.get(`/user/${userId}/rooms`);
+export const fetchUserRoomsFor = (userId, role = 'user') => api.get(buildUserRoomsPath(userId, role));
 export const fetchUserFriendsCount = (userId) => api.get(`/user/${userId}/friends/count`);
 export const fetchFriendshipStatus = (userId) => api.get(`/user/${userId}/friendship/status`);
 export const fetchProfileViews = (userId) => api.get(`/user/${userId}/views`);

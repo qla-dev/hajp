@@ -9,40 +9,40 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchRooms, fetchUserRooms } from '../api';
+import { fetchUserRooms } from '../api';
 import { useRoomSheet } from '../context/roomSheetContext';
 
-const TAB_MY_ROOMS = 'my';
 const TAB_MEMBER_ROOMS = 'member';
+const TAB_ADMIN_ROOMS = 'admin';
 
 export default function UserRoomsScreen({ navigation }) {
-  const [activeTab, setActiveTab] = useState(TAB_MY_ROOMS);
-  const [ownedRooms, setOwnedRooms] = useState([]);
+  const [activeTab, setActiveTab] = useState(TAB_MEMBER_ROOMS);
+  const [adminRooms, setAdminRooms] = useState([]);
   const [memberRooms, setMemberRooms] = useState([]);
-  const [loadingOwned, setLoadingOwned] = useState(true);
+  const [loadingAdmin, setLoadingAdmin] = useState(true);
   const [loadingMember, setLoadingMember] = useState(true);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const { openRoomSheet, openInviteSheet } = useRoomSheet();
 
-  const loadOwnedRooms = useCallback(async () => {
-    setLoadingOwned(true);
+  const loadAdminRooms = useCallback(async () => {
+    setLoadingAdmin(true);
     try {
-      const { data } = await fetchUserRooms();
-      setOwnedRooms(data?.rooms || []);
+      const { data } = await fetchUserRooms('admin');
+      setAdminRooms(data?.rooms || []);
     } catch (error) {
       console.error('Error loading your rooms:', error);
-      setOwnedRooms([]);
+      setAdminRooms([]);
     } finally {
-      setLoadingOwned(false);
+      setLoadingAdmin(false);
     }
   }, []);
 
   const loadMemberRooms = useCallback(async () => {
     setLoadingMember(true);
     try {
-      const { data } = await fetchRooms();
-      setMemberRooms(data || []);
+      const { data } = await fetchUserRooms('user');
+      setMemberRooms(data?.rooms || []);
     } catch (error) {
       console.error('Error loading member rooms:', error);
       setMemberRooms([]);
@@ -52,20 +52,20 @@ export default function UserRoomsScreen({ navigation }) {
   }, []);
 
   useEffect(() => {
-    if (activeTab === TAB_MY_ROOMS) {
-      loadOwnedRooms();
+    if (activeTab === TAB_ADMIN_ROOMS) {
+      loadAdminRooms();
     } else {
       loadMemberRooms();
     }
-  }, [activeTab, loadOwnedRooms, loadMemberRooms]);
+  }, [activeTab, loadAdminRooms, loadMemberRooms]);
 
   const renderedRooms = useMemo(
-    () => (activeTab === TAB_MY_ROOMS ? ownedRooms : memberRooms),
-    [activeTab, ownedRooms, memberRooms],
+    () => (activeTab === TAB_ADMIN_ROOMS ? adminRooms : memberRooms),
+    [activeTab, adminRooms, memberRooms],
   );
 
-  const loading = activeTab === TAB_MY_ROOMS ? loadingOwned : loadingMember;
-  const onRefresh = activeTab === TAB_MY_ROOMS ? loadOwnedRooms : loadMemberRooms;
+  const loading = activeTab === TAB_ADMIN_ROOMS ? loadingAdmin : loadingMember;
+  const onRefresh = activeTab === TAB_ADMIN_ROOMS ? loadAdminRooms : loadMemberRooms;
 
   const handleRoomPress = useCallback(
     (room) => {
@@ -147,7 +147,7 @@ export default function UserRoomsScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.tabs}>
-        {[TAB_MY_ROOMS, TAB_MEMBER_ROOMS].map((tab) => (
+        {[TAB_MEMBER_ROOMS, TAB_ADMIN_ROOMS].map((tab) => (
           <TouchableOpacity
             key={tab}
             style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
@@ -155,7 +155,7 @@ export default function UserRoomsScreen({ navigation }) {
             disabled={activeTab === tab}
           >
             <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab === TAB_MY_ROOMS ? 'Sobe gdje sam admin' : 'Sobe gdje sam član'}
+              {tab === TAB_MEMBER_ROOMS ? 'Sobe gdje sam član' : 'Sobe gdje sam admin'}
             </Text>
           </TouchableOpacity>
         ))}

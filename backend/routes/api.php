@@ -55,6 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{user}/rooms', [UserController::class, 'roomsForUser']);
         Route::get('/{user}/friends/count', [UserController::class, 'friendsCount']);
         Route::get('/{user}/friendship/status', [UserController::class, 'friendshipStatus']);
+        Route::get('/{user}/rooms/{role}', [RoomController::class, 'userRooms']);
     });
 
     Route::prefix('questions')->group(function () {

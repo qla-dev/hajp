@@ -152,19 +152,32 @@ class RoomController extends Controller
         return response()->json(['data' => $room]);
     }
 
-    public function userRooms(Request $request)
+    public function userRooms(Request $request, $userId, string $role = 'user')
     {
-        $roomsQuery = $request->user()
-            ->rooms()
-            ->select('rooms.id', 'rooms.name')
-            ->orderByDesc('room_members.created_at');
-
-        $total = (clone $roomsQuery)->count();
-        $roomNames = (clone $roomsQuery)->limit(3)->pluck('name')->values();
+        $user = $request->user();
+        $role = strtolower($role ?? 'user');
+        $rooms = Room::withCount(['users as members_count'])
+            ->whereHas('members', function ($query) use ($user, $role) {
+                $query->where('user_id', $user->id);
+                if ($role === 'admin') {
+                    $query->where('role', 'admin');
+                }
+            })
+            ->get([
+                'id',
+                'name',
+                'type',
+                'is_18_over',
+                'cover_url',
+                'tagline',
+                'description',
+                'is_private',
+                'code',
+            ]);
 
         return response()->json([
-            'total' => $total,
-            'rooms' => $roomNames,
+            'total' => $rooms->count(),
+            'rooms' => $rooms,
         ]);
     }
 
