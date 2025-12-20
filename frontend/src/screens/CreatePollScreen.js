@@ -15,7 +15,7 @@ export default function CreatePollScreen({ navigation }) {
   const onSubmit = async () => {
     const payload = { question, options: options.filter(Boolean), target_school };
     try {
-      await api.post('/api/polls', payload);
+      await api.post('/polls', payload);
       navigation.goBack();
     } catch {}
   };

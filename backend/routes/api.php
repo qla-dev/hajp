@@ -49,6 +49,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/photo', [UserController::class, 'removePhoto']);
         Route::get('/votes', [QuestionController::class, 'myVotes']);
         Route::get('/activities', [QuestionController::class, 'activities']);
+        Route::get('/{user}/views', [UserController::class, 'profileViews']);
+        Route::post('/{user}/views', [UserController::class, 'recordProfileView']);
+        Route::get('/{user}', [UserController::class, 'showPublic']);
+        Route::get('/{user}/rooms', [UserController::class, 'roomsForUser']);
+        Route::get('/{user}/friends/count', [UserController::class, 'friendsCount']);
+        Route::get('/{user}/friendship/status', [UserController::class, 'friendshipStatus']);
     });
 
     Route::prefix('questions')->group(function () {
@@ -83,14 +89,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{user}/remove', [UserController::class, 'removeFriend']);
     });
 
-    Route::prefix('users')->group(function () {
-        Route::get('/{user}/views', [UserController::class, 'profileViews']);
-        Route::post('/{user}/views', [UserController::class, 'recordProfileView']);
-        Route::get('/{user}', [UserController::class, 'showPublic']);
-        Route::get('/{user}/rooms', [UserController::class, 'roomsForUser']);
-        Route::get('/{user}/friends/count', [UserController::class, 'friendsCount']);
-        Route::get('/{user}/friendship/status', [UserController::class, 'friendshipStatus']);
-    });
 });
 
 // Simple unauthenticated test endpoint
