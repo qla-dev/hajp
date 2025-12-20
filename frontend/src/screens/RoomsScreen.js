@@ -8,7 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchRoomsStatus } from '../api';
+import { fetchRoomsStatus, fetchUserRooms } from '../api';
 import PollItem from '../components/PollItem';
 
 export default function RoomsScreen({ navigation }) {
@@ -30,10 +30,23 @@ export default function RoomsScreen({ navigation }) {
     }
 
     try {
+      let memberIds;
+      try {
+        const { data: memberRoomsData } = await fetchUserRooms('user');
+        const memberRooms = memberRoomsData?.rooms || [];
+        memberIds = new Set(memberRooms.map((room) => room.id));
+      } catch (memberError) {
+        console.error('Greška pri dohvaćanju tvojih soba:', memberError);
+      }
+
       const { data } = await fetchRoomsStatus();
-      setRooms(data?.data || []);
+      const availableRooms = data?.data || [];
+      const filteredRooms =
+        memberIds == null ? availableRooms : availableRooms.filter((room) => memberIds.has(room.id));
+      setRooms(filteredRooms);
     } catch (error) {
       console.error('Greška pri učitavanju soba:', error);
+      setRooms([]);
     } finally {
       if (showLoader) {
         setLoading(false);
