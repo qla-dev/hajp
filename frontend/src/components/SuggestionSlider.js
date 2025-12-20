@@ -241,7 +241,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingVertical: 12,
-      paddingTop: 30,
+      paddingTop: 12,
     },
     sectionTitle: {
       fontSize: 16,

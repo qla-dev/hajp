@@ -690,9 +690,10 @@ const createStyles = (colors) =>
     },
     privateWrapper: {
       gap: 12,
+      paddingTop: 0,
     },
     privateNotice: {
-      paddingVertical: 32,
+      paddingTop: 12,
       alignItems: 'center',
       backgroundColor: colors.background,
       borderBottomWidth: 1,

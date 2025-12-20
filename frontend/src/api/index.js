@@ -31,6 +31,7 @@ export const createRoom = (payload) =>
       })
     : api.post('/api/rooms', payload);
 export const joinRoom = (roomId) => api.post(`/api/rooms/${roomId}/join`);
+export const joinRoomByCode = (code) => api.post('/api/rooms/join-code', { code });
 export const fetchActiveQuestion = (roomId) => api.get(`/api/rooms/${roomId}/polling`);
 export const fetchRoomsStatus = () => api.get('/api/rooms/status');
 export const fetchRoomCashoutStatus = (roomId) => api.get(`/api/rooms/${roomId}/cashout/status`);

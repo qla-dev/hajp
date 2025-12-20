@@ -52,6 +52,20 @@ class RoomController extends Controller
         ]);
     }
 
+    public function joinByCode(Request $request)
+    {
+        $data = $request->validate([
+            'code' => 'required|string',
+        ]);
+
+        $room = Room::where('code', $data['code'])->first();
+        if (!$room) {
+            return response()->json(['message' => 'Kod nije vazeci'], 404);
+        }
+
+        return $this->join($request, $room);
+    }
+
     public function store(Request $request)
     {
         $user = $request->user();

@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{room}/join', [RoomController::class, 'join']);
         Route::post('/{room}/cover', [RoomController::class, 'uploadCover']);
         Route::get('/{room}/rank/{period}', [RoomController::class, 'rank']);
+        Route::post('/join-code', [RoomController::class, 'joinByCode']);
     });
 
     Route::prefix('subscription')->group(function () {

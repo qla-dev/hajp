@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRooms, fetchUserRooms } from '../api';
 import { useRoomSheet } from '../context/roomSheetContext';
+import InviteCodeBottomSheet from '../components/InviteCodeBottomSheet';
 
 const TAB_MY_ROOMS = 'my';
 const TAB_MEMBER_ROOMS = 'member';
@@ -24,6 +25,7 @@ export default function UserRoomsScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const { openRoomSheet } = useRoomSheet();
+  const inviteSheetRef = useRef(null);
 
   const loadOwnedRooms = useCallback(async () => {
     setLoadingOwned(true);
@@ -73,6 +75,35 @@ export default function UserRoomsScreen({ navigation }) {
     },
     [openRoomSheet],
   );
+
+  const openInviteSheet = useCallback(() => {
+    inviteSheetRef.current?.open();
+  }, []);
+
+  const handleJoinSuccess = useCallback(() => {
+    if (activeTab !== TAB_MEMBER_ROOMS) {
+      setActiveTab(TAB_MEMBER_ROOMS);
+    }
+    loadMemberRooms();
+  }, [activeTab, loadMemberRooms]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={styles.headerRightGroup}>
+          <TouchableOpacity
+            style={styles.headerAction}
+            onPress={() => navigation.navigate('CreateRoom')}
+          >
+            <Text style={styles.headerActionLabel}>+</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerAction} onPress={openInviteSheet}>
+            <Text style={styles.headerActionLabel}>123</Text>
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation, openInviteSheet, styles]);
 
   const renderContent = () => {
     if (loading) {
@@ -141,6 +172,7 @@ export default function UserRoomsScreen({ navigation }) {
       </View>
 
       {renderContent()}
+      <InviteCodeBottomSheet ref={inviteSheetRef} onJoinSuccess={handleJoinSuccess} />
     </View>
   );
 }
@@ -236,5 +268,23 @@ const createStyles = (colors, isDark) =>
       justifyContent: 'center',
       alignItems: 'center',
       padding: 40,
+    },
+    headerRightGroup: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    headerAction: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 14,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      marginLeft: 6,
+      backgroundColor: colors.surface,
+    },
+    headerActionLabel: {
+      color: colors.text_primary,
+      fontSize: 14,
+      fontWeight: '700',
     },
   });

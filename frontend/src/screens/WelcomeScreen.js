@@ -47,7 +47,7 @@ export default function WelcomeScreen({ navigation }) {
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginButton}>
-          <Text style={styles.loginText}>Već imaš račun? Prijavi se</Text>
+          <Text style={styles.loginText}>Već imaš račun? <Text style={styles.loginLinkBold}>Prijavi se</Text></Text>
         </TouchableOpacity>
 
       </View>
@@ -167,5 +167,9 @@ const createStyles = (colors) =>
       color: colors.text_secondary,
       textAlign: 'center',
       fontSize: 13,
+    },
+      loginLinkBold: {
+      fontWeight: '700',
+      color: colors.primary,
     },
   });

@@ -149,14 +149,16 @@ export default function SuggestionsScreen({ navigation }) {
         </View>
       )}
 
-      <SuggestionSlider
-        linkLabel="Pogledaj sve"
-        onLinkPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}
-        refreshKey={refreshKey}
-        skipNextHaptic={skipSliderHaptic}
-        skipHapticRef={skipSliderHapticRef}
-        onClearSkip={() => setSkipSliderHaptic(false)}
-      />
+      <View style={styles.sliderWrapper}>
+        <SuggestionSlider
+          linkLabel="Pogledaj sve"
+          onLinkPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}
+          refreshKey={refreshKey}
+          skipNextHaptic={skipSliderHaptic}
+          skipHapticRef={skipSliderHapticRef}
+          onClearSkip={() => setSkipSliderHaptic(false)}
+        />
+      </View>
 
       <RoomSuggestions refreshKey={refreshKey} onRoomPress={(room) => console.log('Open room', room?.name)} />
 
@@ -201,5 +203,8 @@ const createStyles = (colors) =>
     emptyRequests: {
       paddingHorizontal: 0,
       color: colors.text_secondary,
+    },
+    sliderWrapper: {
+      marginTop: 16,
     },
   });
