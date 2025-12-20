@@ -1,11 +1,14 @@
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import RoomInfoBottomSheet from '../components/RoomInfoBottomSheet';
+import InviteCodeBottomSheet from '../components/InviteCodeBottomSheet';
 
 const RoomSheetContext = createContext(null);
 
 export function RoomSheetProvider({ children }) {
   const sheetRef = useRef(null);
   const [room, setRoom] = useState(null);
+  const inviteSheetRef = useRef(null);
+  const [inviteCallback, setInviteCallback] = useState(null);
 
   const openRoomSheet = useCallback((roomData) => {
     setRoom(roomData);
@@ -20,12 +23,39 @@ export function RoomSheetProvider({ children }) {
     setRoom(null);
   }, []);
 
-  const value = useMemo(() => ({ openRoomSheet, closeRoomSheet }), [openRoomSheet, closeRoomSheet]);
+  const openInviteSheet = useCallback((callback) => {
+    setInviteCallback(() => callback);
+    inviteSheetRef.current?.open();
+  }, []);
+
+  const closeInviteSheet = useCallback(() => {
+    inviteSheetRef.current?.close();
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      openRoomSheet,
+      closeRoomSheet,
+      openInviteSheet,
+      closeInviteSheet,
+    }),
+    [openRoomSheet, closeRoomSheet, openInviteSheet, closeInviteSheet],
+  );
 
   return (
     <RoomSheetContext.Provider value={value}>
       {children}
-      <RoomInfoBottomSheet ref={sheetRef} room={room} onClose={handleClosed} modalHeight={420} />
+        <RoomInfoBottomSheet ref={sheetRef} room={room} onClose={handleClosed} modalHeight={420} />
+        <InviteCodeBottomSheet
+          ref={inviteSheetRef}
+          onJoinSuccess={() => {
+            inviteCallback?.();
+            setInviteCallback(null);
+          }}
+          onClose={() => {
+            setInviteCallback(null);
+          }}
+        />
     </RoomSheetContext.Provider>
   );
 }

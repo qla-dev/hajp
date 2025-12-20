@@ -50,13 +50,12 @@ const InviteCodeBottomSheet = React.forwardRef(({ onJoinSuccess, onClose }, ref)
   return (
     <Modalize
       ref={ref}
-      snapPoint={240}
-      modalHeight={260}
       handleStyle={styles.handle}
       modalStyle={styles.modal}
       overlayStyle={styles.overlay}
+      adjustToContentHeight
+      scrollViewProps={{ keyboardShouldPersistTaps: 'handled' }}
       panGestureEnabled
-      adjustToContentHeight={false}
       onClosed={() => {
         resetState();
         onClose?.();
@@ -111,7 +110,7 @@ const createStyles = (colors) =>
       fontSize: 18,
       fontWeight: '700',
       color: colors.text_primary,
-      marginBottom: 8,
+      marginBottom: 15,
     },
     input: {
       borderWidth: 1,
@@ -126,6 +125,7 @@ const createStyles = (colors) =>
     },
     submit: {
       marginTop: 12,
+      marginBottom: 20,
       backgroundColor: colors.primary,
       borderRadius: 14,
       paddingVertical: 14,

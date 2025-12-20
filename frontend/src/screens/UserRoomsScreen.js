@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRooms, fetchUserRooms } from '../api';
 import { useRoomSheet } from '../context/roomSheetContext';
-import InviteCodeBottomSheet from '../components/InviteCodeBottomSheet';
 
 const TAB_MY_ROOMS = 'my';
 const TAB_MEMBER_ROOMS = 'member';
@@ -24,8 +23,7 @@ export default function UserRoomsScreen({ navigation }) {
   const [loadingMember, setLoadingMember] = useState(true);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
-  const { openRoomSheet } = useRoomSheet();
-  const inviteSheetRef = useRef(null);
+  const { openRoomSheet, openInviteSheet } = useRoomSheet();
 
   const loadOwnedRooms = useCallback(async () => {
     setLoadingOwned(true);
@@ -76,10 +74,6 @@ export default function UserRoomsScreen({ navigation }) {
     [openRoomSheet],
   );
 
-  const openInviteSheet = useCallback(() => {
-    inviteSheetRef.current?.open();
-  }, []);
-
   const handleJoinSuccess = useCallback(() => {
     if (activeTab !== TAB_MEMBER_ROOMS) {
       setActiveTab(TAB_MEMBER_ROOMS);
@@ -97,13 +91,13 @@ export default function UserRoomsScreen({ navigation }) {
           >
             <Text style={styles.headerActionLabel}>+</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerAction} onPress={openInviteSheet}>
+          <TouchableOpacity style={styles.headerAction} onPress={() => openInviteSheet(handleJoinSuccess)}>
             <Text style={styles.headerActionLabel}>123</Text>
           </TouchableOpacity>
         </View>
       ),
     });
-  }, [navigation, openInviteSheet, styles]);
+  }, [navigation, openInviteSheet, styles, handleJoinSuccess]);
 
   const renderContent = () => {
     if (loading) {
@@ -172,7 +166,6 @@ export default function UserRoomsScreen({ navigation }) {
       </View>
 
       {renderContent()}
-      <InviteCodeBottomSheet ref={inviteSheetRef} onJoinSuccess={handleJoinSuccess} />
     </View>
   );
 }
