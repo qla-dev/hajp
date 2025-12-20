@@ -9,9 +9,11 @@ export function RoomSheetProvider({ children }) {
   const [room, setRoom] = useState(null);
   const inviteSheetRef = useRef(null);
   const [inviteCallback, setInviteCallback] = useState(null);
+  const [leaveCallback, setLeaveCallback] = useState(null);
 
-  const openRoomSheet = useCallback((roomData) => {
+  const openRoomSheet = useCallback((roomData, onLeaveCallback) => {
     setRoom(roomData);
+    setLeaveCallback(() => onLeaveCallback ?? null);
     sheetRef.current?.open();
   }, []);
 
@@ -21,6 +23,7 @@ export function RoomSheetProvider({ children }) {
 
   const handleClosed = useCallback(() => {
     setRoom(null);
+    setLeaveCallback(null);
   }, []);
 
   const openInviteSheet = useCallback((callback) => {
@@ -45,7 +48,13 @@ export function RoomSheetProvider({ children }) {
   return (
     <RoomSheetContext.Provider value={value}>
       {children}
-        <RoomInfoBottomSheet ref={sheetRef} room={room} onClose={handleClosed} modalHeight={420} />
+        <RoomInfoBottomSheet
+          ref={sheetRef}
+          room={room}
+          onClose={handleClosed}
+          onLeaveSuccess={leaveCallback}
+          modalHeight={420}
+        />
         <InviteCodeBottomSheet
           ref={inviteSheetRef}
           onJoinSuccess={() => {

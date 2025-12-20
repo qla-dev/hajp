@@ -1,14 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Share, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, ActivityIndicator, Share, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Modalize } from 'react-native-modalize';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { baseURL } from '../api';
+import { baseURL, leaveRoom } from '../api';
 
-const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, modalHeight = 700 }, ref) => {
+const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, onLeaveSuccess, modalHeight = 700 }, ref) => {
   const [copied, setCopied] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const { colors } = useTheme();
   const styles = useThemedStyles((c, isDark) => createStyles(c, isDark));
   const snapPoint = Math.min(modalHeight, 700);
@@ -76,6 +77,8 @@ const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, modalHeight = 700
 
   const invitationLink = `${baseURL}/room/invite-code/${invitationCode}`;
 
+  const isAdmin = room?.role === 'admin';
+
   const handleShareCode = async () => {
     if (!invitationCode) return;
     Haptics.selectionAsync().catch(() => {});
@@ -88,6 +91,35 @@ const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, modalHeight = 700
     } catch (error) {
       console.error('Share failed', error);
     }
+  };
+
+  const handleLeave = useCallback(async () => {
+    if (!room?.id) return;
+    setLeaving(true);
+    try {
+      await leaveRoom(room.id);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      Alert.alert('Napustili ste sobu', 'Možete se pridružiti ponovo kad god želite.');
+      onLeaveSuccess?.();
+      ref?.current?.close();
+    } catch (error) {
+      Alert.alert('Greška', 'Nismo mogli napustiti sobu. Pokušajte ponovo.');
+    } finally {
+      setLeaving(false);
+    }
+  }, [onLeaveSuccess, ref, room?.id]);
+
+  const confirmLeave = () => {
+    if (!room) return;
+    const baseMessage = `Da li ste sigurni da želite napustiti sobu ${room.name ?? 'ovu sobu'}?`;
+    const adminNote = isAdmin
+      ? 'Napomena: Ti si admin ove sobe. Ako je napustiš, dodjelićemo admina drugom korisniku.'
+      : null;
+    const message = adminNote ? `${baseMessage}\n\n${adminNote}` : baseMessage;
+    Alert.alert('Oprez', message, [
+      { text: 'Ne', style: 'cancel' },
+      { text: 'Da, napusti', style: 'destructive', onPress: handleLeave },
+    ]);
   };
 
   const memberCount = room ? room.members ?? room.members_count ?? 0 : 0;
@@ -159,6 +191,20 @@ const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, modalHeight = 700
 
 
 
+          <TouchableOpacity
+            style={[styles.leaveButton, leaving && styles.leaveButtonDisabled]}
+            onPress={confirmLeave}
+            disabled={leaving}
+          >
+            {leaving ? (
+              <ActivityIndicator color={colors.textLight} />
+            ) : (
+              <View style={styles.leaveButtonContent}>
+                <Ionicons name="log-out-outline" size={18} color={colors.textLight} />
+                <Text style={styles.leaveButtonText}>Napusti sobu</Text>
+              </View>
+            )}
+          </TouchableOpacity>
           <View style={styles.gradientBar}>
             <Text style={styles.gradientLabel}>Uslovi</Text>
             <Text style={styles.gradientDesc}>
@@ -292,7 +338,7 @@ const createStyles = (colors, isDark) =>
       justifyContent: 'space-between',
     },
     invitationCode: {
-      color: colors.text_primary,
+      color: colors.secondary,
       fontSize: 20,
       fontWeight: '700',
       letterSpacing: 1.5,
@@ -336,5 +382,33 @@ const createStyles = (colors, isDark) =>
       color: '#fef3c7',
       fontSize: 14,
       marginTop: 6,
+    },
+    leaveButton: {
+      width: '100%',
+      marginTop: 12,
+      marginBottom: 16,
+      backgroundColor: colors.primary,
+      borderRadius: 30,
+      paddingVertical: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: colors.primary,
+      shadowOpacity: 0.25,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 8,
+    },
+    leaveButtonDisabled: {
+      opacity: 0.6,
+    },
+    leaveButtonContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    leaveButtonText: {
+      color: colors.textLight,
+      fontSize: 18,
+      fontWeight: '700',
     },
   });

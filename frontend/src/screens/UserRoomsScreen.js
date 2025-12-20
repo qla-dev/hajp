@@ -68,11 +68,16 @@ export default function UserRoomsScreen({ navigation }) {
   const loading = activeTab === TAB_ADMIN_ROOMS ? loadingAdmin : loadingMember;
   const onRefresh = activeTab === TAB_ADMIN_ROOMS ? loadAdminRooms : loadMemberRooms;
 
+  const refreshRooms = useCallback(() => {
+    loadAdminRooms();
+    loadMemberRooms();
+  }, [loadAdminRooms, loadMemberRooms]);
+
   const handleRoomPress = useCallback(
     (room) => {
-      openRoomSheet(room);
+      openRoomSheet(room, refreshRooms);
     },
-    [openRoomSheet],
+    [openRoomSheet, refreshRooms],
   );
 
   const handleJoinSuccess = useCallback(() => {

@@ -128,6 +128,41 @@ class RoomController extends Controller
 
         return response()->json(['data' => $room], 201);
     }
+    
+    public function leave(Request $request, Room $room)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $membership = RoomMember::where('room_id', $room->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$membership) {
+            return response()->json(['message' => 'Nisi član ove sobe'], 403);
+        }
+
+        $wasAdmin = $membership->role === 'admin';
+
+        return DB::transaction(function () use ($membership, $room, $user, $wasAdmin) {
+            $membership->delete();
+
+            if ($wasAdmin) {
+                $newAdmin = RoomMember::where('room_id', $room->id)
+                    ->where('user_id', '!=', $user->id)
+                    ->orderBy('id')
+                    ->first();
+                if ($newAdmin) {
+                    $newAdmin->role = 'admin';
+                    $newAdmin->save();
+                }
+            }
+
+            return response()->json(['status' => 'left']);
+        });
+    }
 
     public function uploadCover(Request $request, Room $room)
     {
@@ -164,6 +199,11 @@ class RoomController extends Controller
                     $query->where('role', 'admin');
                 }
             })
+            ->with([
+                'members' => function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                },
+            ])
             ->get([
                 'id',
                 'name',
@@ -175,6 +215,12 @@ class RoomController extends Controller
                 'is_private',
                 'code',
             ]);
+
+        $rooms = $rooms->map(function ($room) {
+            $room->role = $room->members->first()?->role ?? 'user';
+            $room->setRelation('members', null);
+            return $room;
+        });
 
         return response()->json([
             'total' => $rooms->count(),
