@@ -12,6 +12,9 @@ const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, modalHeight = 700
   const snapPoint = Math.min(modalHeight, 700);
 
   const invitationCode = useMemo(() => {
+    if (room?.code) {
+      return room.code.toUpperCase();
+    }
     if (!room) return '';
     const seed = `${room.name ?? 'HAJ'}-${room.id ?? '000'}`;
     const cleaned = seed

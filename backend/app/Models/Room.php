@@ -24,4 +24,5 @@ class Room extends Model
     {
         return $this->hasMany(Poll::class);
     }
+
 }

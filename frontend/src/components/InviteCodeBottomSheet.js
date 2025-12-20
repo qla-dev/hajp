@@ -63,6 +63,7 @@ const InviteCodeBottomSheet = React.forwardRef(({ onJoinSuccess, onClose }, ref)
           style={styles.input}
           autoCapitalize="characters"
           autoCorrect={false}
+          autoFocus
         />
         <TouchableOpacity style={styles.submit} onPress={handleJoin} disabled={loading}>
           {loading ? (

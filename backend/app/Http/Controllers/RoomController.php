@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class RoomController extends Controller
@@ -33,7 +34,7 @@ class RoomController extends Controller
         ]);
     }
 
-    public function join(Request $request, Room $room)
+    public function join(Request $request, Room $room, string $role = 'user')
     {
         $user = $request->user();
         if (!$user) {
@@ -43,7 +44,7 @@ class RoomController extends Controller
         $approved = $room->is_private ? 0 : 1;
         RoomMember::updateOrCreate(
             ['room_id' => $room->id, 'user_id' => $user->id],
-            ['approved' => $approved]
+            ['approved' => $approved, 'role' => $role]
         );
 
         return response()->json([
@@ -108,6 +109,7 @@ class RoomController extends Controller
             'tagline' => $data['tagline'] ?? null,
             'description' => $data['description'] ?? null,
             'cover_url' => $data['cover_url'] ?? null,
+            'code' => $data['code'] ?? $this->generateRoomCode(),
         ];
 
         if ($request->hasFile('cover')) {
@@ -121,11 +123,7 @@ class RoomController extends Controller
             'user_id' => $user->id,
         ]);
 
-        RoomMember::create([
-            'room_id' => $room->id,
-            'user_id' => $user->id,
-            'approved' => 1,
-        ]);
+        $this->join($request, $room, 'admin');
 
         return response()->json(['data' => $room], 201);
     }
@@ -406,6 +404,17 @@ class RoomController extends Controller
             'poll_id' => $poll->id,
             'answered' => $answered,
         ];
+    }
+
+    private function generateRoomCode(): string
+    {
+        do {
+            $letters = strtoupper(Str::random(3));
+            $numbers = str_pad((string) mt_rand(0, 999), 3, '0', STR_PAD_LEFT);
+            $code = "{$letters}{$numbers}";
+        } while (Room::where('code', $code)->exists());
+
+        return $code;
     }
 
     private function saveCoverFile(UploadedFile $file): string
