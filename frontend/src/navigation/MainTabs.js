@@ -654,7 +654,7 @@ const createStyles = (colors, isDark) =>
     },
     glassButtonLabel: {
       color: colors.text_primary,
-      fontSize: 15,
+      fontSize: 17,
       fontWeight: '500',
     },
     backButton: {

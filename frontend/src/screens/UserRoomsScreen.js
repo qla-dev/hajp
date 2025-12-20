@@ -84,17 +84,13 @@ export default function UserRoomsScreen({ navigation }) {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <View style={styles.headerRightGroup}>
-          <TouchableOpacity
-            style={styles.headerAction}
-            onPress={() => navigation.navigate('CreateRoom')}
-          >
-            <Text style={styles.headerActionLabel}>+</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerAction} onPress={() => openInviteSheet(handleJoinSuccess)}>
-            <Text style={styles.headerActionLabel}>123</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.headerTextButton}
+          onPress={() => openInviteSheet(handleJoinSuccess)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.headerTextLabel}># Unesi kod</Text>
+        </TouchableOpacity>
       ),
     });
   }, [navigation, openInviteSheet, styles, handleJoinSuccess]);
@@ -262,22 +258,14 @@ const createStyles = (colors, isDark) =>
       alignItems: 'center',
       padding: 40,
     },
-    headerRightGroup: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    headerAction: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 14,
-      paddingHorizontal: 10,
+    headerTextButton: {
+      paddingHorizontal: 8,
       paddingVertical: 6,
-      marginLeft: 6,
-      backgroundColor: colors.surface,
     },
-    headerActionLabel: {
+    headerTextLabel: {
       color: colors.text_primary,
-      fontSize: 14,
-      fontWeight: '700',
+      fontSize: 17,
+      fontWeight: '500',
+      letterSpacing: 0.2,
     },
   });
