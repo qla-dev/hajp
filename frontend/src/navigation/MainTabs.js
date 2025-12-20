@@ -26,6 +26,7 @@ import CoinHeaderIndicator from '../components/CoinHeaderIndicator';
 import { baseURL, getCurrentUser } from '../api';
 import { addProfileUpdatedListener } from '../utils/profileEvents';
 import UserRoomsScreen from '../screens/UserRoomsScreen';
+import { HomeRefreshProvider, useHomeRefresh } from '../context/homeRefreshContext';
 
 const logoUri = `${baseURL}/img/logo.svg`;
 const POLLING_LOGO_STYLE = { width: 110, height: 38 };
@@ -453,6 +454,14 @@ function FriendsStackNavigator() {
 }
 
 export default function MainTabs() {
+  return (
+    <HomeRefreshProvider>
+      <MainTabsContent />
+    </HomeRefreshProvider>
+  );
+}
+
+function MainTabsContent() {
   const { colors } = useTheme();
   const tabStyles = useThemedStyles(createStyles);
   const [profileUser, setProfileUser] = useState(null);
@@ -466,6 +475,7 @@ export default function MainTabs() {
       .slice(0, 2)
       .join('');
   }, [profileUser?.name, profileUser?.username]);
+  const { triggerHomeRefresh } = useHomeRefresh();
 
   useEffect(() => {
     let isMounted = true;
@@ -582,7 +592,18 @@ export default function MainTabs() {
         };
       }}
     >
-      <Tab.Screen name="Hajp" component={HajpStackNavigator} options={{ headerShown: false }} />
+      <Tab.Screen
+        name="Hajp"
+        component={HajpStackNavigator}
+        options={{ headerShown: false }}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            if (navigation.isFocused()) {
+              triggerHomeRefresh();
+            }
+          },
+        })}
+      />
       <Tab.Screen
         name="Friends"
         component={FriendsStackNavigator}

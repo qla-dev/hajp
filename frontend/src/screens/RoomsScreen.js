@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRoomsStatus, fetchUserRooms } from '../api';
 import PollItem from '../components/PollItem';
+import { useHomeRefresh } from '../context/homeRefreshContext';
 
 export default function RoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
@@ -18,11 +19,7 @@ export default function RoomsScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
-  useEffect(() => {
-    loadRooms();
-  }, []);
-
-  const loadRooms = async ({ showLoader = true } = {}) => {
+  const loadRooms = useCallback(async ({ showLoader = true } = {}) => {
     if (showLoader) {
       setLoading(true);
     } else {
@@ -54,7 +51,19 @@ export default function RoomsScreen({ navigation }) {
         setRefreshing(false);
       }
     }
-  };
+  }, []);
+
+  const { registerHomeRefresh } = useHomeRefresh();
+  useEffect(() => {
+    const unsubscribe = registerHomeRefresh(() => {
+      loadRooms({ showLoader: false });
+    });
+    return unsubscribe;
+  }, [loadRooms, registerHomeRefresh]);
+
+  useEffect(() => {
+    loadRooms();
+  }, [loadRooms]);
 
   const renderRoom = ({ item }) => {
     const highlight = item.active_question;
