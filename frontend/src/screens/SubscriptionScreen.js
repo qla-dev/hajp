@@ -71,7 +71,7 @@ export default function SubscriptionScreen() {
     const diff = expires - today;
     const days = Math.max(Math.round(diff / (1000 * 60 * 60 * 24)), 0);
     return {
-      text: `Tvoj pristup traje do ${formatted}`,
+      text: `Pristup traje do ${formatted}`,
       days,
     };
   }, [subscription]);
@@ -204,7 +204,7 @@ const createStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: '#0B0D12',
     },
     scrollView: {
       flex: 1,
