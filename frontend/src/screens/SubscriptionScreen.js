@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, useThemedStyles } from '../theme/darkMode';
+import { darkColors } from '../theme/colors';
 import { subscriptionStatus, subscribe } from '../api';
 import * as Haptics from 'expo-haptics';
 
@@ -39,8 +39,8 @@ export default function SubscriptionScreen() {
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [discountActive, setDiscountActive] = useState(true);
   const [subscription, setSubscription] = useState(null);
-  const { colors } = useTheme();
-  const styles = useThemedStyles(createStyles);
+  const colors = darkColors;
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   useEffect(() => {
     subscriptionStatus()
@@ -204,7 +204,7 @@ const createStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#0B0D12',
+      backgroundColor: colors.backgroundDark,
     },
     scrollView: {
       flex: 1,

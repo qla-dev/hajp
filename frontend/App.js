@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationLightTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -25,7 +26,6 @@ import { ThemeProvider, useTheme } from './src/theme/darkMode';
 const RootStack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
 const MainStack = createNativeStackNavigator();
-
 function AuthStackNavigator() {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false, animation: 'default' }}>
@@ -46,10 +46,15 @@ function MainStackNavigator() {
       screenOptions={{
         headerShown: true,
         headerTitleAlign: 'center',
-        headerTintColor: colors.text_primary,
+        headerTintColor: '#fff',
         headerTransparent: true,
         headerShadowVisible: false,
         headerStyle: { backgroundColor: 'transparent' },
+        headerTitleStyle: { color: '#fff' },
+        headerBackTitleVisible: false,
+        headerBackImage: () => (
+          <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700', marginLeft: 4 }}>X</Text>
+        ),
         animation: 'default',
       }}
     >
