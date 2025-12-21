@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { Text } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationLightTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Ionicons } from '@expo/vector-icons';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config } from '@gluestack-ui/config';
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -26,6 +27,12 @@ import { ThemeProvider, useTheme } from './src/theme/darkMode';
 const RootStack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
 const MainStack = createNativeStackNavigator();
+const headerCloseStyles = StyleSheet.create({
+  button: {
+    paddingHorizontal: 16,
+    paddingVertical: 0,
+  },
+});
 function AuthStackNavigator() {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false, animation: 'default' }}>
@@ -43,7 +50,7 @@ function MainStackNavigator() {
   return (
     <MainStack.Navigator
       initialRouteName="MainTabs"
-      screenOptions={{
+      screenOptions={({ navigation }) => ({
         headerShown: true,
         headerTitleAlign: 'center',
         headerTintColor: '#fff',
@@ -52,11 +59,14 @@ function MainStackNavigator() {
         headerStyle: { backgroundColor: 'transparent' },
         headerTitleStyle: { color: '#fff' },
         headerBackTitleVisible: false,
-        headerBackImage: () => (
-          <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700', marginLeft: 4 }}>X</Text>
-        ),
+        headerLeft: ({ canGoBack, tintColor }) =>
+          canGoBack ? (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={headerCloseStyles.button}>
+              <Ionicons name="close" size={26} color={tintColor} />
+            </TouchableOpacity>
+          ) : undefined,
         animation: 'default',
-      }}
+      })}
     >
       <MainStack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
       <MainStack.Screen
@@ -64,7 +74,6 @@ function MainStackNavigator() {
         component={SubscriptionScreen}
         options={{
           title: 'Pretplati se na Premium',
-          headerBackTitle: 'Nazad',
           headerTransparent: true,
           headerStyle: { backgroundColor: 'transparent' },
         }}
@@ -75,7 +84,6 @@ function MainStackNavigator() {
         component={EditProfileScreen}
         options={{
           title: 'Uredi profil',
-          headerBackTitle: 'Nazad',
         }}
       />
       <MainStack.Screen
@@ -83,7 +91,6 @@ function MainStackNavigator() {
         component={SettingsScreen}
         options={{
           title: 'Podešavanja',
-          headerBackTitle: 'Nazad',
         }}
       />
       <MainStack.Screen
@@ -91,7 +98,6 @@ function MainStackNavigator() {
         component={ShareScreen}
         options={{
           title: 'Podijeli',
-          headerBackTitle: 'Nazad',
         }}
       />
       <MainStack.Screen name="SendAnonymousMessage" component={SendAnonymousMessageScreen} options={{ title: 'Anonimna poruka' }} />
