@@ -17,6 +17,7 @@ const perks = [
   'Uklonjeni oglasi i prekidi',
   'Podrška i novi efekti na profilu',
 ];
+const SECTION_GAP = 16;
 
 const plans = [
   {
@@ -103,6 +104,14 @@ export default function SubscriptionScreen() {
         </View>
 
         <Text style={styles.statusText}>{heroCopy}</Text>
+               <View style={styles.cancellationText}>
+          <Text style={styles.cancellationCopy}>
+            Pretplatu možeš otkazati u bilo kom trenutku u postavkama.
+          </Text>
+          <Text style={styles.cancellationCopy}>
+            Plaćanje se vrši automatski preko App Store računa.
+          </Text>
+        </View>
 
         <View style={styles.discountCard}>
           <View style={styles.discountTopRow}>
@@ -155,14 +164,7 @@ export default function SubscriptionScreen() {
           })}
         </View>
 
-        <View style={styles.cancellationText}>
-          <Text style={styles.cancellationCopy}>
-            Pretplatu možeš otkazati u bilo kom trenutku u postavkama.
-          </Text>
-          <Text style={styles.cancellationCopy}>
-            Plaćanje se vrši automatski preko App Store računa.
-          </Text>
-        </View>
+ 
 
         <TouchableOpacity
           style={styles.ctaButton}
@@ -197,17 +199,16 @@ const createStyles = (colors) =>
       paddingHorizontal: 20,
       paddingVertical: 0,
       flexGrow: 1,
+      justifyContent: 'flex-end',
+      minHeight: '100%',
     },
     hero: {
-      backgroundColor: 'transparent',
+      backgroundColor: '#1F2430',
       borderRadius: 26,
       padding: 22,
-      paddingTop: 90,
       alignItems: 'center',
       gap: 6,
-      marginBottom: 10,
-      borderColor: colors.border,
-      borderWidth: 1,
+      marginBottom: SECTION_GAP,
     },
     heroTitle: {
       color: colors.primary,
@@ -227,7 +228,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 16,
       paddingBottom: 16,
       borderWidth: 0,
-      marginBottom: 0,
+      marginBottom: SECTION_GAP,
     },
     perkRow: {
       flexDirection: 'row',
@@ -247,15 +248,14 @@ const createStyles = (colors) =>
       color: '#cfd2ea',
       fontSize: 13,
       textAlign: 'center',
-      marginBottom: 4,
+      marginVertical: SECTION_GAP,
     },
     discountCard: {
       backgroundColor: colors.primaryOpacity4,
       borderRadius: 22,
       borderWidth: 0,
       padding: 14,
-      marginTop: 4,
-      marginBottom: 4,
+      marginVertical: SECTION_GAP,
     },
     discountTopRow: {
       flexDirection: 'row',
@@ -295,10 +295,7 @@ const createStyles = (colors) =>
       backgroundColor: '#1F2430',
       borderRadius: 22,
       padding: 18,
-      borderWidth: 1,
-      borderColor: 'transparent',
       position: 'relative',
-      marginBottom: 6,
     },
     planSelected: {
       borderColor: colors.primary,
@@ -354,7 +351,7 @@ const createStyles = (colors) =>
       fontSize: 13,
     },
     cancellationText: {
-      marginTop: 6,
+      marginTop: SECTION_GAP,
       gap: 4,
     },
     cancellationCopy: {
@@ -367,7 +364,7 @@ const createStyles = (colors) =>
       borderRadius: 999,
       paddingVertical: 16,
       alignItems: 'center',
-      marginTop: 0,
+      marginTop: SECTION_GAP,
       shadowColor: colors.primary,
       shadowRadius: 14,
       shadowOffset: { width: 0, height: 12 },
@@ -383,7 +380,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       justifyContent: 'center',
       gap: 16,
-      marginTop: 5,
+      marginTop: SECTION_GAP,
       marginBottom: 20,
     },
     linkText: {
