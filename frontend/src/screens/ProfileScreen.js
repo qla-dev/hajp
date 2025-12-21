@@ -204,7 +204,6 @@ export default function ProfileScreen({ navigation, route }) {
   const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
     const unsubscribe = registerMenuRefresh('Profile', () => {
-      console.log('[Profile] double tap refresh triggered');
       onRefresh();
     });
     return unsubscribe;

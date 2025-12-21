@@ -58,42 +58,30 @@ export default function HajpoviScreen({ navigation }) {
     [loadUser],
   );
 
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      setLoading(true);
-      const current = await loadUser();
-      if (!isMounted) return;
-      try {
-        if (activeTab === TAB_ANKETE) {
-          await loadVotes();
-        } else {
-          await loadMessages(current);
-        }
-      } finally {
-        isMounted && setLoading(false);
+  const loadCurrentTab = useCallback(async () => {
+    setLoading(true);
+    try {
+      if (activeTab === TAB_ANKETE) {
+        await loadVotes();
+      } else {
+        await loadMessages();
       }
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, [activeTab, loadUser, loadVotes, loadMessages]);
-
-  const refreshContent = useCallback(() => {
-    if (activeTab === TAB_ANKETE) {
-      loadVotes();
-    } else {
-      loadMessages();
+    } finally {
+      setLoading(false);
     }
-  }, [activeTab, loadVotes, loadMessages]);
+  }, [activeTab, loadMessages, loadVotes]);
+
+  useEffect(() => {
+    loadCurrentTab();
+  }, [loadCurrentTab]);
 
   const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
     const unsubscribe = registerMenuRefresh('Inbox', () => {
-      refreshContent();
+      loadCurrentTab();
     });
     return unsubscribe;
-  }, [refreshContent, registerMenuRefresh]);
+  }, [loadCurrentTab, registerMenuRefresh]);
 
   const renderVote = ({ item }) => {
     const voterSex = item?.user?.sex;

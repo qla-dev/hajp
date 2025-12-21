@@ -20,7 +20,6 @@ export function MenuRefreshProvider({ children }) {
 
   const triggerMenuRefresh = useCallback((key) => {
     if (!key) return;
-    console.log('[menuRefresh] trigger', key);
     refreshMap.current[key]?.forEach((fn) => fn());
   }, []);
 
