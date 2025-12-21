@@ -1,89 +1,187 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { subscriptionStatus, subscribe } from '../api';
+import * as Haptics from 'expo-haptics';
 
 const perks = [
-  'Vidi ko te hajpa',
-  'Do 2 imena sedmično',
-  'Otključane anonimne poruke',
-  'Prioritetna podrška',
+  'Brže učitavanje soba i hajpova',
+  'Uklonjeni oglasi i prekidi',
+  'Podrška i novi efekti na profilu',
 ];
 
-export default function SubscriptionScreen({ navigation }) {
-  const [sub, setSub] = useState(null);
-  const { colors } = useTheme();
-  const styles = useThemedStyles(createStyles);
+const plans = [
+  {
+    key: 'monthly',
+    label: 'Mjesečno',
+    price: '3,99 €',
+    subText: 'Otkaži kada god želiš',
+  },
+  {
+    key: 'yearly',
+    label: 'Godišnje',
+    price: '37,99 €',
+    subText: 'Ekvivalent 3,16 €/mj',
+    badge: 'Uštedi 15%',
+  },
+];
 
-  const formatDate = (value) => {
-    if (!value) return null;
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return null;
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}.${month}.${year}`;
-  };
+export default function SubscriptionScreen() {
+  const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [discountActive, setDiscountActive] = useState(true);
+  const [subscription, setSubscription] = useState(null);
+  const { colors, isDark } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   useEffect(() => {
     subscriptionStatus()
-      .then(({ data }) => setSub(data.subscription))
+      .then(({ data }) => setSubscription(data.subscription))
       .catch(() => {});
   }, []);
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = useCallback(async () => {
     try {
       const { data } = await subscribe();
-      setSub(data.subscription);
-    } catch (error) {
-      // swallow for now; ideally show toast
+      setSubscription(data.subscription);
+    } catch {
+      // ignore for now
     }
-  };
+  }, []);
+
+  const priceText = useMemo(
+    () => (discountActive ? '33,99 €' : '37,99 €'),
+    [discountActive],
+  );
+
+  const heroCopy = useMemo(
+    () =>
+      subscription
+        ? `Tvoj pristup traje do ${new Date(subscription.expires_at).toLocaleDateString(
+            'bs-BA',
+          )}`
+        : 'Uključi premium i dobiješ kompletan pristup',
+    [subscription],
+  );
 
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar style="light" />
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Pretplata</Text>
-        <Text style={styles.subheaderText}>
-          {sub ? `Aktivna do ${formatDate(sub.expires_at) || '...'}` : 'Recurring billing. Otkaži kad god.'}
-        </Text>
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.inner}>
+          <View style={styles.hero}>
+            <Ionicons name="diamond" size={28} color={colors.primary} />
+            <Text style={styles.heroTitle}>Preplati se na Premium</Text>
+            <Text style={styles.heroText}>
+              Otkloni reklame, ubrzaj sobe i oseti premium pogodnosti.
+            </Text>
+          </View>
 
-      <View style={styles.card}>
-        <View style={styles.badge}>
-          <Ionicons name="diamond" size={18} color={colors.accent} />
-          <Text style={styles.badgeText}>PREMIUM</Text>
+          <View style={styles.perks}>
+            {perks.map((perk, idx) => (
+              <View
+                key={perk}
+                style={[
+                  styles.perkRow,
+                  idx === perks.length - 1 && styles.perkRowLast,
+                ]}
+              >
+                <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
+                <Text style={styles.perkText}>{perk}</Text>
+              </View>
+            ))}
+          </View>
+
+        <Text style={styles.statusText}>{heroCopy}</Text>
+
+        <View style={styles.discountCard}>
+          <View style={styles.discountTopRow}>
+            <Text style={styles.discountLabel}>
+              {discountActive ? '🎄 Božićni popust primijenjen' : '🎄 Uključi Božićni popust'}
+            </Text>
+            <TouchableOpacity
+              style={[styles.switchTrack, discountActive && styles.switchTrackActive]}
+              activeOpacity={0.9}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setDiscountActive((prev) => !prev);
+            }}
+            >
+              <View style={[styles.switchThumb, discountActive && styles.switchThumbActive]} />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <Text style={styles.title}>Vidi ko te hajpa</Text>
-        <Text style={styles.subtitle}>Otkrij ko stoji iza hajpova i poruka.</Text>
+        <View style={styles.planList}>
+            {plans.map((plan) => {
+              const isYearly = plan.key === 'yearly';
+              const price = isYearly ? priceText : plan.price;
+              return (
+                <TouchableOpacity
+                  key={plan.key}
+                  style={[
+                    styles.plan,
+                    selectedPlan === plan.key && styles.planSelected,
+                  ]}
+                  activeOpacity={0.9}
+                  onPress={() => setSelectedPlan(plan.key)}
+                >
+                  {isYearly && discountActive && plan.badge ? (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{plan.badge}</Text>
+                    </View>
+                  ) : null}
+                  <View style={styles.planHeader}>
+                    <View style={styles.planColumn}>
+                      <Text style={styles.planLabel}>{plan.label}</Text>
+                      <Text style={styles.planSubtext}>{plan.subText}</Text>
+                    </View>
+                    <View style={styles.priceColumn}>
+                      <Text style={styles.planPrice}>{price}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
-        <View style={styles.perks}>
-          {perks.map((item) => (
-            <View key={item} style={styles.perkRow}>
-              <Ionicons name="checkmark-circle" size={18} color={colors.accent} />
-              <Text style={styles.perkText}>{item}</Text>
-            </View>
-          ))}
+          <View style={styles.cancellationText}>
+            <Text style={styles.cancellationCopy}>
+              Pretplatu možeš otkazati u bilo kom trenutku u postavkama.
+            </Text>
+            <Text style={styles.cancellationCopy}>
+              Plaćanje se vrši automatski preko App Store računa.
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.ctaButton}
+            onPress={handleSubscribe}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.ctaText}>
+              <Ionicons name="diamond" size={18} color="#fff" /> {'   '}Pretplati se
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.footerLinks}>
+            <Text style={styles.linkText}>Pravila privatnosti</Text>
+            <Text style={styles.linkText}>Uslovi korištenja</Text>
+            <Text style={styles.linkText}>Kontakt</Text>
+          </View>
         </View>
-
-        <View style={styles.priceRow}>
-          <Text style={styles.priceValue}>6.99€</Text>
-          <Text style={styles.priceUnit}>/ sedmično</Text>
-        </View>
-
-        <TouchableOpacity style={styles.ctaButton} onPress={handleSubscribe} activeOpacity={0.9}>
-          <Text style={styles.ctaText}>{sub ? 'Obnovi' : 'Nastavi'}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.laterButton} onPress={() => navigation?.goBack?.()}>
-          <Text style={styles.laterText}>Možda kasnije</Text>
-        </TouchableOpacity>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -92,111 +190,213 @@ const createStyles = (colors, isDark) =>
   StyleSheet.create({
     screen: {
       flex: 1,
-      backgroundColor: isDark ? colors.background : '#0c0b18',
+      backgroundColor: isDark ? colors.surface : '#0b0b14',
+    },
+    content: {
       padding: 20,
-      justifyContent: 'center',
+      flexGrow: 1,
     },
-    header: {
-      alignItems: 'center',
-      marginBottom: 16,
+    inner: {
+      flex: 1,
+      gap: 18,
+      justifyContent: 'flex-end',
     },
-    headerText: {
-      color: colors.textLight,
-      fontSize: 22,
-      fontWeight: '800',
-    },
-    subheaderText: {
-      color: '#cbd5f5',
-      fontSize: 12,
-      marginTop: 6,
-    },
-    card: {
-      backgroundColor: isDark ? colors.surface : '#101728',
-      borderRadius: 24,
+    hero: {
+      backgroundColor: '#1F2430',
+      borderRadius: 26,
       padding: 22,
-      borderWidth: 1,
-      borderColor: colors.primary,
-      shadowColor: colors.primary,
-      shadowOffset: { width: 0, height: 12 },
-      shadowOpacity: 0.2,
-      shadowRadius: 18,
-      elevation: 10,
-    },
-    badge: {
-      flexDirection: 'row',
       alignItems: 'center',
-      alignSelf: 'center',
       gap: 6,
-      marginBottom: 8,
+      marginBottom: 10,
     },
-    badgeText: {
-      color: colors.accent,
-      fontWeight: '800',
-      letterSpacing: 0.6,
-    },
-    title: {
-      color: colors.textLight,
+    heroTitle: {
+      color: colors.primary,
       fontSize: 26,
       fontWeight: '800',
-      textAlign: 'center',
-      marginBottom: 4,
     },
-    subtitle: {
-      color: '#cbd5f5',
+    heroText: {
+      marginTop: 4,
+      color: '#c5c8e0',
       fontSize: 14,
       textAlign: 'center',
-      marginBottom: 18,
     },
     perks: {
-      gap: 10,
-      marginBottom: 20,
+      backgroundColor: '#1F2430',
+      borderRadius: 20,
+      paddingTop: 16,
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+      borderWidth: 0,
+      marginBottom: 8,
     },
     perkRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
+      marginBottom: 8,
+    },
+    perkRowLast: {
+      marginBottom: 0,
     },
     perkText: {
       color: colors.textLight,
       fontSize: 15,
       fontWeight: '600',
+      marginLeft: 10,
     },
-    priceRow: {
+    statusText: {
+      color: '#cfd2ea',
+      fontSize: 13,
+      textAlign: 'center',
+    },
+    discountCard: {
+      backgroundColor: '#1F2430',
+      borderRadius: 22,
+      borderWidth: 0,
+      padding: 14,
+      marginTop: 4,
+      marginBottom: 4,
+    },
+    discountRow: {
+      flexDirection: 'column',
+      gap: 4,
+    },
+    discountToggle: {
       flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'baseline',
-      marginBottom: 18,
+      alignItems: 'center',
+      gap: 10,
     },
-    priceValue: {
-      color: colors.textLight,
-      fontSize: 26,
+    switchTrack: {
+      width: 52,
+      height: 28,
+      borderRadius: 16,
+      backgroundColor: 'rgba(255,255,255,0.18)',
+      justifyContent: 'center',
+      paddingHorizontal: 4,
+    },
+    switchTrackActive: {
+      backgroundColor: colors.primary,
+    },
+    switchThumb: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      backgroundColor: '#fff',
+      alignSelf: 'flex-start',
+    },
+    switchThumbActive: {
+      alignSelf: 'flex-end',
+    },
+    discountText: {
+      color: '#fff',
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    discountTopRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    discountLabel: {
+      color: '#fff',
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    planList: {
+      gap: 12,
+    },
+    plan: {
+      backgroundColor: '#1F2430',
+      borderRadius: 22,
+      padding: 18,
+      borderWidth: 1,
+      borderColor: 'transparent',
+      position: 'relative',
+      marginBottom: 6,
+    },
+    planSelected: {
+      borderColor: colors.primary,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.3,
+      shadowRadius: 18,
+      elevation: 10,
+
+    },
+    badge: {
+      position: 'absolute',
+      top: 0,
+      marginTop: -10,
+      right: 16,
+      backgroundColor: colors.secondary,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+    },
+    badgeText: {
+      color: 'white',
+      fontSize: 11,
+      fontWeight: '700',
+    },
+    planHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 4,
+    },
+    planColumn: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'flex-start',
+    },
+    priceColumn: {
+      width: 110,
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+    },
+    planLabel: {
+      color: colors.secondary,
+      fontSize: 18,
+      fontWeight: '700',
+    },
+    planPrice: {
+      color: '#fff',
+      fontSize: 24,
       fontWeight: '800',
     },
-    priceUnit: {
-      color: '#d1d5db',
-      fontSize: 14,
-      marginLeft: 6,
+    planSubtext: {
+      color: '#a9adc6',
+      fontSize: 13,
+    },
+    cancellationText: {
+      marginTop: 6,
+      gap: 4,
+    },
+    cancellationCopy: {
+      color: '#a9adc6',
+      fontSize: 12,
+      textAlign: 'center',
     },
     ctaButton: {
       backgroundColor: colors.primary,
-      paddingVertical: 14,
-      borderRadius: 16,
+      borderRadius: 999,
+      paddingVertical: 16,
       alignItems: 'center',
-      marginBottom: 10,
+      marginTop: 8,
     },
     ctaText: {
-      color: '#0c0b18',
+      color: '#fff',
       fontSize: 16,
       fontWeight: '800',
-      letterSpacing: 0.3,
     },
-    laterButton: {
-      paddingVertical: 8,
-      alignItems: 'center',
+    footerLinks: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 16,
+      marginTop: 12,
     },
-    laterText: {
-      color: '#cbd5f5',
-      fontSize: 14,
-      fontWeight: '600',
+    linkText: {
+      color: colors.primary,
+      fontSize: 12,
+      textDecorationLine: 'underline',
     },
   });
