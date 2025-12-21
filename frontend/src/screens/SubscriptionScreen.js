@@ -61,15 +61,20 @@ export default function SubscriptionScreen() {
     [discountActive],
   );
 
-  const heroCopy = useMemo(
-    () =>
-      subscription
-        ? `Tvoj pristup traje do ${new Date(subscription.expires_at).toLocaleDateString(
-            'bs-BA',
-          )}`
-        : 'Uključi premium i dobiješ kompletan pristup',
-    [subscription],
-  );
+  const heroCopy = useMemo(() => {
+    if (!subscription?.expires_at) {
+      return 'Uključi premium i dobiješ kompletan pristup';
+    }
+    const expires = new Date(subscription.expires_at);
+    const formatted = expires.toLocaleDateString('bs-BA');
+    const today = new Date();
+    const diff = expires - today;
+    const days = Math.max(Math.round(diff / (1000 * 60 * 60 * 24)), 0);
+    return {
+      text: `Tvoj pristup traje do ${formatted}`,
+      days,
+    };
+  }, [subscription]);
 
   return (
     <View style={styles.container}>
@@ -82,9 +87,14 @@ export default function SubscriptionScreen() {
       >
         <View style={styles.hero}>
           <Ionicons name="diamond" size={28} color={colors.primary} />
-          <Text style={styles.heroTitle}>Preplati se na Premium</Text>
-          <Text style={styles.heroText}>
-            Otkloni reklame, ubrzaj sobe i oseti premium pogodnosti.
+          <Text style={styles.heroTitle}>Pretplati se na Premium</Text>
+        </View>
+             <View style={styles.cancellationText}>
+          <Text style={styles.cancellationCopy}>
+            Pretplatu možeš otkazati u bilo kom trenutku u postavkama.
+          </Text>
+          <Text style={styles.cancellationCopy}>
+            Plaćanje se vrši automatski preko App Store računa.
           </Text>
         </View>
 
@@ -103,15 +113,19 @@ export default function SubscriptionScreen() {
           ))}
         </View>
 
-        <Text style={styles.statusText}>{heroCopy}</Text>
-               <View style={styles.cancellationText}>
-          <Text style={styles.cancellationCopy}>
-            Pretplatu možeš otkazati u bilo kom trenutku u postavkama.
-          </Text>
-          <Text style={styles.cancellationCopy}>
-            Plaćanje se vrši automatski preko App Store računa.
-          </Text>
+        <View style={styles.statusBadge}>
+          <View style={styles.statusBadgeGlow} />
+          <View style={styles.statusBadgeContent}>
+            <Text style={styles.statusBadgeText}>{typeof heroCopy === 'string' ? heroCopy : heroCopy.text}</Text>
+            {heroCopy?.days != null && (
+              <View style={styles.statusBadgeDays}>
+                <Text style={styles.statusBadgeDaysNumber}>{heroCopy.days}</Text>
+                <Text style={styles.statusBadgeDaysLabel}>dana</Text>
+              </View>
+            )}
+          </View>
         </View>
+          
 
         <View style={styles.discountCard}>
           <View style={styles.discountTopRow}>
@@ -203,12 +217,11 @@ const createStyles = (colors) =>
       minHeight: '100%',
     },
     hero: {
-      backgroundColor: '#1F2430',
       borderRadius: 26,
       padding: 22,
       alignItems: 'center',
       gap: 6,
-      marginBottom: SECTION_GAP,
+      paddingBottom: SECTION_GAP,
     },
     heroTitle: {
       color: colors.primary,
@@ -222,13 +235,13 @@ const createStyles = (colors) =>
       textAlign: 'center',
     },
     perks: {
-      backgroundColor: '#1F2430',
       borderRadius: 20,
       paddingTop: 16,
       paddingHorizontal: 16,
       paddingBottom: 16,
-      borderWidth: 0,
-      marginBottom: SECTION_GAP,
+      borderWidth: 1,
+      borderColor: colors.border,
+
     },
     perkRow: {
       flexDirection: 'row',
@@ -244,16 +257,54 @@ const createStyles = (colors) =>
       fontWeight: '600',
       marginLeft: 10,
     },
-    statusText: {
-      color: '#cfd2ea',
-      fontSize: 13,
-      textAlign: 'center',
-      marginVertical: SECTION_GAP,
+    statusBadge: {
+      alignSelf: 'stretch',
+      backgroundColor: colors.secondary,
+      borderRadius: 22,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      marginTop: SECTION_GAP,
+      overflow: 'hidden',
+      position: 'relative',
+    },
+
+    statusBadgeContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 16,
+      position: 'relative',
+    },
+    statusBadgeText: {
+      color: '#fff',
+      fontSize: 15,
+      fontWeight: '700',
+      maxWidth: '70%',
+    },
+    statusBadgeDays: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 6,
+      borderRadius: 12,
+      backgroundColor: '#fff',
+      minWidth: 60,
+    },
+    statusBadgeDaysNumber: {
+      color: colors.secondary,
+      fontSize: 22,
+      fontWeight: '800',
+    },
+    statusBadgeDaysLabel: {
+      color: colors.secondary,
+      fontSize: 12,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
     },
     discountCard: {
-      backgroundColor: colors.primaryOpacity4,
+      backgroundColor: colors.transparent,
       borderRadius: 22,
-      borderWidth: 0,
+      borderWidth: 1,
+      borderColor: colors.border,
       padding: 14,
       marginVertical: SECTION_GAP,
     },
@@ -292,10 +343,11 @@ const createStyles = (colors) =>
       gap: 12,
     },
     plan: {
-      backgroundColor: '#1F2430',
       borderRadius: 22,
       padding: 18,
       position: 'relative',
+      borderWidth: 1,
+      borderColor: colors.border,
     },
     planSelected: {
       borderColor: colors.primary,
@@ -310,7 +362,7 @@ const createStyles = (colors) =>
       top: 0,
       marginTop: -10,
       right: 16,
-      backgroundColor: colors.primaryOpacity2,
+      backgroundColor: colors.secondary,
       paddingHorizontal: 10,
       paddingVertical: 4,
       borderRadius: 999,
@@ -351,8 +403,8 @@ const createStyles = (colors) =>
       fontSize: 13,
     },
     cancellationText: {
-      marginTop: SECTION_GAP,
       gap: 4,
+      marginBottom: SECTION_GAP,
     },
     cancellationCopy: {
       color: '#a9adc6',
