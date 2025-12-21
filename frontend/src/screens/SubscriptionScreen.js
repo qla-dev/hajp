@@ -86,14 +86,8 @@ export default function SubscriptionScreen() {
         contentInsetAdjustmentBehavior="never"
       >
         <View style={styles.hero}>
-          <View style={styles.heroTitleRow}>
-            <Text style={styles.heroTitle}>Pretplati se na</Text>
-            <Ionicons name="diamond" size={20} color={colors.primary} />
-            <Text style={[styles.heroTitle, styles.heroPremiumText]}>Premium</Text>
-          </View>
-          <Text style={styles.heroSubtitle}>
-            Otkloni reklame, ubrzaj sobe i oseti premium pogodnosti.
-          </Text>
+          <Ionicons name="diamond" size={28} color={colors.primary} />
+          <Text style={styles.heroTitle}>Pretplati se na Premium</Text>
         </View>
              <View style={styles.cancellationText}>
           <Text style={styles.cancellationCopy}>
