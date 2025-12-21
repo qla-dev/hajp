@@ -54,7 +54,16 @@ function MainStackNavigator() {
       }}
     >
       <MainStack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
-      <MainStack.Screen name="Subscription" component={SubscriptionScreen} options={{ headerShown: false }} />
+      <MainStack.Screen
+        name="Subscription"
+        component={SubscriptionScreen}
+        options={{
+          title: 'Pretplati se na Premium',
+          headerBackTitle: 'Nazad',
+          headerTransparent: false,
+          headerStyle: { backgroundColor: colors.surface },
+        }}
+      />
       <MainStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil' }} />
       <MainStack.Screen
         name="EditProfile"

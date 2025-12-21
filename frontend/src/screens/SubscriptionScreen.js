@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
@@ -24,12 +23,12 @@ const plans = [
     key: 'monthly',
     label: 'Mjesečno',
     price: '3,99 €',
-    subText: 'Otkaži kada god želiš',
+    subText: 'Otkaži kad god želiš',
   },
   {
     key: 'yearly',
     label: 'Godišnje',
-    price: '37,99 €',
+    price: '33,99 €',
     subText: 'Ekvivalent 3,16 €/mj',
     badge: 'Uštedi 15%',
   },
@@ -39,7 +38,7 @@ export default function SubscriptionScreen() {
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [discountActive, setDiscountActive] = useState(true);
   const [subscription, setSubscription] = useState(null);
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   useEffect(() => {
@@ -50,10 +49,9 @@ export default function SubscriptionScreen() {
 
   const handleSubscribe = useCallback(async () => {
     try {
-      const { data } = await subscribe();
-      setSubscription(data.subscription);
+      await subscribe();
     } catch {
-      // ignore for now
+      // ignore
     }
   }, []);
 
@@ -73,50 +71,51 @@ export default function SubscriptionScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <View style={styles.container}>
       <StatusBar style="light" />
       <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="never"
       >
-        <View style={styles.inner}>
-          <View style={styles.hero}>
-            <Ionicons name="diamond" size={28} color={colors.primary} />
-            <Text style={styles.heroTitle}>Preplati se na Premium</Text>
-            <Text style={styles.heroText}>
-              Otkloni reklame, ubrzaj sobe i oseti premium pogodnosti.
-            </Text>
-          </View>
+        <View style={styles.hero}>
+          <Ionicons name="diamond" size={28} color={colors.primary} />
+          <Text style={styles.heroTitle}>Preplati se na Premium</Text>
+          <Text style={styles.heroText}>
+            Otkloni reklame, ubrzaj sobe i oseti premium pogodnosti.
+          </Text>
+        </View>
 
-          <View style={styles.perks}>
-            {perks.map((perk, idx) => (
-              <View
-                key={perk}
-                style={[
-                  styles.perkRow,
-                  idx === perks.length - 1 && styles.perkRowLast,
-                ]}
-              >
-                <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
-                <Text style={styles.perkText}>{perk}</Text>
-              </View>
-            ))}
-          </View>
+        <View style={styles.perks}>
+          {perks.map((perk, idx) => (
+            <View
+              key={perk}
+              style={[
+                styles.perkRow,
+                idx === perks.length - 1 && styles.perkRowLast,
+              ]}
+            >
+              <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
+              <Text style={styles.perkText}>{perk}</Text>
+            </View>
+          ))}
+        </View>
 
         <Text style={styles.statusText}>{heroCopy}</Text>
 
         <View style={styles.discountCard}>
           <View style={styles.discountTopRow}>
             <Text style={styles.discountLabel}>
-              {discountActive ? '🎄 Božićni popust primijenjen' : '🎄 Uključi Božićni popust'}
+              {discountActive ? 'Božićni popust primijenjen' : 'Uključi Božićni popust'}
             </Text>
             <TouchableOpacity
               style={[styles.switchTrack, discountActive && styles.switchTrackActive]}
               activeOpacity={0.9}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setDiscountActive((prev) => !prev);
-            }}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setDiscountActive((prev) => !prev);
+              }}
             >
               <View style={[styles.switchThumb, discountActive && styles.switchThumbActive]} />
             </TouchableOpacity>
@@ -124,82 +123,80 @@ export default function SubscriptionScreen() {
         </View>
 
         <View style={styles.planList}>
-            {plans.map((plan) => {
-              const isYearly = plan.key === 'yearly';
-              const price = isYearly ? priceText : plan.price;
-              return (
-                <TouchableOpacity
-                  key={plan.key}
-                  style={[
-                    styles.plan,
-                    selectedPlan === plan.key && styles.planSelected,
-                  ]}
-                  activeOpacity={0.9}
-                  onPress={() => setSelectedPlan(plan.key)}
-                >
-                  {isYearly && discountActive && plan.badge ? (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{plan.badge}</Text>
-                    </View>
-                  ) : null}
-                  <View style={styles.planHeader}>
-                    <View style={styles.planColumn}>
-                      <Text style={styles.planLabel}>{plan.label}</Text>
-                      <Text style={styles.planSubtext}>{plan.subText}</Text>
-                    </View>
-                    <View style={styles.priceColumn}>
-                      <Text style={styles.planPrice}>{price}</Text>
-                    </View>
+          {plans.map((plan) => {
+            const isYearly = plan.key === 'yearly';
+            const price = isYearly ? priceText : plan.price;
+            return (
+              <TouchableOpacity
+                key={plan.key}
+                style={[
+                  styles.plan,
+                  selectedPlan === plan.key && styles.planSelected,
+                ]}
+                activeOpacity={0.9}
+                onPress={() => setSelectedPlan(plan.key)}
+              >
+                {isYearly && discountActive && plan.badge ? (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{plan.badge}</Text>
                   </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                ) : null}
+                <View style={styles.planHeader}>
+                  <View style={styles.planColumn}>
+                    <Text style={styles.planLabel}>{plan.label}</Text>
+                    <Text style={styles.planSubtext}>{plan.subText}</Text>
+                  </View>
+                  <View style={styles.priceColumn}>
+                    <Text style={styles.planPrice}>{price}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
-          <View style={styles.cancellationText}>
-            <Text style={styles.cancellationCopy}>
-              Pretplatu možeš otkazati u bilo kom trenutku u postavkama.
-            </Text>
-            <Text style={styles.cancellationCopy}>
-              Plaćanje se vrši automatski preko App Store računa.
-            </Text>
-          </View>
+        <View style={styles.cancellationText}>
+          <Text style={styles.cancellationCopy}>
+            Pretplatu možeš otkazati u bilo kom trenutku u postavkama.
+          </Text>
+          <Text style={styles.cancellationCopy}>
+            Plaćanje se vrši automatski preko App Store računa.
+          </Text>
+        </View>
 
-          <TouchableOpacity
-            style={styles.ctaButton}
-            onPress={handleSubscribe}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.ctaText}>
-              <Ionicons name="diamond" size={18} color="#fff" /> {'   '}Pretplati se
-            </Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.ctaButton}
+          onPress={handleSubscribe}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.ctaText}>
+            <Ionicons name="diamond" size={18} color="#fff" /> {'   '}Pretplati se
+          </Text>
+        </TouchableOpacity>
 
-          <View style={styles.footerLinks}>
-            <Text style={styles.linkText}>Pravila privatnosti</Text>
-            <Text style={styles.linkText}>Uslovi korištenja</Text>
-            <Text style={styles.linkText}>Kontakt</Text>
-          </View>
+        <View style={styles.footerLinks}>
+          <Text style={styles.linkText}>Pravila privatnosti</Text>
+          <Text style={styles.linkText}>Uslovi korištenja</Text>
+          <Text style={styles.linkText}>Kontakt</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-const createStyles = (colors, isDark) =>
+const createStyles = (colors) =>
   StyleSheet.create({
-    screen: {
+    container: {
       flex: 1,
-      backgroundColor: isDark ? colors.surface : '#0b0b14',
+      backgroundColor: colors.background,
+    },
+    scrollView: {
+      flex: 1,
     },
     content: {
-      padding: 20,
+      paddingHorizontal: 20,
+      paddingVertical: 0,
       flexGrow: 1,
-    },
-    inner: {
-      flex: 1,
-      gap: 18,
-      justifyContent: 'flex-end',
     },
     hero: {
       backgroundColor: '#1F2430',
@@ -227,7 +224,7 @@ const createStyles = (colors, isDark) =>
       paddingHorizontal: 16,
       paddingBottom: 16,
       borderWidth: 0,
-      marginBottom: 8,
+      marginBottom: 0,
     },
     perkRow: {
       flexDirection: 'row',
@@ -247,23 +244,20 @@ const createStyles = (colors, isDark) =>
       color: '#cfd2ea',
       fontSize: 13,
       textAlign: 'center',
+      marginBottom: 4,
     },
     discountCard: {
-      backgroundColor: '#1F2430',
+      backgroundColor: colors.primaryOpacity4,
       borderRadius: 22,
       borderWidth: 0,
       padding: 14,
       marginTop: 4,
       marginBottom: 4,
     },
-    discountRow: {
-      flexDirection: 'column',
-      gap: 4,
-    },
-    discountToggle: {
+    discountTopRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 10,
+      justifyContent: 'space-between',
     },
     switchTrack: {
       width: 52,
@@ -285,16 +279,6 @@ const createStyles = (colors, isDark) =>
     },
     switchThumbActive: {
       alignSelf: 'flex-end',
-    },
-    discountText: {
-      color: '#fff',
-      fontSize: 15,
-      fontWeight: '600',
-    },
-    discountTopRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
     },
     discountLabel: {
       color: '#fff',
@@ -320,14 +304,13 @@ const createStyles = (colors, isDark) =>
       shadowOpacity: 0.3,
       shadowRadius: 18,
       elevation: 10,
-
     },
     badge: {
       position: 'absolute',
       top: 0,
       marginTop: -10,
       right: 16,
-      backgroundColor: colors.secondary,
+      backgroundColor: colors.primaryOpacity2,
       paddingHorizontal: 10,
       paddingVertical: 4,
       borderRadius: 999,
@@ -381,7 +364,12 @@ const createStyles = (colors, isDark) =>
       borderRadius: 999,
       paddingVertical: 16,
       alignItems: 'center',
-      marginTop: 8,
+      marginTop: 0,
+      shadowColor: colors.primary,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.45,
+      elevation: 12,
     },
     ctaText: {
       color: '#fff',
@@ -392,7 +380,8 @@ const createStyles = (colors, isDark) =>
       flexDirection: 'row',
       justifyContent: 'center',
       gap: 16,
-      marginTop: 12,
+      marginTop: 5,
+      marginBottom: 20,
     },
     linkText: {
       color: colors.primary,
