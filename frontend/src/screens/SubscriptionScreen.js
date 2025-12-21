@@ -199,12 +199,15 @@ const createStyles = (colors) =>
       flexGrow: 1,
     },
     hero: {
-      backgroundColor: '#1F2430',
+      backgroundColor: 'transparent',
       borderRadius: 26,
       padding: 22,
+      paddingTop: 90,
       alignItems: 'center',
       gap: 6,
       marginBottom: 10,
+      borderColor: colors.border,
+      borderWidth: 1,
     },
     heroTitle: {
       color: colors.primary,

@@ -60,8 +60,8 @@ function MainStackNavigator() {
         options={{
           title: 'Pretplati se na Premium',
           headerBackTitle: 'Nazad',
-          headerTransparent: false,
-          headerStyle: { backgroundColor: colors.surface },
+          headerTransparent: true,
+          headerStyle: { backgroundColor: 'transparent' },
         }}
       />
       <MainStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil' }} />
