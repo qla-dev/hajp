@@ -7,9 +7,12 @@ export function MenuRefreshProvider({ children }) {
 
   const registerMenuRefresh = useCallback((key, fn) => {
     if (!key) return () => {};
-    refreshMap.current[key] = fn;
+    const bucket = refreshMap.current[key] ?? new Set();
+    bucket.add(fn);
+    refreshMap.current[key] = bucket;
     return () => {
-      if (refreshMap.current[key] === fn) {
+      bucket.delete(fn);
+      if (bucket.size === 0) {
         delete refreshMap.current[key];
       }
     };
@@ -17,7 +20,8 @@ export function MenuRefreshProvider({ children }) {
 
   const triggerMenuRefresh = useCallback((key) => {
     if (!key) return;
-    refreshMap.current[key]?.();
+    console.log('[menuRefresh] trigger', key);
+    refreshMap.current[key]?.forEach((fn) => fn());
   }, []);
 
   const value = useMemo(

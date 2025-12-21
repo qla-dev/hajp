@@ -129,7 +129,8 @@ export default function ProfileScreen({ navigation, route }) {
     }, [isOtherProfile, route?.params?.userId, loadData, loadOtherProfile]),
   );
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
+    console.log('[Profile] pull to refresh triggered');
     setRefreshing(true);
     const viewingOther = route?.params?.isMine === false;
     if (viewingOther && route?.params?.userId) {
@@ -138,7 +139,7 @@ export default function ProfileScreen({ navigation, route }) {
       await loadData();
     }
     setRefreshing(false);
-  };
+  }, [loadData, loadOtherProfile, route?.params?.isMine, route?.params?.userId]);
 
   const isOtherProfile = route?.params?.isMine === false;
   const isMine = !isOtherProfile;
@@ -203,10 +204,11 @@ export default function ProfileScreen({ navigation, route }) {
   const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
     const unsubscribe = registerMenuRefresh('Profile', () => {
-      loadData();
+      console.log('[Profile] double tap refresh triggered');
+      onRefresh();
     });
     return unsubscribe;
-  }, [loadData, registerMenuRefresh]);
+  }, [onRefresh, registerMenuRefresh]);
 
   useEffect(() => {
     Animated.loop(
