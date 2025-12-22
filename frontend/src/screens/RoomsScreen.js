@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -12,14 +12,28 @@ import { fetchRoomsStatus, fetchUserRooms } from '../api';
 import PollItem from '../components/PollItem';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 
+const ITEM_HEIGHT = 300;
+
 export default function RoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [spacerActive, setSpacerActive] = useState(false);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const listRef = useRef(null);
 
-  const loadRooms = useCallback(async ({ showLoader = true } = {}) => {
+  const scrollToTop = useCallback(() => {
+    const list = listRef.current;
+    if (!list) return;
+    try {
+      list.scrollToIndex({ index: 0, animated: true, viewPosition: 0 });
+    } catch (err) {
+      list.scrollToOffset?.({ offset: 0, animated: true });
+    }
+  }, [rooms.length]);
+
+  const loadRooms = useCallback(async ({ showLoader = true, clearSpacer = true } = {}) => {
     if (showLoader) {
       setLoading(true);
     } else {
@@ -49,17 +63,26 @@ export default function RoomsScreen({ navigation }) {
         setLoading(false);
       } else {
         setRefreshing(false);
+        // keep spacer unless explicitly told otherwise
+        if (clearSpacer) {
+          setSpacerActive(false);
+        }
       }
     }
   }, []);
 
   const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
-    const unsubscribe = registerMenuRefresh('Hajp', () => {
-      loadRooms({ showLoader: false });
-    });
+    const refreshAndScroll = () => {
+      scrollToTop();
+      setSpacerActive(true);
+      setRefreshing(true);
+      loadRooms({ showLoader: false, clearSpacer: false });
+    };
+
+    const unsubscribe = registerMenuRefresh('Hajp', refreshAndScroll);
     return unsubscribe;
-  }, [loadRooms, registerMenuRefresh]);
+  }, [loadRooms, registerMenuRefresh, scrollToTop]);
 
   useEffect(() => {
     loadRooms();
@@ -114,15 +137,22 @@ export default function RoomsScreen({ navigation }) {
 
   const listContentStyle = [
     styles.listContent,
+    spacerActive && styles.afterScrollSpacer,
     rooms.length === 0 && styles.emptyContainer,
   ];
 
   return (
     <View style={styles.container}>
       <FlatList
+        ref={listRef}
         data={rooms}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderRoom}
+        getItemLayout={(_, index) => ({
+          length: ITEM_HEIGHT,
+          offset: ITEM_HEIGHT * index,
+          index,
+        })}
         contentContainerStyle={listContentStyle}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -165,6 +195,9 @@ const createStyles = (colors) =>
       paddingTop: 0,
       paddingBottom: 0,
       gap: 12,
+    },
+    afterScrollSpacer: {
+      paddingTop: 40,
     },
     emptyContainer: {
       flexGrow: 1,
