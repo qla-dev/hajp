@@ -22,6 +22,7 @@ export default function PollingScreen({ route, navigation }) {
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshingQuestion, setRefreshingQuestion] = useState(false);
+  const [interactionLocked, setInteractionLocked] = useState(false);
   const [finished, setFinished] = useState(false);
   const [firstLoad, setFirstLoad] = useState(true);
   const emojis = useMemo(() => ['🔥', '🚀', '💎', '🏆', '🎉', '✨'], []);
@@ -94,17 +95,20 @@ export default function PollingScreen({ route, navigation }) {
       setFirstLoad(false);
       setLoading(false);
       setRefreshingQuestion(false);
+      setInteractionLocked(false);
     }
   };
 
   const handleVote = async (option) => {
-    if (!question) return;
+    if (!question || interactionLocked) return;
+    setInteractionLocked(true);
     Haptics?.impactAsync?.(Haptics?.ImpactFeedbackStyle?.Medium)?.catch(() => {});
     try {
       await voteQuestion(question.id, option);
       await loadQuestion();
     } catch (error) {
       console.error('Error voting:', error);
+      setInteractionLocked(false);
     }
   };
 
@@ -121,9 +125,12 @@ export default function PollingScreen({ route, navigation }) {
 
   const handleSkip = async () => {
     if (!question) {
+      setInteractionLocked(true);
       await loadQuestion();
       return;
     }
+    if (interactionLocked) return;
+    setInteractionLocked(true);
     Haptics?.selectionAsync?.()?.catch(() => {});
     try {
       await skipQuestion(question.id);
@@ -199,21 +206,26 @@ export default function PollingScreen({ route, navigation }) {
 
       <View style={styles.optionsContainer}>
         {normalizedOptions.map((option, idx) => (
-          <TouchableOpacity key={idx} onPress={() => handleVote(option.value)} style={styles.optionButton} disabled={refreshingQuestion}>
+          <TouchableOpacity
+            key={idx}
+            onPress={() => handleVote(option.value)}
+            style={styles.optionButton}
+            disabled={refreshingQuestion || interactionLocked}
+          >
             <Text style={styles.optionText}>{option.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
       <View style={styles.bottomActions}>
-        <TouchableOpacity onPress={handleShuffle} style={styles.actionButton} disabled={refreshingQuestion}>
+        <TouchableOpacity onPress={handleShuffle} style={styles.actionButton} disabled={refreshingQuestion || interactionLocked}>
           <View style={styles.iconWrapperSmall}>
             <Ionicons name="shuffle-outline" size={26} color={colors.textLight} />
           </View>
           <Text style={styles.actionText}>Novi odgovori</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleSkip} style={styles.actionButton} disabled={refreshingQuestion}>
+        <TouchableOpacity onPress={handleSkip} style={styles.actionButton} disabled={refreshingQuestion || interactionLocked}>
           <View style={styles.iconWrapperSmall}>
             <Ionicons name="play-skip-forward-outline" size={24} color={colors.textLight} />
           </View>
