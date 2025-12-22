@@ -18,7 +18,7 @@ export default function RoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [spacerActive, setSpacerActive] = useState(false);
+  const [keepTopPadding, setKeepTopPadding] = useState(false);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const listRef = useRef(null);
@@ -33,7 +33,7 @@ export default function RoomsScreen({ navigation }) {
     }
   }, [rooms.length]);
 
-  const loadRooms = useCallback(async ({ showLoader = true, clearSpacer = true } = {}) => {
+  const loadRooms = useCallback(async ({ showLoader = true } = {}) => {
     if (showLoader) {
       setLoading(true);
     } else {
@@ -63,10 +63,6 @@ export default function RoomsScreen({ navigation }) {
         setLoading(false);
       } else {
         setRefreshing(false);
-        // keep spacer unless explicitly told otherwise
-        if (clearSpacer) {
-          setSpacerActive(false);
-        }
       }
     }
   }, []);
@@ -75,9 +71,9 @@ export default function RoomsScreen({ navigation }) {
   useEffect(() => {
     const refreshAndScroll = () => {
       scrollToTop();
-      setSpacerActive(true);
+      setKeepTopPadding(true);
       setRefreshing(true);
-      loadRooms({ showLoader: false, clearSpacer: false });
+      loadRooms({ showLoader: false });
     };
 
     const unsubscribe = registerMenuRefresh('Hajp', refreshAndScroll);
@@ -137,7 +133,7 @@ export default function RoomsScreen({ navigation }) {
 
   const listContentStyle = [
     styles.listContent,
-    spacerActive && styles.afterScrollSpacer,
+    keepTopPadding && styles.afterScrollSpacer,
     rooms.length === 0 && styles.emptyContainer,
   ];
 
@@ -154,6 +150,7 @@ export default function RoomsScreen({ navigation }) {
           index,
         })}
         contentContainerStyle={listContentStyle}
+        onScrollBeginDrag={() => setKeepTopPadding(false)}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
