@@ -40,6 +40,16 @@ export default function CashOutScreen({ route, navigation }) {
   useEffect(() => () => clearTimeout(confettiTimer.current), []);
 
   useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      const parent = navigation.getParent();
+      if (parent) {
+        parent.setParams({ refreshRooms: Date.now() });
+      }
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  useEffect(() => {
     let isMounted = true;
     (async () => {
       try {

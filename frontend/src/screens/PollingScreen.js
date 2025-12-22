@@ -27,6 +27,16 @@ export default function PollingScreen({ route, navigation }) {
   const emojis = useMemo(() => ['🔥', '🚀', '💎', '🏆', '🎉', '✨'], []);
   const backgrounds = useMemo(() => [colors.secondary, '#7c3aed', '#2563eb', '#0ea5e9', '#22c55e', '#f97316'], [colors.secondary]);
   const [bgColor, setBgColor] = useState(colors.secondary);
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      const parent = navigation.getParent();
+      if (parent) {
+        parent.setParams({ refreshRooms: Date.now() });
+      }
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   const handleNoActivePoll = useCallback(async () => {
     if (!roomId) return;
     try {

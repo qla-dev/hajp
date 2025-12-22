@@ -32,8 +32,7 @@ export default function NextPollCountdownScreen({ route, navigation }) {
   const styles = useThemedStyles(createStyles);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      console.log('[NextPoll] beforeRemove event');
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
       const parent = navigation.getParent();
       if (parent) {
         parent.setParams({ refreshRooms: Date.now() });

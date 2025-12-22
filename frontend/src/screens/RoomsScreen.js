@@ -100,10 +100,8 @@ export default function RoomsScreen({ navigation, route }) {
     
     const unsubscribe = navigation.addListener('focus', () => {
       const refreshTimestamp = parent.getState()?.routes?.find(r => r.name === 'Hajp')?.params?.refreshRooms;
-      console.log('[Rooms] Focus event, refreshTimestamp:', refreshTimestamp, 'last:', lastRefreshTimestamp.current);
       
       if (refreshTimestamp && refreshTimestamp !== lastRefreshTimestamp.current) {
-        console.log('[Rooms] Triggering refresh');
         lastRefreshTimestamp.current = refreshTimestamp;
         loadRooms({ showLoader: false });
       }
