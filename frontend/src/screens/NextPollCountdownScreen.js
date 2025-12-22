@@ -11,6 +11,7 @@ import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { Ionicons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 
 const pad = (value) => String(value).padStart(2, '0');
 
@@ -72,11 +73,13 @@ export default function NextPollCountdownScreen({ route }) {
           </Text>
 
           <View style={styles.heroIcon}>
-            <View style={styles.heroPresent}>
-              <View style={styles.heroRibbon} />
-              <View style={styles.heroGift} />
-            </View>
-          
+            <LottieView
+              source={{ uri: 'https://cdn.lordicon.com/jvucoldz.json' }}
+              autoPlay
+              loop
+              style={styles.heroLottie}
+              colorFilters={[{ keypath: '**', color: colors.primary }]}
+            />
           </View>
 
           <View style={styles.rewardRow}>
@@ -103,7 +106,7 @@ export default function NextPollCountdownScreen({ route }) {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.tipText}>Kako funkcioniše? Koraci</Text>
+       
         </View>
 
         <View style={styles.shareWrap}>
@@ -111,9 +114,7 @@ export default function NextPollCountdownScreen({ route }) {
           <View style={styles.timerBadge}>
             <Text style={styles.timerText}>{timerLabel}</Text>
           </View>
-          <TouchableOpacity style={[styles.shareButton, { backgroundColor: colors.secondary }]} activeOpacity={0.8}>
-            <Text style={styles.shareButtonText}>Podijeli sada</Text>
-          </TouchableOpacity>
+       
         </View>
       </ScrollView>
 
@@ -153,7 +154,7 @@ const createStyles = (colors) =>
       borderBottomRightRadius: 32,
       paddingTop: 100,
       paddingHorizontal: 24,
-      paddingBottom: 36,
+      paddingBottom: 26,
 
       elevation: 10,
     },
@@ -198,6 +199,10 @@ const createStyles = (colors) =>
       height: 70,
       borderRadius: 14,
       backgroundColor: colors.primary,
+    },
+    heroLottie: {
+      width: 200,
+      height: 200,
     },
     confettiSprays: {
       flexDirection: 'row',
