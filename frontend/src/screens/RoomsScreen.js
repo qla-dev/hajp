@@ -133,8 +133,8 @@ export default function RoomsScreen({ navigation }) {
 
   const listContentStyle = [
     styles.listContent,
-    keepTopPadding && styles.afterScrollSpacer,
-    rooms.length === 0 && styles.emptyContainer,
+    keepTopPadding && styles.topSpacer,
+    rooms.length === 0 && styles.topSpacer,
   ];
 
   return (
@@ -193,10 +193,8 @@ const createStyles = (colors) =>
       paddingBottom: 0,
       gap: 12,
     },
-    afterScrollSpacer: {
+    topSpacer: {
       paddingTop: 40,
-    },
-    emptyContainer: {
       flexGrow: 1,
       justifyContent: 'center',
       paddingBottom: 40,
