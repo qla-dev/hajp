@@ -29,11 +29,12 @@ import UserRoomsScreen from '../screens/UserRoomsScreen';
 import { MenuRefreshProvider, useMenuRefresh } from '../context/menuRefreshContext';
 
 const logoUri = `${baseURL}/img/logo.svg`;
-const POLLING_LOGO_STYLE = { width: 110, height: 38 };
+const POLLING_LOGO_STYLE = { width: 70, height: 38 };
 const POLLING_LOGO_CONTAINER_STYLE = {
   width: POLLING_LOGO_STYLE.width,
   height: POLLING_LOGO_STYLE.height,
   alignItems: 'center',
+  padding:5,
   justifyContent: 'center',
 };
 

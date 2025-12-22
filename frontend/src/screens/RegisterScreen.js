@@ -112,9 +112,9 @@ export default function RegisterScreen({ navigation }) {
         <View style={styles.content}>
           <Text style={styles.title}>Kreiraj račun</Text>
           <View style={styles.subtitleRow}>
-            <Text style={styles.subtitle}>Pridruži se </Text>
-            <SvgUri width={72} height={20} uri={logoUri} preserveAspectRatio="xMidYMid meet" />
-            <Text style={styles.subtitle}>, glasaj i budi dio zajednice!</Text>
+            <Text style={styles.subtitle}>Uskoči na </Text>
+            <SvgUri style={styles.logoimg} width={72} height={20} uri={logoUri} preserveAspectRatio="xMidYMid meet" />
+            <Text style={styles.subtitle}>i saznaj kome se dopadaš!</Text>
           </View>
 
         <FormTextInput
@@ -291,7 +291,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
+      gap: 0,
       marginBottom: 32,
     },
     subtitle: {
@@ -493,5 +493,9 @@ const createStyles = (colors) =>
       marginTop: -10,
       marginBottom: 12,
       fontSize: 12,
+    },
+    logoimg: {
+      marginBottom: 5,
+      marginLeft: -2,
     },
   });

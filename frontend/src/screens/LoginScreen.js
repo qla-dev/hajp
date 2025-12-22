@@ -63,7 +63,7 @@ export default function LoginScreen({ navigation }) {
 
         <View style={styles.subtitleRow}>
           <Text style={styles.subtitle}>Dobrodošao nazad na </Text>
-          <SvgUri width={72} height={20} uri={logoUri} preserveAspectRatio="xMidYMid meet" />
+          <SvgUri style={styles.logoimg} width={72} height={20} uri={logoUri} preserveAspectRatio="xMidYMid meet" />
         </View>
 
         <FormTextInput
@@ -152,7 +152,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
+      gap: 0,
       marginBottom: 32,
     },
     subtitle: {
@@ -160,6 +160,10 @@ const createStyles = (colors) =>
       color: colors.text_secondary,
       marginBottom: 0,
       textAlign: 'center',
+    },
+    logoimg: {
+      marginBottom: 5,
+      marginLeft: -2,
     },
     input: {
       borderWidth: 1,
