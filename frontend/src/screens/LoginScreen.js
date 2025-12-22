@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard, LayoutAnimation, UIManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SvgUri } from 'react-native-svg';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { login } from '../api';
+import { login, baseURL } from '../api';
 import FormTextInput from '../components/FormTextInput';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -17,6 +18,7 @@ export default function LoginScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const keyboardOffset = Platform.select({ ios: -20, android: 0 }); // tweak this value to move content when keyboard shows
+  const logoUri = `${baseURL}/img/logo.svg`;
 
   useEffect(() => {
     const animate = () =>
@@ -58,7 +60,11 @@ export default function LoginScreen({ navigation }) {
     >
       <View style={styles.content}>
         <Text style={styles.title}>Prijava</Text>
-        <Text style={styles.subtitle}>Dobrodošao nazad u Hajp!</Text>
+
+        <View style={styles.subtitleRow}>
+          <Text style={styles.subtitle}>Dobrodošao nazad na </Text>
+          <SvgUri width={72} height={20} uri={logoUri} preserveAspectRatio="xMidYMid meet" />
+        </View>
 
         <FormTextInput
           placeholder="Email ili username"
@@ -138,10 +144,21 @@ const createStyles = (colors) =>
       textAlign: 'center',
       marginTop: 30,
     },
+    logoContainer: {
+      alignItems: 'center',
+      marginBottom: 18,
+    },
+    subtitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      marginBottom: 32,
+    },
     subtitle: {
       fontSize: 16,
       color: colors.text_secondary,
-      marginBottom: 32,
+      marginBottom: 0,
       textAlign: 'center',
     },
     input: {
@@ -201,7 +218,7 @@ const createStyles = (colors) =>
     },
     registerLinkBold: {
       fontWeight: '700',
-      color: colors.primary,
+      color: colors.secondary,
     },
     socialBlock: {
       marginTop: 16,

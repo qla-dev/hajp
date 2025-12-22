@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
+import { useMenuRefresh } from '../context/menuRefreshContext';
 import { fetchUserRooms } from '../api';
 import { useRoomSheet } from '../context/roomSheetContext';
 
@@ -25,6 +26,23 @@ export default function UserRoomsScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const { openRoomSheet, openInviteSheet } = useRoomSheet();
+  const { registerMenuRefresh } = useMenuRefresh();
+  const menuRefreshRunningRef = React.useRef(false);
+
+  useEffect(() => {
+    const unsubscribe = registerMenuRefresh('Profile', () => {
+      if (menuRefreshRunningRef.current) return;
+      menuRefreshRunningRef.current = true;
+      if (navigation.canGoBack()) {
+        navigation.navigate('ProfileHome');
+      }
+      // reset guard shortly after navigation
+      setTimeout(() => {
+        menuRefreshRunningRef.current = false;
+      }, 300);
+    });
+    return unsubscribe;
+  }, [registerMenuRefresh, navigation]);
 
   const loadAdminRooms = useCallback(async () => {
     setLoadingAdmin(true);

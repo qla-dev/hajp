@@ -170,6 +170,6 @@ const createStyles = (colors) =>
     },
       loginLinkBold: {
       fontWeight: '700',
-      color: colors.primary,
+      color: colors.secondary,
     },
   });

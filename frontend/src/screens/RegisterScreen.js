@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Keyboard, LayoutAnimation, UIManager, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SvgUri } from 'react-native-svg';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { register } from '../api';
+import { register, baseURL } from '../api';
 import FormTextInput from '../components/FormTextInput';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -30,6 +31,7 @@ export default function RegisterScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const keyboardOffset = Platform.select({ ios: 0, android: 0 }); // keep zero to avoid extra padding when keyboard opens
+  const logoUri = `${baseURL}/img/logo.svg`;
 
   useEffect(() => {
     const animate = () =>
@@ -109,7 +111,11 @@ export default function RegisterScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.content}>
           <Text style={styles.title}>Kreiraj račun</Text>
-          <Text style={styles.subtitle}>Pridruži se Hajpu, glasaj i budi dio zajednice!</Text>
+          <View style={styles.subtitleRow}>
+            <Text style={styles.subtitle}>Pridruži se </Text>
+            <SvgUri width={72} height={20} uri={logoUri} preserveAspectRatio="xMidYMid meet" />
+            <Text style={styles.subtitle}>, glasaj i budi dio zajednice!</Text>
+          </View>
 
         <FormTextInput
           placeholder="Username"
@@ -281,10 +287,17 @@ const createStyles = (colors) =>
       textAlign: 'center',
       marginTop: 30,
     },
+    subtitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      marginBottom: 32,
+    },
     subtitle: {
       fontSize: 16,
       color: colors.text_secondary,
-      marginBottom: 32,
+      marginBottom: 0,
       textAlign: 'center',
     },
     input: {
@@ -429,7 +442,7 @@ const createStyles = (colors) =>
     },
     loginLinkBold: {
       fontWeight: '700',
-      color: colors.primary,
+      color: colors.secondary,
     },
     socialBlock: {
       marginTop: 16,
