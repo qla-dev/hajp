@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Poll;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,16 +22,12 @@ class Room extends Model
         return $this->belongsToMany(User::class, 'room_members');
     }
 
-    public function polls()
+    public function polls(): Builder
     {
-        $vibes = (array) ($this->vibes ?? []);
+        $type = $this->type;
 
-        return Poll::query()->when(!empty($vibes), function ($query) use ($vibes) {
-            $query->where(function ($subQuery) use ($vibes) {
-                foreach ($vibes as $vibe) {
-                    $subQuery->orWhereJsonContains('vibes', $vibe);
-                }
-            });
+        return Poll::query()->when($type, function (Builder $query) use ($type) {
+            $query->whereJsonContains('vibes', $type);
         });
     }
 

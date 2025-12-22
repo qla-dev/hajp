@@ -12,7 +12,6 @@ return new class extends Migration
             Schema::disableForeignKeyConstraints();
             Schema::table('polls', function (Blueprint $table) {
                 if (Schema::hasColumn('polls', 'room_id')) {
-                    $table->dropForeign(['room_id']);
                     $table->dropColumn('room_id');
                 }
 
