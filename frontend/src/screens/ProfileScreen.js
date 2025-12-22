@@ -26,6 +26,7 @@ export default function ProfileScreen({ navigation, route }) {
   const [roomSummary, setRoomSummary] = useState({ total: 0, rooms: [] });
   const [friendsCount, setFriendsCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [keepTopPadding, setKeepTopPadding] = useState(false);
   const [friendStatus, setFriendStatus] = useState({ exists: false, approved: null });
   const [friendStatusLoading, setFriendStatusLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -46,6 +47,8 @@ export default function ProfileScreen({ navigation, route }) {
       },
     }),
   ).current;
+
+  const scrollViewRef = useRef(null);
 
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -204,10 +207,20 @@ export default function ProfileScreen({ navigation, route }) {
   const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
     const unsubscribe = registerMenuRefresh('Profile', () => {
-      onRefresh();
+      // Force navigate to ProfileHome first to reset any nested screens
+      navigation.navigate('ProfileHome');
+      
+      // Then scroll to top and refresh
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+        setKeepTopPadding(true);
+        setTimeout(() => {
+          onRefresh();
+        }, 150);
+      }, 100);
     });
     return unsubscribe;
-  }, [onRefresh, registerMenuRefresh]);
+  }, [navigation, onRefresh, registerMenuRefresh]);
 
   useEffect(() => {
     Animated.loop(
@@ -229,9 +242,11 @@ export default function ProfileScreen({ navigation, route }) {
   return (
     <View style={styles.screen} {...panResponder.panHandlers}>
       <ScrollView
+        ref={scrollViewRef}
         style={styles.container}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, keepTopPadding && styles.topSpacer]}
         contentInsetAdjustmentBehavior="always"
+        onScrollBeginDrag={() => setKeepTopPadding(false)}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
@@ -433,6 +448,9 @@ const createStyles = (colors) =>
     },
     contentContainer: {
       paddingBottom: 90,
+    },
+    topSpacer: {
+      paddingTop: 40,
     },
     profileSection: {
       paddingVertical: 20,
