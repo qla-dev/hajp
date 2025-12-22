@@ -194,13 +194,14 @@ class RoomController extends Controller
         $rooms = Room::withCount(['users as members_count'])
             ->whereHas('members', function ($query) use ($user, $role) {
                 $query->where('user_id', $user->id);
+                $query->where('approved', 1);
                 if ($role === 'admin') {
                     $query->where('role', 'admin');
                 }
             })
             ->with([
                 'members' => function ($query) use ($user) {
-                    $query->where('user_id', $user->id);
+                    $query->where('user_id', $user->id)->where('approved', 1);
                 },
             ])
             ->get([
@@ -229,7 +230,17 @@ class RoomController extends Controller
 
     public function status(Request $request)
     {
-        $rooms = Room::withCount(['users as members_count'])->get([
+        $user = $request->user();
+
+        $roomsQuery = Room::withCount(['users as members_count']);
+
+        if ($user) {
+            $roomsQuery->whereDoesntHave('members', function ($q) use ($user) {
+                $q->where('user_id', $user->id)->where('approved', 0);
+            });
+        }
+
+        $rooms = $roomsQuery->get([
             'id',
             'name',
             'type',
@@ -240,7 +251,6 @@ class RoomController extends Controller
             'is_private',
         ]);
 
-        $user = $request->user();
         $payload = $rooms->map(function ($room) use ($user) {
             $highlight = null;
             $result = $this->buildActiveQuestionData($room, $user);
