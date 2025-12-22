@@ -104,7 +104,8 @@ function HajpStackNavigator() {
         name="Rooms"
         component={RoomsScreen}
         options={({ navigation }) => ({
-          headerTitle: () => <AppHeaderLogo color={colors.text_primary} />,
+          headerTitle: '',
+          headerLeft: () => <AppHeaderLogo color={colors.text_primary} />,
           headerRight: () => (
             <CoinHeaderIndicator
               onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
