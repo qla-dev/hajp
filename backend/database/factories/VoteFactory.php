@@ -18,6 +18,7 @@ class VoteFactory extends Factory
     {
         return [
             'question_id' => 1,
+            'room_id' => 1,
             'user_id' => 1,
             'selected_user_id' => 2,
         ];

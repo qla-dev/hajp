@@ -104,7 +104,7 @@ export default function PollingScreen({ route, navigation }) {
     setInteractionLocked(true);
     Haptics?.impactAsync?.(Haptics?.ImpactFeedbackStyle?.Medium)?.catch(() => {});
     try {
-      await voteQuestion(question.id, option);
+      await voteQuestion(question.id, option, roomId);
       await loadQuestion();
     } catch (error) {
       console.error('Error voting:', error);
@@ -133,7 +133,7 @@ export default function PollingScreen({ route, navigation }) {
     setInteractionLocked(true);
     Haptics?.selectionAsync?.()?.catch(() => {});
     try {
-      await skipQuestion(question.id);
+      await skipQuestion(question.id, roomId);
     } catch {}
     await loadQuestion();
   };

@@ -38,9 +38,9 @@ export const fetchRoomsStatus = () => api.get('/rooms/status');
 export const fetchRoomCashoutStatus = (roomId) => api.get(`/rooms/${roomId}/cashout/status`);
 export const postRoomCashout = (roomId) => api.post(`/rooms/${roomId}/cashout`);
 export const fetchQuestionDetail = (id) => api.get(`/questions/${id}`);
-export const voteQuestion = (id, selected_option) => api.post(`/questions/${id}/vote`, { selected_option });
+export const voteQuestion = (id, selected_option, room_id) => api.post(`/questions/${id}/vote`, { selected_option, room_id });
 export const refreshQuestionOptions = (id) => api.post(`/questions/${id}/refresh`);
-export const skipQuestion = (id) => api.post(`/questions/${id}/skip`);
+export const skipQuestion = (id, room_id) => api.post(`/questions/${id}/skip`, { room_id });
 export const fetchMyVotes = (selectedUserId) =>
   api.get('/user/votes', {
     params: selectedUserId ? { selected_user_id: selectedUserId } : undefined,

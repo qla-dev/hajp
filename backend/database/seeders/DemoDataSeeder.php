@@ -154,6 +154,7 @@ class DemoDataSeeder extends Seeder
                         if (!Vote::where('question_id', $question->id)->where('user_id', $voter->id)->exists()) {
                             Vote::create([
                                 'question_id' => $question->id,
+                                'room_id' => $room->id,
                                 'user_id' => $voter->id,
                                 'selected_user_id' => $selectedUserId,
                             ]);

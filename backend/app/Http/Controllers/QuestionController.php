@@ -42,9 +42,11 @@ class QuestionController extends Controller
         }
 
         $data = $request->validate([
+            'room_id' => 'required|exists:rooms,id',
             'selected_option' => 'required|exists:users,id',
         ]);
 
+        $roomId = $data['room_id'];
         $existing = Vote::where('question_id', $question->id)
             ->where('user_id', $user->id)
             ->first();
@@ -55,6 +57,7 @@ class QuestionController extends Controller
 
         $vote = Vote::create([
             'question_id' => $question->id,
+            'room_id' => $roomId,
             'user_id' => $user->id,
             'selected_user_id' => $data['selected_option'],
         ]);
@@ -84,6 +87,10 @@ class QuestionController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
+        $data = $request->validate([
+            'room_id' => 'required|exists:rooms,id',
+        ]);
+        $roomId = $data['room_id'];
         $existing = Vote::where('question_id', $question->id)
             ->where('user_id', $user->id)
             ->first();
@@ -93,6 +100,7 @@ class QuestionController extends Controller
 
         $vote = Vote::create([
             'question_id' => $question->id,
+            'room_id' => $roomId,
             'user_id' => $user->id,
             'selected_user_id' => 0,
         ]);
