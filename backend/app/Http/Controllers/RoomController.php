@@ -338,9 +338,7 @@ class RoomController extends Controller
         $filteredVotes = Vote::query()
             ->where('selected_user_id', '>', 0)
             ->whereBetween('created_at', [$start, $now])
-            ->whereHas('question.poll', function ($query) use ($room) {
-                $query->where('room_id', $room->id);
-            });
+            ->where('room_id', $room->id);
 
         $rank = (clone $filteredVotes)
             ->select('selected_user_id')
@@ -413,10 +411,12 @@ class RoomController extends Controller
             return ['error' => 'Nema aktivnih anketa', 'status' => 404];
         }
 
-        $questionsQuery = $poll->questions()->with('votes.selectedUser')->orderBy('id');
+        $questionsQuery = $poll->questions()
+            ->with(['votes' => fn($q) => $q->where('room_id', $room->id)->with('selectedUser')])
+            ->orderBy('id');
         if ($user) {
-            $questionsQuery->whereDoesntHave('votes', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+            $questionsQuery->whereDoesntHave('votes', function ($q) use ($user, $room) {
+                $q->where('user_id', $user->id)->where('room_id', $room->id);
             });
         }
 
@@ -440,7 +440,7 @@ class RoomController extends Controller
         $answeredCount = 0;
         if ($user) {
             $answeredCount = $poll->questions()
-                ->whereHas('votes', fn($q) => $q->where('user_id', $user->id))
+                ->whereHas('votes', fn($q) => $q->where('user_id', $user->id)->where('room_id', $room->id))
                 ->count();
         }
         $index = $user ? min($total, $answeredCount + 1) : 1;

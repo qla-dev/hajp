@@ -6,6 +6,7 @@ use App\Models\Question;
 use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
 
@@ -41,6 +42,12 @@ class QuestionController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
+        Log::info('Vote attempt', [
+            'user_id' => $user->id,
+            'question_id' => $question->id,
+            'payload' => $request->all(),
+        ]);
+
         $data = $request->validate([
             'room_id' => 'required|exists:rooms,id',
             'selected_option' => 'required|exists:users,id',
@@ -48,6 +55,7 @@ class QuestionController extends Controller
 
         $roomId = $data['room_id'];
         $existing = Vote::where('question_id', $question->id)
+            ->where('room_id', $roomId)
             ->where('user_id', $user->id)
             ->first();
 
@@ -64,6 +72,7 @@ class QuestionController extends Controller
 
         $totals = Vote::select('selected_user_id', DB::raw('count(*) as votes'))
             ->where('question_id', $question->id)
+            ->where('room_id', $roomId)
             ->where('selected_user_id', '>', 0)
             ->groupBy('selected_user_id')
             ->with('selectedUser:id,name')
@@ -87,11 +96,18 @@ class QuestionController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
+        Log::info('Skip attempt', [
+            'user_id' => $user->id,
+            'question_id' => $question->id,
+            'payload' => $request->all(),
+        ]);
+
         $data = $request->validate([
             'room_id' => 'required|exists:rooms,id',
         ]);
         $roomId = $data['room_id'];
         $existing = Vote::where('question_id', $question->id)
+            ->where('room_id', $roomId)
             ->where('user_id', $user->id)
             ->first();
         if ($existing) {
