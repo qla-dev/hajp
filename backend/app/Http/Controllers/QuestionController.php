@@ -6,8 +6,6 @@ use App\Models\Question;
 use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
 
@@ -63,6 +61,7 @@ class QuestionController extends Controller
 
         $totals = Vote::select('selected_user_id', DB::raw('count(*) as votes'))
             ->where('question_id', $question->id)
+            ->where('selected_user_id', '>', 0)
             ->groupBy('selected_user_id')
             ->with('selectedUser:id,name')
             ->get()
@@ -85,12 +84,20 @@ class QuestionController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        $cacheKey = "skipped_questions_user_{$user->id}";
-        $skipped = Cache::get($cacheKey, []);
-        $skipped[] = $question->id;
-        Cache::put($cacheKey, array_values(array_unique($skipped)), now()->addDay());
+        $existing = Vote::where('question_id', $question->id)
+            ->where('user_id', $user->id)
+            ->first();
+        if ($existing) {
+            return response()->json($existing, 200);
+        }
 
-        return response()->json(['message' => 'Skipped']);
+        $vote = Vote::create([
+            'question_id' => $question->id,
+            'user_id' => $user->id,
+            'selected_user_id' => 0,
+        ]);
+
+        return response()->json(['vote' => $vote], 201);
     }
 
     private function generateOptions(Question $question): array

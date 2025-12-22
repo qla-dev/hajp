@@ -11,7 +11,6 @@ use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -337,13 +336,12 @@ class RoomController extends Controller
         };
 
         $filteredVotes = Vote::query()
-            ->whereNotNull('selected_user_id')
+            ->where('selected_user_id', '>', 0)
             ->whereBetween('created_at', [$start, $now])
             ->whereHas('question.poll', function ($query) use ($room) {
                 $query->where('room_id', $room->id);
             });
 
-        $totalFiltered = $filteredVotes->count();
         $rank = (clone $filteredVotes)
             ->select('selected_user_id')
             ->selectRaw('COUNT(*) as hajps')
@@ -416,17 +414,10 @@ class RoomController extends Controller
         }
 
         $questionsQuery = $poll->questions()->with('votes.selectedUser')->orderBy('id');
-        $skipped = [];
-
         if ($user) {
-            $skipped = Cache::get("skipped_questions_user_{$user->id}", []);
             $questionsQuery->whereDoesntHave('votes', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             });
-
-            if (!empty($skipped)) {
-                $questionsQuery->whereNotIn('id', $skipped);
-            }
         }
 
         $total = $poll->questions()->count();
@@ -447,15 +438,13 @@ class RoomController extends Controller
         $question->setAttribute('options', $options);
 
         $answeredCount = 0;
-        $skippedCount = 0;
         if ($user) {
             $answeredCount = $poll->questions()
                 ->whereHas('votes', fn($q) => $q->where('user_id', $user->id))
                 ->count();
-            $skippedCount = count(Cache::get("skipped_questions_user_{$user->id}", []));
         }
-        $index = $user ? min($total, $answeredCount + $skippedCount + 1) : 1;
-        $answered = max(0, min($total, $index - 1));
+        $index = $user ? min($total, $answeredCount + 1) : 1;
+        $answered = max(0, min($total, $answeredCount));
 
         return [
             'question' => $question,
