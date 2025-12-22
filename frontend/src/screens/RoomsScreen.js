@@ -14,7 +14,7 @@ import { useMenuRefresh } from '../context/menuRefreshContext';
 
 const ITEM_HEIGHT = 300;
 
-export default function RoomsScreen({ navigation }) {
+export default function RoomsScreen({ navigation, route }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -92,6 +92,24 @@ export default function RoomsScreen({ navigation }) {
   useEffect(() => {
     loadRooms();
   }, [loadRooms]);
+
+  const lastRefreshTimestamp = useRef(null);
+  useEffect(() => {
+    const parent = navigation.getParent();
+    if (!parent) return;
+    
+    const unsubscribe = navigation.addListener('focus', () => {
+      const refreshTimestamp = parent.getState()?.routes?.find(r => r.name === 'Hajp')?.params?.refreshRooms;
+      console.log('[Rooms] Focus event, refreshTimestamp:', refreshTimestamp, 'last:', lastRefreshTimestamp.current);
+      
+      if (refreshTimestamp && refreshTimestamp !== lastRefreshTimestamp.current) {
+        console.log('[Rooms] Triggering refresh');
+        lastRefreshTimestamp.current = refreshTimestamp;
+        loadRooms({ showLoader: false });
+      }
+    });
+    return unsubscribe;
+  }, [loadRooms, navigation]);
 
   const renderRoom = ({ item }) => {
     const highlight = item.active_question;

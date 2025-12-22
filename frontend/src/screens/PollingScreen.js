@@ -14,6 +14,9 @@ if (Platform.OS !== 'android') {
 
 export default function PollingScreen({ route, navigation }) {
   const { roomId } = route.params || {};
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
+  const headerHeight = useHeaderHeight();
   const [question, setQuestion] = useState(null);
   const [total, setTotal] = useState(0);
   const [index, setIndex] = useState(0);
@@ -22,11 +25,8 @@ export default function PollingScreen({ route, navigation }) {
   const [finished, setFinished] = useState(false);
   const [firstLoad, setFirstLoad] = useState(true);
   const emojis = useMemo(() => ['🔥', '🚀', '💎', '🏆', '🎉', '✨'], []);
-  const backgrounds = useMemo(() => ['#1d4ed8', '#7c3aed', '#2563eb', '#0ea5e9', '#22c55e', '#f97316'], []);
-  const [bgColor, setBgColor] = useState(backgrounds[0]);
-  const { colors } = useTheme();
-  const styles = useThemedStyles(createStyles);
-  const headerHeight = useHeaderHeight();
+  const backgrounds = useMemo(() => [colors.secondary, '#7c3aed', '#2563eb', '#0ea5e9', '#22c55e', '#f97316'], [colors.secondary]);
+  const [bgColor, setBgColor] = useState(colors.secondary);
   const handleNoActivePoll = useCallback(async () => {
     if (!roomId) return;
     try {

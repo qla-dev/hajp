@@ -31,11 +31,9 @@ import { MenuRefreshProvider, useMenuRefresh } from '../context/menuRefreshConte
 const logoUri = `${baseURL}/img/logo.svg`;
 const POLLING_LOGO_STYLE = { width: 70, height: 38 };
 const POLLING_LOGO_CONTAINER_STYLE = {
-  width: POLLING_LOGO_STYLE.width,
-  height: POLLING_LOGO_STYLE.height,
   alignItems: 'center',
-  padding:5,
   justifyContent: 'center',
+  paddingHorizontal: 12,
 };
 
 const AppHeaderLogo = ({ color = '#fff' }) => (
@@ -118,7 +116,16 @@ function HajpStackNavigator() {
         name="Polling"
         component={PollingScreen}
         options={{
-          headerTitle: () => <AppHeaderLogo color={colors.textLight} />,
+          headerTitle: () => (
+            <View style={{ alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 8 }}>
+              <SvgUri
+                width={70}
+                height={38}
+                uri={`${baseURL}/img/logo-white.svg`}
+                preserveAspectRatio="xMidYMid meet"
+              />
+            </View>
+          ),
           headerTintColor: colors.textLight,
           headerStyle: {
             backgroundColor: 'transparent',

@@ -20,7 +20,7 @@ const getRemainingTime = (target) => {
   return Math.max(0, target - Date.now());
 };
 
-export default function NextPollCountdownScreen({ route }) {
+export default function NextPollCountdownScreen({ route, navigation }) {
   const { nextPollAt } = route.params || {};
   const targetDate = useMemo(() => (nextPollAt ? new Date(nextPollAt) : null), [nextPollAt]);
   const [remaining, setRemaining] = useState(getRemainingTime(targetDate));
@@ -30,6 +30,17 @@ export default function NextPollCountdownScreen({ route }) {
   const referralCode = 'HYPER-HAJP';
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      console.log('[NextPoll] beforeRemove event');
+      const parent = navigation.getParent();
+      if (parent) {
+        parent.setParams({ refreshRooms: Date.now() });
+      }
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   useEffect(() => {
     setRemaining(getRemainingTime(targetDate));
