@@ -266,7 +266,11 @@ class RoomController extends Controller
             $roomData = $room->toArray();
             $roomData['active_question'] = $highlight;
             return $roomData;
-        });
+        })->sortBy(function ($roomData) {
+            $highlight = $roomData['active_question'] ?? null;
+            $hasOpen = $highlight && ($highlight['answered'] ?? 0) < ($highlight['total'] ?? 0);
+            return $hasOpen ? 0 : 1;
+        })->values();
 
         return response()->json(['data' => $payload]);
     }
