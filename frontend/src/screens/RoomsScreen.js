@@ -68,12 +68,21 @@ export default function RoomsScreen({ navigation }) {
   }, []);
 
   const { registerMenuRefresh } = useMenuRefresh();
+  const menuRefreshRunningRef = useRef(false);
   useEffect(() => {
     const refreshAndScroll = () => {
+      if (menuRefreshRunningRef.current) {
+        return;
+      }
+      
+      menuRefreshRunningRef.current = true;
+      
       scrollToTop();
       setKeepTopPadding(true);
       setRefreshing(true);
-      loadRooms({ showLoader: false });
+      loadRooms({ showLoader: false }).finally(() => {
+        menuRefreshRunningRef.current = false;
+      });
     };
 
     const unsubscribe = registerMenuRefresh('Hajp', refreshAndScroll);

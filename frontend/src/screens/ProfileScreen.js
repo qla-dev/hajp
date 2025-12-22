@@ -26,7 +26,11 @@ export default function ProfileScreen({ navigation, route }) {
   const [roomSummary, setRoomSummary] = useState({ total: 0, rooms: [] });
   const [friendsCount, setFriendsCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const isRefreshingRef = useRef(false);
   const [keepTopPadding, setKeepTopPadding] = useState(false);
+  const setKeepTopPaddingWithLogging = useCallback((value) => {
+    setKeepTopPadding(value);
+  }, []);
   const [friendStatus, setFriendStatus] = useState({ exists: false, approved: null });
   const [friendStatusLoading, setFriendStatusLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -133,15 +137,26 @@ export default function ProfileScreen({ navigation, route }) {
   );
 
   const onRefresh = useCallback(async () => {
-    console.log('[Profile] pull to refresh triggered');
-    setRefreshing(true);
-    const viewingOther = route?.params?.isMine === false;
-    if (viewingOther && route?.params?.userId) {
-      await loadOtherProfile(route.params.userId);
-    } else {
-      await loadData();
+    if (isRefreshingRef.current) {
+      console.log('[Profile] onRefresh already running, skipping duplicate');
+      return;
     }
-    setRefreshing(false);
+    
+    console.log('[Profile] pull to refresh triggered');
+    isRefreshingRef.current = true;
+    setRefreshing(true);
+    
+    try {
+      const viewingOther = route?.params?.isMine === false;
+      if (viewingOther && route?.params?.userId) {
+        await loadOtherProfile(route.params.userId);
+      } else {
+        await loadData();
+      }
+    } finally {
+      isRefreshingRef.current = false;
+      setRefreshing(false);
+    }
   }, [loadData, loadOtherProfile, route?.params?.isMine, route?.params?.userId]);
 
   const isOtherProfile = route?.params?.isMine === false;
@@ -205,22 +220,27 @@ export default function ProfileScreen({ navigation, route }) {
   }, [navigation, user]);
 
   const { registerMenuRefresh } = useMenuRefresh();
+  const menuRefreshRunningRef = useRef(false);
   useEffect(() => {
     const unsubscribe = registerMenuRefresh('Profile', () => {
-      // Force navigate to ProfileHome first to reset any nested screens
-      navigation.navigate('ProfileHome');
+      if (menuRefreshRunningRef.current) {
+        return;
+      }
       
-      // Then scroll to top and refresh
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-        setKeepTopPadding(true);
-        setTimeout(() => {
-          onRefresh();
-        }, 150);
-      }, 100);
+      menuRefreshRunningRef.current = true;
+      
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      setKeepTopPaddingWithLogging(true);
+      setRefreshing(true);
+      
+      onRefresh().finally(() => {
+        menuRefreshRunningRef.current = false;
+      });
     });
-    return unsubscribe;
-  }, [navigation, onRefresh, registerMenuRefresh]);
+    return () => {
+      unsubscribe();
+    };
+  }, [onRefresh, registerMenuRefresh, setKeepTopPaddingWithLogging]);
 
   useEffect(() => {
     Animated.loop(
@@ -246,7 +266,9 @@ export default function ProfileScreen({ navigation, route }) {
         style={styles.container}
         contentContainerStyle={[styles.contentContainer, keepTopPadding && styles.topSpacer]}
         contentInsetAdjustmentBehavior="always"
-        onScrollBeginDrag={() => setKeepTopPadding(false)}
+        onScrollBeginDrag={() => {
+          setKeepTopPaddingWithLogging(false);
+        }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
