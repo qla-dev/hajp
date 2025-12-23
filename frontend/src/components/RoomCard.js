@@ -1,9 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL } from '../api';
 import { vibeOptions } from '../data/vibes';
+import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
+const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 
 const FALLBACK_COVER =
   'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1440&q=80';
@@ -11,6 +14,7 @@ const FALLBACK_COVER =
 export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const connectSoundRef = useRef(null);
   const normalizedCoverUrl = room.cover_url || room.cover;
   const coverUri = normalizedCoverUrl
     ? `${baseURL.replace(/\/$/, '')}${normalizedCoverUrl}`
@@ -72,7 +76,34 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
     );
   };
 
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
+        if (mounted) {
+          connectSoundRef.current = sound;
+        } else {
+          await sound.unloadAsync();
+        }
+      } catch {
+        // ignore sound load errors
+      }
+    })();
+    return () => {
+      mounted = false;
+      connectSoundRef.current?.unloadAsync();
+      connectSoundRef.current = null;
+    };
+  }, []);
+
+  const playConnectFeedback = useCallback(() => {
+    Haptics.selectionAsync().catch(() => {});
+    connectSoundRef.current?.replayAsync().catch(() => {});
+  }, []);
+
   const handleJoin = () => {
+    playConnectFeedback();
     onJoin?.(room);
   };
 

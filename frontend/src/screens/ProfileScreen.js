@@ -20,6 +20,9 @@ import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fe
 import { useMenuRefresh } from '../context/menuRefreshContext';
 import BottomCTA from '../components/BottomCTA';
 import SuggestionSlider from '../components/SuggestionSlider';
+import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
+const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 
 export default function ProfileScreen({ navigation, route }) {
   const NAV_ICON_BASE_URI = `${baseURL}/img/nav-icons`;
@@ -40,6 +43,7 @@ export default function ProfileScreen({ navigation, route }) {
   const [connecting, setConnecting] = useState(false);
   const [connectIconXml, setConnectIconXml] = useState(null);
   const glowAnim = useRef(new Animated.Value(0)).current;
+  const connectSoundRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -52,6 +56,32 @@ export default function ProfileScreen({ navigation, route }) {
     return () => {
       isMounted = false;
     };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
+        if (mounted) {
+          connectSoundRef.current = sound;
+        } else {
+          await sound.unloadAsync();
+        }
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      mounted = false;
+      connectSoundRef.current?.unloadAsync();
+      connectSoundRef.current = null;
+    };
+  }, []);
+
+  const playConnectFeedback = useCallback(() => {
+    Haptics.selectionAsync().catch(() => {});
+    connectSoundRef.current?.replayAsync().catch(() => {});
   }, []);
 
   const panResponder = useRef(
@@ -241,6 +271,7 @@ export default function ProfileScreen({ navigation, route }) {
 
     setConnecting(true);
     try {
+      playConnectFeedback();
       const { data } = await addFriend(route.params.userId);
       const approved = typeof data?.approved === 'number' ? data.approved : friendStatus.approved ?? 1;
       setFriendStatus({ exists: true, approved });
