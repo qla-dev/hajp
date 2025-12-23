@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Models\Poll;
+use App\Models\RoomVibe;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Room extends Model
 {
@@ -31,4 +33,8 @@ class Room extends Model
         });
     }
 
+    public function vibe(): HasOne
+    {
+        return $this->hasOne(RoomVibe::class, 'slug', 'type');
+    }
 }

@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\RoomVibeController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\AnonInboxController;
@@ -39,6 +40,7 @@ Route::get('/share/{user}/messages', [ShareLinkController::class, 'messages']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/room-vibes', [RoomVibeController::class, 'index']);
 
     Route::prefix('user')->group(function () {
         Route::get('/', fn (Request $request) => $request->user());

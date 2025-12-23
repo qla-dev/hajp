@@ -13,9 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import FormTextInput from '../components/FormTextInput';
-import { createRoom } from '../api';
+import { createRoom, fetchRoomVibes } from '../api';
 import VibeChip from '../components/VibeChip';
-import { vibeOptions } from '../data/vibes';
+import { vibeOptions as fallbackVibeOptions } from '../data/vibes';
 
 const FALLBACK_COVER =
   'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80';
@@ -25,6 +25,23 @@ const privacyOptions = [
   { key: 'private', label: 'Privatna', icon: 'lock-closed-outline', value: true },
 ];
 
+const normalizeVibes = (items = []) =>
+  items
+    .map((item) => {
+      const key = item.slug || item.key;
+      const name = item.name || item.label || key;
+      if (!key || !name) return null;
+      return {
+        key,
+        label: name,
+        icon: item.icon || 'leaf-outline',
+        description: item.description || item.subtitle || '',
+      };
+    })
+    .filter(Boolean);
+
+const fallbackNormalizedVibes = normalizeVibes(fallbackVibeOptions);
+
 export default function CreateRoomScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -33,7 +50,11 @@ export default function CreateRoomScreen({ navigation }) {
   const [tagline, setTagline] = useState('');
   const [description, setDescription] = useState('');
   const [coverAsset, setCoverAsset] = useState(null);
-  const [selectedVibe, setSelectedVibe] = useState(vibeOptions[0].key);
+  const [vibes, setVibes] = useState(fallbackNormalizedVibes);
+  const [vibesLoading, setVibesLoading] = useState(false);
+  const [selectedVibe, setSelectedVibe] = useState(
+    fallbackNormalizedVibes[0]?.key || '',
+  );
   const [isPrivate, setIsPrivate] = useState(false);
   const [is18Over, setIs18Over] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -43,14 +64,37 @@ export default function CreateRoomScreen({ navigation }) {
   const emptyContent = !name && !tagline && !description && !coverAsset;
   const scrollStyles = [styles.contentContainer, emptyContent && styles.emptyContainer];
   const coverPreviewUri = coverAsset?.uri || FALLBACK_COVER;
-  const selectedVibeOption = useMemo(
-    () => vibeOptions.find((option) => option.key === selectedVibe) || vibeOptions[0],
-    [selectedVibe],
-  );
+  const selectedVibeOption = useMemo(() => {
+    const found = vibes.find((option) => option.key === selectedVibe);
+    if (found) return found;
+    return vibes[0] || { key: '', label: '', icon: 'leaf-outline' };
+  }, [vibes, selectedVibe]);
 
   const handleChangeVibe = useCallback((optionKey) => {
     setSelectedVibe(optionKey);
   }, []);
+
+  const loadVibes = useCallback(async () => {
+    setVibesLoading(true);
+    try {
+      const { data } = await fetchRoomVibes();
+      const list = normalizeVibes(data?.data || data || []);
+      if (list.length) {
+        setVibes(list);
+        if (!list.some((item) => item.key === selectedVibe)) {
+          setSelectedVibe(list[0].key);
+        }
+      }
+    } catch {
+      // keep fallback
+    } finally {
+      setVibesLoading(false);
+    }
+  }, [selectedVibe]);
+
+  useEffect(() => {
+    loadVibes();
+  }, [loadVibes]);
 
   const handleOpenVibeSelection = useCallback(() => {
     navigation.navigate('RoomVibeSelection', {

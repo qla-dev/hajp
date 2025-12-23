@@ -79,5 +79,6 @@ export const fetchProfileViews = (userId) => api.get(`/user/${userId}/views`);
 export const recordProfileView = (userId) => api.post(`/user/${userId}/views`);
 export const fetchRoomRanking = (roomId, period = 'day') => api.get(`/rooms/${roomId}/rank/${period}`);
 export const subscribeWithPayload = (payload) => api.post('/subscription/subscribe', payload);
+export const fetchRoomVibes = () => api.get('/room-vibes');
 
 export default api;
