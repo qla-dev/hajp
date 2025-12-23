@@ -29,6 +29,7 @@ import UserRoomsScreen from '../screens/UserRoomsScreen';
 import { MenuRefreshProvider, useMenuRefresh } from '../context/menuRefreshContext';
 
 const logoUri = `${baseURL}/img/logo.svg`;
+const NAV_ICON_BASE_URI = `${baseURL}/img/nav-icons`;
 const POLLING_LOGO_STYLE = { width: 70, height: 38 };
 const POLLING_LOGO_CONTAINER_STYLE = {
   alignItems: 'center',
@@ -77,6 +78,25 @@ const iconMap = {
   Rank: { active: 'broadcast-fill', inactive: 'broadcast-line' },
   Inbox: { active: 'fire-line', inactive: 'fire-line' },
   Profile: { active: 'user-line', inactive: 'user-line' },
+};
+
+const customTabIconUriMap = {
+  Hajp: {
+    active: `${NAV_ICON_BASE_URI}/home-active.svg`,
+    inactive: `${NAV_ICON_BASE_URI}/home.svg`,
+  },
+  Friends: {
+    active: `${NAV_ICON_BASE_URI}/users-active.svg`,
+    inactive: `${NAV_ICON_BASE_URI}/users.svg`,
+  },
+  Rank: {
+    active: `${NAV_ICON_BASE_URI}/live-active.svg`,
+    inactive: `${NAV_ICON_BASE_URI}/live.svg`,
+  },
+  Inbox: {
+    active: `${NAV_ICON_BASE_URI}/hajpovi-active.svg`,
+    inactive: `${NAV_ICON_BASE_URI}/hajpovi.svg`,
+  },
 };
 
 const iconTransformMap = {
@@ -585,9 +605,15 @@ function MainTabsContent() {
               );
             }
 
+            const baseSize = Math.max(size - 3, 18);
+            const customIconUris = customTabIconUriMap[route.name];
+            if (customIconUris) {
+              const iconUri = isFocused ? customIconUris.active : customIconUris.inactive;
+              return <SvgUri uri={iconUri} width={baseSize} height={baseSize} color={color} fill={color} />;
+            }
+
             const icons = iconMap[route.name] || iconMap.Hajp;
             const iconName = isFocused ? icons.active : icons.inactive;
-            const baseSize = route.name === 'Hajp' ? Math.max(size - 1, 16) : size;
             const iconStyle = iconTransformMap[route.name];
             return (
               <RemixIcon
