@@ -11,17 +11,25 @@ use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class RoomController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Room::withCount(['users as members_count'])->get([
+        $user = $request->user() ?: auth('sanctum')->user();
+        if (!$user && $request->bearerToken()) {
+            $token = PersonalAccessToken::findToken($request->bearerToken());
+            $user = $token?->tokenable;
+        }
+
+        $rooms = Room::withCount(['users as members_count'])->get([
             'id',
             'name',
             'type',
@@ -32,6 +40,68 @@ class RoomController extends Controller
             'is_private',
             'code',
         ]);
+
+        if ($rooms->isEmpty()) {
+            return $rooms;
+        }
+
+        $roomIds = $rooms->pluck('id');
+
+        $roomMembers = RoomMember::with(['user:id,name,username,profile_photo'])
+            ->whereIn('room_id', $roomIds)
+            ->orderBy('id')
+            ->get()
+            ->groupBy('room_id');
+
+        $friendIds = collect();
+        if ($user) {
+            $friendIds = DB::table('friendships')
+                ->where('approved', 1)
+                ->where(function ($query) use ($user) {
+                    $query->where('auth_user_id', $user->id)->orWhere('user_id', $user->id);
+                })
+                ->get()
+                ->flatMap(function ($row) use ($user) {
+                    return $row->auth_user_id === $user->id ? [$row->user_id] : [$row->auth_user_id];
+                })
+                ->unique()
+                ->values();
+        }
+
+        $rooms = $rooms->map(function ($room) use ($roomMembers, $friendIds) {
+            /** @var Collection $members */
+            $members = $roomMembers->get($room->id, collect());
+            $previewMembers = $members->take(3)->map(function ($member) {
+                return [
+                    'id' => $member->user?->id,
+                    'name' => $member->user?->name,
+                    'username' => $member->user?->username,
+                    'profile_photo' => $member->user?->profile_photo,
+                ];
+            })->values();
+
+            $mutualMember = null;
+            if ($friendIds->isNotEmpty()) {
+                $mutual = $members->first(function ($member) use ($friendIds) {
+                    return $friendIds->contains($member->user_id);
+                });
+                if ($mutual) {
+                    $mutualMember = [
+                        'id' => $mutual->user?->id,
+                        'name' => $mutual->user?->name,
+                        'username' => $mutual->user?->username,
+                        'profile_photo' => $mutual->user?->profile_photo,
+                    ];
+                }
+            }
+
+            $room->preview_members = $previewMembers;
+            $room->mutual_member = $mutualMember;
+
+            return $room;
+        });
+
+        return $rooms;
     }
 
     public function join(Request $request, Room $room, string $role = 'user')

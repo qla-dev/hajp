@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL } from '../api';
@@ -23,6 +23,54 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
     const match = vibeOptions.find((option) => option.key === room.type);
     return match?.icon || 'leaf-outline';
   }, [room.type]);
+
+  const previewMembers = room.preview_members || [];
+  const mutualMember = room.mutual_member;
+  const remainingCount = Math.max(memberCount - previewMembers.length, 0);
+
+  const memberLabel = useMemo(() => {
+    if (mutualMember?.name || mutualMember?.username) {
+      const name = mutualMember.name || mutualMember.username || 'Član';
+      const usernameSuffix =
+        mutualMember.username && mutualMember.name ? ` (@${mutualMember.username})` : '';
+      const tail = remainingCount > 0 ? ` i još ${remainingCount} članova` : '';
+      return `${name}${usernameSuffix}${tail}`;
+    }
+    return `${memberCount} članova`;
+  }, [mutualMember, remainingCount, memberCount]);
+
+  const resolveAvatar = (photo) => {
+    if (!photo) return null;
+    if (/^https?:\/\//i.test(photo)) return photo;
+    const cleanBase = (baseURL || '').replace(/\/+$/, '');
+    const cleanPath = photo.replace(/^\/+/, '');
+    return `${cleanBase}/${cleanPath}`;
+  };
+
+  const renderAvatar = (member, index) => {
+    const uri = resolveAvatar(member?.profile_photo);
+    const label = member?.name || member?.username || 'Član';
+    const initials = label
+      .split(' ')
+      .map((part) => part.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
+
+    return uri ? (
+      <Image
+        key={`${member?.id || label}-${index}`}
+        source={{ uri }}
+        style={[styles.avatar, { zIndex: previewMembers.length - index }]}
+      />
+    ) : (
+      <View
+        key={`${member?.id || label}-${index}`}
+        style={[styles.avatar, styles.avatarFallback, { zIndex: previewMembers.length - index }]}
+      >
+        <Text style={styles.avatarFallbackText}>{initials}</Text>
+      </View>
+    );
+  };
 
   const handleJoin = () => {
     onJoin?.(room);
@@ -67,8 +115,10 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
       </View>
       <View style={styles.bottomRow}>
         <View style={styles.memberRow}>
-          <Ionicons name="people-circle-outline" size={22} color={colors.secondary} />
-          <Text style={styles.memberText}>{memberCount} članova</Text>
+          <View style={styles.avatarStack}>
+            {previewMembers.map((member, idx) => renderAvatar(member, idx))}
+          </View>
+          <Text style={styles.memberText}>{memberLabel}</Text>
         </View>
       </View>
       {!!room.description && (
@@ -205,7 +255,7 @@ const createStyles = (colors) =>
     memberRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
+      gap: 8,
     },
     memberText: {
       fontSize: 13,
@@ -241,5 +291,28 @@ const createStyles = (colors) =>
       fontSize: 13,
       color: colors.text_secondary,
       lineHeight: 18,
+    },
+    avatarStack: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginRight: 8,
+    },
+    avatar: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      borderWidth: 1,
+      borderColor: colors.background,
+      marginLeft: -8,
+    },
+    avatarFallback: {
+      backgroundColor: colors.secondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    avatarFallbackText: {
+      color: colors.textLight,
+      fontWeight: '800',
+      fontSize: 12,
     },
   });
