@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { SvgUri } from 'react-native-svg';
+import { SvgUri, SvgXml } from 'react-native-svg';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, recordProfileView } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
@@ -37,7 +37,21 @@ export default function ProfileScreen({ navigation, route }) {
   const [friendStatus, setFriendStatus] = useState({ exists: false, approved: null });
   const [friendStatusLoading, setFriendStatusLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [connectIconXml, setConnectIconXml] = useState(null);
   const glowAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch(CONNECT_ICON_URI)
+      .then((res) => res.text())
+      .then((xml) => {
+        if (isMounted) setConnectIconXml(xml);
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -213,6 +227,11 @@ export default function ProfileScreen({ navigation, route }) {
     isConnectCta && styles.connectButtonPrimaryText,
   ].filter(Boolean);
   const connectIconColor = isConnectCta ? colors.textLight : showConnectedStyle ? colors.success : colors.primary;
+  const connectIconNode = connectIconXml ? (
+    <SvgXml xml={connectIconXml} width={18} height={18} color={connectIconColor} fill={connectIconColor} />
+  ) : (
+    <SvgUri uri={CONNECT_ICON_URI} width={18} height={18} color={connectIconColor} fill={connectIconColor} />
+  );
   const connectSpinnerColor = isConnectCta ? colors.textLight : colors.primary;
 
   const handleConnectPress = async () => {
@@ -417,7 +436,7 @@ export default function ProfileScreen({ navigation, route }) {
                   </View>
                 ) : isConnectCta ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
-                    <SvgUri uri={CONNECT_ICON_URI} width={18} height={18} color={connectIconColor} fill={connectIconColor} />
+                    {connectIconNode}
                     <Text style={connectTextStyles}>{connectLabel}</Text>
                   </View>
                 ) : (
