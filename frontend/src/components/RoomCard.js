@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL } from '../api';
+import { vibeOptions } from '../data/vibes';
 
 const FALLBACK_COVER =
   'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1440&q=80';
@@ -18,6 +19,11 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
   const privacyLabel = room.is_private ? 'Privatna' : 'Javna';
   const typeLabel = room.type || 'Vibe';
 
+  const vibeIcon = useMemo(() => {
+    const match = vibeOptions.find((option) => option.key === room.type);
+    return match?.icon || 'leaf-outline';
+  }, [room.type]);
+
   const handleJoin = () => {
     onJoin?.(room);
   };
@@ -26,6 +32,9 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.92}>
       <ImageBackground source={{ uri: coverUri }} style={styles.cover} imageStyle={styles.coverImage}>
         <View style={styles.overlay} />
+        <View style={styles.vibeBadge}>
+          <Ionicons name={vibeIcon} size={28} color={colors.primary} />
+        </View>
         <View style={styles.topRow}>
           <View style={[styles.privacyBadge, room.is_private ? styles.publicBadge : styles.publicBadge]}>
             <Ionicons name={room.is_private ? 'lock-closed' : 'lock-open'} size={14} color="#fff" />
@@ -36,11 +45,12 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
             {room.is_18_over ? <Text style={[styles.typeText, styles.adultText]}>18+</Text> : null}
           </View>
         </View>
-        <View style={styles.infoBlock}>
-          <Text style={styles.title}>{room.name}</Text>
-          {!!room.tagline && <Text style={styles.tagline}>{room.tagline}</Text>}
-        </View>
       </ImageBackground>
+
+      <View style={styles.infoBlock}>
+        <Text style={styles.title}>{room.name}</Text>
+        {!!room.tagline && <Text style={styles.tagline}>{room.tagline}</Text>}
+      </View>
       <View style={styles.bottomRow}>
         <View style={styles.memberRow}>
           <Ionicons name="people-circle-outline" size={22} color={colors.secondary} />
@@ -74,21 +84,37 @@ const createStyles = (colors) =>
       marginBottom: 16,
       borderRadius: 20,
       overflow: 'hidden',
-      backgroundColor: colors.surface,
+      backgroundColor: colors.transparent,
       borderWidth: 1,
       borderColor: colors.border,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.08,
-      shadowRadius: 20,
+  
       elevation: 5,
     },
     cover: {
-      height: 200,
+      height: 100,
       justifyContent: 'space-between',
     },
     coverImage: {
       resizeMode: 'cover',
+    },
+    vibeBadge: {
+      position: 'absolute',
+      left: 16,
+      bottom: -36,
+      width: 72,
+      height: 72,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.14,
+      shadowRadius: 10,
+      elevation: 6,
+      zIndex: 3,
     },
     overlay: {
       ...StyleSheet.absoluteFillObject,
@@ -141,25 +167,28 @@ const createStyles = (colors) =>
     },
     infoBlock: {
       paddingHorizontal: 16,
-      paddingBottom: 24,
+      paddingBottom: 0,
+      paddingTop: 44,
     },
     title: {
       fontSize: 22,
       fontWeight: '800',
-      color: '#fff',
-      marginBottom: 4,
+      color: colors.text_primary,
+      marginBottom: 8,
     },
     tagline: {
       fontSize: 13,
-      color: '#fff',
+      color: colors.text_secondary,
       letterSpacing: 0.3,
+      lineHeight: 18,
+      marginBottom: 8,
     },
     bottomRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 15,
-      paddingVertical: 14,
+      paddingBottom: 12,
     },
     memberRow: {
       flexDirection: 'row',
@@ -178,7 +207,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 14,
       height: 36,
       justifyContent: 'center',
-      backgroundColor: colors.background,
+      backgroundColor: colors.transparent,
     },
     joinContent: {
       flexDirection: 'row',
@@ -196,7 +225,7 @@ const createStyles = (colors) =>
     },
     description: {
       paddingHorizontal: 20,
-      paddingBottom: 16,
+      paddingBottom: 12,
       fontSize: 13,
       color: colors.text_secondary,
       lineHeight: 18,
