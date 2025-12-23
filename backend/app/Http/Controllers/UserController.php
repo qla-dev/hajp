@@ -305,12 +305,19 @@ class UserController extends Controller
             ->first();
 
         if ($existing) {
+            $approvedExisting = (int) ($existing->approved ?? 0);
+            $status = $approvedExisting ? 'approved' : 'pending';
             Log::info('AddFriend: friendship already exists', [
                 'auth_id' => $authId,
                 'other_id' => $otherId,
                 'friendship_id' => $existing->id ?? null,
+                'approved' => $approvedExisting,
             ]);
-            return response()->json(['message' => 'Već ste prijatelji.'], 200);
+            return response()->json([
+                'message' => $approvedExisting ? 'Već ste prijatelji.' : 'Zahtjev za prijateljstvo već poslan.',
+                'approved' => $approvedExisting,
+                'status' => $status,
+            ], 409);
         }
 
         $approved = (int) $request->attributes->get('friendship_approved', 1);

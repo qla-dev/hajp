@@ -10,6 +10,7 @@ import {
   Animated,
   ActivityIndicator,
   PanResponder,
+  Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -243,8 +244,14 @@ export default function ProfileScreen({ navigation, route }) {
       const { data } = await addFriend(route.params.userId);
       const approved = typeof data?.approved === 'number' ? data.approved : friendStatus.approved ?? 1;
       setFriendStatus({ exists: true, approved });
-    } catch {
-      // ignore error, keep previous state
+    } catch (error) {
+      const approved = typeof error?.response?.data?.approved === 'number' ? error.response.data.approved : null;
+      const message =
+        error?.response?.data?.message || 'Nije moguce poslati zahtjev za prijateljstvo.';
+      Alert.alert('Greška', message);
+      if (approved !== null) {
+        setFriendStatus({ exists: true, approved });
+      }
     } finally {
       setConnecting(false);
     }

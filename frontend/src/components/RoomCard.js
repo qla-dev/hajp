@@ -46,12 +46,16 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
           <Ionicons name="people-circle-outline" size={22} color={colors.secondary} />
           <Text style={styles.memberText}>{memberCount} članova</Text>
         </View>
-        <TouchableOpacity style={styles.joinButton} onPress={handleJoin} disabled={!onJoin || joining}>
-          {joining ? (
-            <ActivityIndicator size="small" color={colors.primary} />
-          ) : (
-            <Text style={[styles.memberText, { color: colors.primary }]}>Pridruži se</Text>
-          )}
+        <TouchableOpacity
+          style={styles.joinButton}
+          onPress={handleJoin}
+          disabled={!onJoin || joining}
+          activeOpacity={0.85}
+        >
+          <View style={styles.joinContent}>
+            {joining && <ActivityIndicator size="small" color={colors.primary} style={styles.joinSpinner} />}
+            <Text style={styles.joinButtonText}>{joining ? 'Pridruživanje' : 'Pridruži se'}</Text>
+          </View>
         </TouchableOpacity>
       </View>
       {!!room.description && (
@@ -171,9 +175,24 @@ const createStyles = (colors) =>
       borderRadius: 14,
       borderWidth: 1,
       borderColor: colors.primary,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
+      paddingHorizontal: 14,
+      height: 36,
+      justifyContent: 'center',
       backgroundColor: colors.background,
+    },
+    joinContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      columnGap: 6,
+    },
+    joinSpinner: {
+      marginRight: 4,
+    },
+    joinButtonText: {
+      fontSize: 13,
+      fontWeight: '800',
+      color: colors.primary,
     },
     description: {
       paddingHorizontal: 20,

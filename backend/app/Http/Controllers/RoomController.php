@@ -41,6 +41,18 @@ class RoomController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
+        $existingMembership = RoomMember::where('room_id', $room->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existingMembership) {
+            $status = $existingMembership->approved ? 'joined' : 'requested';
+            return response()->json([
+                'status' => $status,
+                'message' => 'Već imaš aktivan zahtjev ili članstvo u ovoj sobi.',
+            ], 409);
+        }
+
         $approved = $room->is_private ? 0 : 1;
         RoomMember::updateOrCreate(
             ['room_id' => $room->id, 'user_id' => $user->id],

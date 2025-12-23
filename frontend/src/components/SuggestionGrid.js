@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Animated,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
@@ -55,7 +56,9 @@ export default function SuggestionGrid({ title = 'Još preporuka', refreshKey, o
         setItems((prev) => prev.filter((i) => i.id !== item.id));
         setPendingId(null);
       });
-    } catch {
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Nije moguce poslati zahtjev za prijateljstvo.';
+      Alert.alert('Greška', message);
       setPendingId(null);
     }
   };

@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Animated,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
@@ -103,7 +104,9 @@ export default function SuggestionSlider({
         setSuggestions((prev) => prev.filter((s) => s.id !== item.id));
         setPendingId(null);
       });
-    } catch {
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Nije moguce poslati zahtjev za prijateljstvo.';
+      Alert.alert('Greška', message);
       setPendingId(null);
     }
   };

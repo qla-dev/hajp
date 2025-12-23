@@ -36,7 +36,8 @@ export default function RoomSuggestions({ refreshKey, onRoomPress }) {
             : 'Uspješno ste se pridružili sobi.',
         );
       } catch (error) {
-        Alert.alert('Greška', 'Nije moguće poslati zahtjev za sobu.');
+        const message = error?.response?.data?.message || 'Nije moguće poslati zahtjev za sobu.';
+        Alert.alert('Greška', message);
       } finally {
         setJoiningRoomId(null);
       }

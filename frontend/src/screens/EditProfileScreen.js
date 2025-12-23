@@ -147,7 +147,7 @@ const applyUser = useCallback((userData) => {
       applyUser(data.user || data);
       Alert.alert('Uspjeh', data.message || 'Profilna slika je ažurirana.');
     } catch (e) {
-      Alert.alert('Greska', 'Nismo mogli prenijeti sliku. Pokusaj ponovo.');
+      Alert.alert('Greška', 'Nismo mogli prenijeti sliku. Pokusaj ponovo.');
     } finally {
       setUploadingPhoto(false);
     }
@@ -159,7 +159,7 @@ const applyUser = useCallback((userData) => {
       applyUser(data.user || data);
       Alert.alert('Uspjeh', data.message || 'Profilna slika je uklonjena.');
     } catch (e) {
-      Alert.alert('Greska', 'Nismo mogli ukloniti sliku. Pokusaj ponovo.');
+      Alert.alert('Greška', 'Nismo mogli ukloniti sliku. Pokusaj ponovo.');
     }
   }, [applyUser]);
 
