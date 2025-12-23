@@ -67,84 +67,100 @@ export default function SubscriptionScreen() {
       const offerings = await Purchases.getOfferings();
       const available = offerings?.current?.availablePackages || [];
       setRcPackages(available);
+      return available;
     } catch (error) {
       setRcError(error);
       setRcPackages([]);
+      return [];
     } finally {
       setLoadingOfferings(false);
     }
   }, []);
 
-  const pickPackageForPlan = useCallback(
-    (planKey) => {
-      if (!rcPackages.length) return null;
-      const key = (planKey || '').toLowerCase();
-      if (key === 'daily') {
-        return (
-          rcPackages.find(
-            (pkg) =>
-              pkg.identifier?.toLowerCase().includes('day') ||
-              pkg.product?.identifier?.toLowerCase().includes('day'),
-          ) || rcPackages.find((pkg) => pkg.packageType === Purchases.PACKAGE_TYPE.WEEKLY)
-        );
-      }
-      if (key === 'yearly') {
-        return (
-          rcPackages.find(
-            (pkg) =>
-              pkg.identifier?.toLowerCase().includes('year') ||
-              pkg.product?.identifier?.toLowerCase().includes('year'),
-          ) || rcPackages.find((pkg) => pkg.packageType === Purchases.PACKAGE_TYPE.ANNUAL)
-        );
-      }
+  const selectPackageForPlan = useCallback((packages, planKey) => {
+    if (!packages.length) return null;
+    const key = (planKey || '').toLowerCase();
+    if (key === 'daily') {
       return (
-        rcPackages.find(
+        packages.find(
           (pkg) =>
-            pkg.identifier?.toLowerCase().includes('month') ||
-            pkg.product?.identifier?.toLowerCase().includes('month'),
-        ) || rcPackages.find((pkg) => pkg.packageType === Purchases.PACKAGE_TYPE.MONTHLY)
+            pkg.identifier?.toLowerCase().includes('day') ||
+            pkg.product?.identifier?.toLowerCase().includes('day'),
+        ) ||
+        packages.find((pkg) => pkg.packageType === Purchases.PACKAGE_TYPE.WEEKLY) ||
+        packages[0]
       );
-    },
-    [rcPackages],
+    }
+    if (key === 'yearly') {
+      return (
+        packages.find(
+          (pkg) =>
+            pkg.identifier?.toLowerCase().includes('year') ||
+            pkg.product?.identifier?.toLowerCase().includes('year'),
+        ) ||
+        packages.find((pkg) => pkg.packageType === Purchases.PACKAGE_TYPE.ANNUAL) ||
+        packages[0]
+      );
+    }
+    return (
+      packages.find(
+        (pkg) =>
+          pkg.identifier?.toLowerCase().includes('month') ||
+          pkg.product?.identifier?.toLowerCase().includes('month'),
+      ) || packages.find((pkg) => pkg.packageType === Purchases.PACKAGE_TYPE.MONTHLY)
+    ) || packages[0];
+  }, []);
+
+  const pickPackageForPlan = useCallback(
+    (planKey) => selectPackageForPlan(rcPackages, planKey),
+    [rcPackages, selectPackageForPlan],
   );
 
   const handleSubscribe = useCallback(async () => {
-    const rcPackage = pickPackageForPlan(selectedPlan);
-    const planDays = selectedPlan === 'daily' ? 1 : selectedPlan === 'yearly' ? 365 : 30;
-
+    let rcPackage = pickPackageForPlan(selectedPlan);
     if (!rcPackage) {
-      try {
-        const fallbackExpires = new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
-        await subscribeWithPayload({ plan: selectedPlan, expires_at: fallbackExpires, duration_days: planDays });
-      } catch (error) {
-        setRcError(error);
-      }
-      return;
+      // Refresh offerings once more to try to pick up newly configured products.
+      const refreshed = await refreshOfferings();
+      rcPackage = selectPackageForPlan(refreshed || [], selectedPlan);
     }
+    const planDays = selectedPlan === 'daily' ? 1 : selectedPlan === 'yearly' ? 365 : 30;
 
     setProcessingPurchase(true);
     setRcError(null);
     try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      const purchaseResult = await Purchases.purchasePackage(rcPackage);
-      const entitlement =
-        purchaseResult?.customerInfo?.entitlements?.active &&
-        Object.values(purchaseResult.customerInfo.entitlements.active)[0];
-      const expiresAt =
-        entitlement?.expirationDate ||
-        new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
-      if (expiresAt) {
-        setSubscription({ expires_at: expiresAt });
+      if (!rcPackage) {
+        const fallbackExpires = new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
+        await subscribeWithPayload({ plan: selectedPlan, expires_at: fallbackExpires, duration_days: planDays });
+        await refreshBackendSubscription();
+      } else {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        const purchaseResult = await Purchases.purchasePackage(rcPackage);
+        const entitlement =
+          purchaseResult?.customerInfo?.entitlements?.active &&
+          Object.values(purchaseResult.customerInfo.entitlements.active)[0];
+        const expiresAt =
+          entitlement?.expirationDate ||
+          new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
+        if (expiresAt) {
+          setSubscription({ expires_at: expiresAt });
+        }
+        setCustomerInfo(purchaseResult?.customerInfo);
+        await refreshOfferings();
+        await syncBackendSubscription({ plan: selectedPlan, expiresAt, durationDays: planDays });
       }
-      setCustomerInfo(purchaseResult?.customerInfo);
-      await refreshOfferings();
-      await syncBackendSubscription({ plan: selectedPlan, expiresAt, durationDays: planDays });
     } catch (error) {
       setRcError(error);
     } finally {
       setProcessingPurchase(false);
     }
-  }, [pickPackageForPlan, refreshOfferings, selectedPlan, syncBackendSubscription]);
+  }, [
+    pickPackageForPlan,
+    refreshOfferings,
+    refreshBackendSubscription,
+    selectedPlan,
+    selectPackageForPlan,
+    syncBackendSubscription,
+  ]);
 
   const handleRestore = useCallback(async () => {
     setProcessingPurchase(true);
@@ -217,20 +233,32 @@ export default function SubscriptionScreen() {
   const hajpPro = activeEntitlement[ENTITLEMENT];
 
   const heroCopy = useMemo(() => {
-    const expiresAt = hajpPro?.expirationDate || subscription?.expires_at;
+    const expiresAt = subscription?.expires_at || hajpPro?.expirationDate;
     if (!expiresAt) {
       return 'Uključi premium i dobiješ kompletan pristup';
     }
     const expires = new Date(expiresAt);
+    if (isNaN(expires.getTime())) {
+      return 'Uključi premium i dobiješ kompletan pristup';
+    }
     const formatted = expires.toLocaleDateString('bs-BA');
     const today = new Date();
-    const diff = expires - today;
-    const days = Math.max(Math.round(diff / (1000 * 60 * 60 * 24)), 0);
+    const diff = expires.getTime() - today.getTime();
+    const days = Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
     return {
       text: `Pristup traje do ${formatted}`,
       days,
     };
   }, [hajpPro, subscription]);
+
+  const refreshBackendSubscription = useCallback(async () => {
+    try {
+      const { data } = await subscriptionStatus();
+      setSubscription(data.subscription);
+    } catch (error) {
+      console.warn('Failed to refresh backend subscription', error);
+    }
+  }, []);
 
   const syncBackendSubscription = useCallback(async ({ plan, expiresAt, durationDays }) => {
     try {
@@ -239,10 +267,11 @@ export default function SubscriptionScreen() {
         expires_at: expiresAt,
         duration_days: durationDays,
       });
+      await refreshBackendSubscription();
     } catch (error) {
       console.warn('Failed to sync subscription to backend', error);
     }
-  }, []);
+  }, [refreshBackendSubscription]);
 
   return (
     <View style={styles.container}>
@@ -383,14 +412,7 @@ export default function SubscriptionScreen() {
           <Text style={styles.ctaText}>Prikaži RevenueCat Paywall</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.ctaButton, { backgroundColor: colors.border, marginTop: 12 }]}
-          onPress={handleCustomerCenter}
-          activeOpacity={0.85}
-          disabled={processingPurchase}
-        >
-          <Text style={styles.ctaText}>Customer Center</Text>
-        </TouchableOpacity>
+
 
         {hajpPro ? (
           <Text style={[styles.linkText, { textAlign: 'center', marginTop: 8 }]}>
