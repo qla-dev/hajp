@@ -66,17 +66,11 @@ class RoomController extends Controller
                 ->values();
         }
 
-        $rooms = $rooms->map(function ($room) use ($roomMembers, $friendIds) {
+        $firstRoomId = $rooms->first()->id ?? null;
+
+        $rooms = $rooms->map(function ($room) use ($roomMembers, $friendIds, $firstRoomId) {
             /** @var Collection $members */
             $members = $roomMembers->get($room->id, collect());
-
-            if ($room->id === ($rooms->first()->id ?? null)) {
-                Log::info('Room mutual debug', [
-                    'room_id' => $room->id,
-                    'member_ids' => $members->pluck('user_id')->values(),
-                    'friend_ids' => $friendIds,
-                ]);
-            }
 
             $previewMembers = $members->take(3)->map(function ($member) {
                 return [
@@ -88,7 +82,12 @@ class RoomController extends Controller
             })->values();
 
             $mutualMember = null;
+            $matchedIds = collect();
             if ($friendIds->isNotEmpty()) {
+                $matchedIds = $members->pluck('user_id')->filter(function ($id) use ($friendIds) {
+                    return $friendIds->contains($id);
+                });
+
                 $mutual = $members->first(function ($member) use ($friendIds) {
                     return $friendIds->contains($member->user_id);
                 });
@@ -229,7 +228,7 @@ class RoomController extends Controller
             ->first();
 
         if (!$membership) {
-            return response()->json(['message' => 'Nisi član ove sobe'], 403);
+            return response()->json(['message' => 'Nema članstva u sobama'], 403);
         }
 
         $wasAdmin = $membership->role === 'admin';
@@ -278,19 +277,25 @@ class RoomController extends Controller
 
     public function userRooms(Request $request, $userId, string $role = 'user')
     {
-        $user = $request->user();
+        $authUser = $request->user();
+        $targetUserId = ($userId === 'me' || !$userId) ? ($authUser?->id) : (int) $userId;
         $role = strtolower($role ?? 'user');
+
+        if (!$targetUserId) {
+            return response()->json(['data' => [], 'total' => 0]);
+        }
+
         $rooms = Room::withCount(['users as members_count'])
-            ->whereHas('members', function ($query) use ($user, $role) {
-                $query->where('user_id', $user->id);
+            ->whereHas('members', function ($query) use ($targetUserId, $role) {
+                $query->where('user_id', $targetUserId);
                 $query->where('approved', 1);
                 if ($role === 'admin') {
                     $query->where('role', 'admin');
                 }
             })
             ->with([
-                'members' => function ($query) use ($user) {
-                    $query->where('user_id', $user->id)->where('approved', 1);
+                'members' => function ($query) use ($targetUserId) {
+                    $query->where('user_id', $targetUserId)->where('approved', 1);
                 },
             ])
             ->get([

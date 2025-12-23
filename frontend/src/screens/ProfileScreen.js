@@ -202,7 +202,7 @@ export default function ProfileScreen({ navigation, route }) {
   const roomLine =
     displayedRooms.length > 0
       ? `Član ${displayedRooms.join(', ')}${remainingRooms > 0 ? ` i još ${remainingRooms} soba` : ''}`
-      : 'Nisi član nijedne sobe';
+      : 'Nema članstava u sobama';
   const coinBalance = user?.coins ?? 58;
   const avatarTextColor = encodeURIComponent(colors.textLight.replace('#', ''));
   const glowScale = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
