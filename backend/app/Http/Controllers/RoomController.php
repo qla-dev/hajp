@@ -11,23 +11,18 @@ use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Laravel\Sanctum\PersonalAccessToken;
+use Illuminate\Support\Collection;
 
 class RoomController extends Controller
 {
     public function index(Request $request)
     {
-        $user = $request->user() ?: auth('sanctum')->user();
-        if (!$user && $request->bearerToken()) {
-            $token = PersonalAccessToken::findToken($request->bearerToken());
-            $user = $token?->tokenable;
-        }
+        $user = $request->user() ?? auth()->user() ?? auth('sanctum')->user();
 
         $rooms = Room::withCount(['users as members_count'])->get([
             'id',
@@ -60,9 +55,12 @@ class RoomController extends Controller
                 ->where(function ($query) use ($user) {
                     $query->where('auth_user_id', $user->id)->orWhere('user_id', $user->id);
                 })
-                ->get()
+                ->get(['auth_user_id', 'user_id'])
                 ->flatMap(function ($row) use ($user) {
-                    return $row->auth_user_id === $user->id ? [$row->user_id] : [$row->auth_user_id];
+                    return [$row->auth_user_id, $row->user_id];
+                })
+                ->reject(function ($id) use ($user) {
+                    return (int) $id === (int) $user->id;
                 })
                 ->unique()
                 ->values();
@@ -71,6 +69,15 @@ class RoomController extends Controller
         $rooms = $rooms->map(function ($room) use ($roomMembers, $friendIds) {
             /** @var Collection $members */
             $members = $roomMembers->get($room->id, collect());
+
+            if ($room->id === ($rooms->first()->id ?? null)) {
+                Log::info('Room mutual debug', [
+                    'room_id' => $room->id,
+                    'member_ids' => $members->pluck('user_id')->values(),
+                    'friend_ids' => $friendIds,
+                ]);
+            }
+
             $previewMembers = $members->take(3)->map(function ($member) {
                 return [
                     'id' => $member->user?->id,
