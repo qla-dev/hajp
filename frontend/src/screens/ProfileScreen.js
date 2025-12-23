@@ -192,7 +192,23 @@ export default function ProfileScreen({ navigation, route }) {
   const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
   const isFriendActionLoading = connecting || friendStatusLoading;
   const isConnected = friendStatus.exists && friendStatus.approved === 1;
-  const connectButtonStyle = isConnected ? styles.shareButton : [styles.shareButton, styles.connectButton];
+  const connectLabel = friendStatus.exists
+    ? friendStatus.approved === 1
+      ? 'Povezani ste'
+      : 'Zahtjev poslan'
+    : 'Poveži se';
+  const isConnectCta = !friendStatus.exists;
+  const connectButtonStyle = [
+    styles.shareButton,
+    !isConnected && styles.connectButton,
+    isConnectCta && styles.connectButtonPrimary,
+  ].filter(Boolean);
+  const connectTextStyles = [
+    styles.shareButtonText,
+    isConnected ? { color: colors.success } : styles.connectButtonText,
+    isConnectCta && styles.connectButtonPrimaryText,
+  ].filter(Boolean);
+  const connectSpinnerColor = isConnectCta ? colors.textLight : colors.primary;
 
   const handleConnectPress = async () => {
     if (!isOtherProfile || !route?.params?.userId || isFriendActionLoading) return;
@@ -391,18 +407,11 @@ export default function ProfileScreen({ navigation, route }) {
               >
                 {isFriendActionLoading ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
-                    <ActivityIndicator size="small" color={colors.primary} />
-                    <Text style={[styles.shareButtonText, styles.connectButtonText]}>Učitavanje</Text>
+                    <ActivityIndicator size="small" color={connectSpinnerColor} />
+                    <Text style={connectTextStyles}>Učitavanje</Text>
                   </View>
                 ) : (
-                    <Text
-                      style={[
-                        styles.shareButtonText,
-                        isConnected ? { color: colors.success } : styles.connectButtonText,
-                      ]}
-                    >
-                      {friendStatus.exists ? (friendStatus.approved === 1 ? 'Povezani ste' : 'Zahtjev poslan') : 'Poveži se'}
-                    </Text>
+                    <Text style={connectTextStyles}>{connectLabel}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -656,6 +665,13 @@ const createStyles = (colors) =>
       color: colors.primary,
       fontWeight: '700',
     },
+    connectButtonPrimary: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    connectButtonPrimaryText: {
+      color: colors.textLight,
+    },
     coinRow: {
       paddingHorizontal: 14,
       paddingVertical: 18,
@@ -816,4 +832,3 @@ const createStyles = (colors) =>
       color: colors.text_secondary,
     },
   });
-
