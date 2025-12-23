@@ -48,6 +48,20 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
       </ImageBackground>
 
       <View style={styles.infoBlock}>
+        <View style={styles.infoHeader}>
+          <View style={styles.infoHeaderSpacer} />
+          <TouchableOpacity
+            style={styles.joinButton}
+            onPress={handleJoin}
+            disabled={!onJoin || joining}
+            activeOpacity={0.85}
+          >
+            <View style={styles.joinContent}>
+              {joining && <ActivityIndicator size="small" color={colors.primary} style={styles.joinSpinner} />}
+              <Text style={styles.joinButtonText}>{joining ? 'Pridruživanje' : 'Pridruži se'}</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
         <Text style={styles.title}>{room.name}</Text>
         {!!room.tagline && <Text style={styles.tagline}>{room.tagline}</Text>}
       </View>
@@ -56,17 +70,6 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
           <Ionicons name="people-circle-outline" size={22} color={colors.secondary} />
           <Text style={styles.memberText}>{memberCount} članova</Text>
         </View>
-        <TouchableOpacity
-          style={styles.joinButton}
-          onPress={handleJoin}
-          disabled={!onJoin || joining}
-          activeOpacity={0.85}
-        >
-          <View style={styles.joinContent}>
-            {joining && <ActivityIndicator size="small" color={colors.primary} style={styles.joinSpinner} />}
-            <Text style={styles.joinButtonText}>{joining ? 'Pridruživanje' : 'Pridruži se'}</Text>
-          </View>
-        </TouchableOpacity>
       </View>
       {!!room.description && (
         <Text style={styles.description} numberOfLines={3}>
@@ -91,7 +94,7 @@ const createStyles = (colors) =>
       elevation: 5,
     },
     cover: {
-      height: 100,
+      height: 90,
       justifyContent: 'space-between',
     },
     coverImage: {
@@ -99,10 +102,10 @@ const createStyles = (colors) =>
     },
     vibeBadge: {
       position: 'absolute',
-      left: 16,
-      bottom: -36,
-      width: 72,
-      height: 72,
+      left: 12,
+      bottom: -28,
+      width: 64,
+      height: 64,
       borderRadius: 14,
       borderWidth: 1,
       borderColor: colors.border,
@@ -110,10 +113,10 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.14,
-      shadowRadius: 10,
-      elevation: 6,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.12,
+      shadowRadius: 8,
+      elevation: 5,
       zIndex: 3,
     },
     overlay: {
@@ -168,10 +171,19 @@ const createStyles = (colors) =>
     infoBlock: {
       paddingHorizontal: 16,
       paddingBottom: 0,
-      paddingTop: 44,
+      paddingTop: 48,
+      position: 'relative',
+    },
+    infoHeader: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+    },
+    infoHeaderSpacer: {
+      width: 0,
     },
     title: {
-      fontSize: 22,
+      fontSize: 17,
       fontWeight: '800',
       color: colors.text_primary,
       marginBottom: 8,
@@ -185,7 +197,7 @@ const createStyles = (colors) =>
     },
     bottomRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-start',
       alignItems: 'center',
       paddingHorizontal: 15,
       paddingBottom: 12,
