@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { SvgUri } from 'react-native-svg';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, recordProfileView } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
@@ -20,6 +21,8 @@ import BottomCTA from '../components/BottomCTA';
 import SuggestionSlider from '../components/SuggestionSlider';
 
 export default function ProfileScreen({ navigation, route }) {
+  const NAV_ICON_BASE_URI = `${baseURL}/img/nav-icons`;
+  const CONNECT_ICON_URI = `${NAV_ICON_BASE_URI}/user-add.svg`;
   const [user, setUser] = useState(null);
   const [hypeCount, setHypeCount] = useState(0);
   const [recentHypes, setRecentHypes] = useState([]);
@@ -192,12 +195,13 @@ export default function ProfileScreen({ navigation, route }) {
   const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
   const isFriendActionLoading = connecting || friendStatusLoading;
   const isConnected = friendStatus.exists && friendStatus.approved === 1;
+  const showConnectedStyle = isConnected && !isFriendActionLoading;
   const connectLabel = friendStatus.exists
     ? friendStatus.approved === 1
       ? 'Povezani ste'
       : 'Zahtjev poslan'
     : 'Poveži se';
-  const isConnectCta = !friendStatus.exists;
+  const isConnectCta = !friendStatus.exists && !isFriendActionLoading;
   const connectButtonStyle = [
     styles.shareButton,
     !isConnected && styles.connectButton,
@@ -205,9 +209,10 @@ export default function ProfileScreen({ navigation, route }) {
   ].filter(Boolean);
   const connectTextStyles = [
     styles.shareButtonText,
-    isConnected ? { color: colors.success } : styles.connectButtonText,
+    showConnectedStyle ? { color: colors.success } : styles.connectButtonText,
     isConnectCta && styles.connectButtonPrimaryText,
   ].filter(Boolean);
+  const connectIconColor = isConnectCta ? colors.textLight : showConnectedStyle ? colors.success : colors.primary;
   const connectSpinnerColor = isConnectCta ? colors.textLight : colors.primary;
 
   const handleConnectPress = async () => {
@@ -410,8 +415,13 @@ export default function ProfileScreen({ navigation, route }) {
                     <ActivityIndicator size="small" color={connectSpinnerColor} />
                     <Text style={connectTextStyles}>Učitavanje</Text>
                   </View>
-                ) : (
+                ) : isConnectCta ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
+                    <SvgUri uri={CONNECT_ICON_URI} width={18} height={18} color={connectIconColor} fill={connectIconColor} />
                     <Text style={connectTextStyles}>{connectLabel}</Text>
+                  </View>
+                ) : (
+                  <Text style={connectTextStyles}>{connectLabel}</Text>
                 )}
               </TouchableOpacity>
             </View>
