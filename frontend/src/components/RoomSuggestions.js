@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, Alert, Animated } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import RoomCard from './RoomCard';
 import { fetchRooms, joinRoom } from '../api';
@@ -10,6 +10,7 @@ export default function RoomSuggestions({ refreshKey, onRoomPress }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [joiningRoomId, setJoiningRoomId] = useState(null);
+  const [fadeValues] = useState({});
 
   const loadRooms = useCallback(async () => {
     setLoading(true);
@@ -30,7 +31,16 @@ export default function RoomSuggestions({ refreshKey, onRoomPress }) {
       setJoiningRoomId(roomId);
       try {
         const { data } = await joinRoom(roomId);
-        setRooms((prev) => prev.filter((r) => r.id !== roomId));
+        if (!fadeValues[roomId]) {
+          fadeValues[roomId] = new Animated.Value(1);
+        }
+        Animated.timing(fadeValues[roomId], {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }).start(() => {
+          setRooms((prev) => prev.filter((r) => r.id !== roomId));
+        });
         const roomName = targetRoom?.name || '';
         Alert.alert(
           data?.status === 'requested' ? 'Zahtjev poslan' : 'Pridruženo',
@@ -63,13 +73,17 @@ export default function RoomSuggestions({ refreshKey, onRoomPress }) {
         </View>
       ) : (
         rooms.map((room) => (
-          <RoomCard
+          <Animated.View
             key={room.id}
-            room={room}
-            onPress={() => onRoomPress?.(room)}
-            onJoin={() => handleRoomJoin(room.id)}
-            joining={joiningRoomId === room.id}
-          />
+            style={fadeValues[room.id] ? { opacity: fadeValues[room.id] } : undefined}
+          >
+            <RoomCard
+              room={room}
+              onPress={() => onRoomPress?.(room)}
+              onJoin={() => handleRoomJoin(room.id)}
+              joining={joiningRoomId === room.id}
+            />
+          </Animated.View>
         ))
       )}
     </View>
