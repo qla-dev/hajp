@@ -432,19 +432,15 @@ class UserController extends Controller
 
         $authId = $authUser->id;
         $otherId = $user->id;
-        $low = min($authId, $otherId);
-        $high = max($authId, $otherId);
 
         Log::info("ApproveFriend called", [
             "auth_id" => $authId,
             "other_id" => $otherId,
-            "low" => $low,
-            "high" => $high,
         ]);
 
         $updated = Friendship::query()
-            ->where('auth_user_id', $low)
-            ->where('user_id', $high)
+            ->where('auth_user_id', $otherId) // requester
+            ->where('user_id', $authId)       // current user approves
             ->where('approved', 0)
             ->update([
                 'approved' => 1,
@@ -456,7 +452,7 @@ class UserController extends Controller
                 "auth_id" => $authId,
                 "other_id" => $otherId,
             ]);
-            return response()->json(['message' => 'Zahtjev nije pronaden.'], 404);
+            return response()->json(['message' => 'Zahtjev nije pronađen.'], 404);
         }
 
         Log::info("ApproveFriend: request approved", [
@@ -465,7 +461,7 @@ class UserController extends Controller
             "updated" => $updated,
         ]);
 
-        return response()->json(['message' => 'Zahtjev prihvacen.', 'approved' => 1]);
+        return response()->json(['message' => 'Zahtjev prihvaćen.', 'approved' => 1]);
     }
 
 

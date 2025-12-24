@@ -30,6 +30,16 @@ export default function SuggestionsScreen({ navigation }) {
   const skipSliderHapticRef = useRef(false);
   const { openRoomSheet } = useRoomSheet();
 
+  const formatStatusDate = (value) => {
+    if (!value) return null;
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return null;
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const year = parsed.getFullYear();
+    return `${day}.${month}.${year}`;
+  };
+
   const loadRequests = useCallback(async () => {
     setLoadingRequests(true);
     try {
