@@ -302,7 +302,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       justifyContent: 'flex-start',
       alignItems: 'center',
-      paddingHorizontal: 15,
+      paddingHorizontal: 16,
       paddingBottom: 12,
     },
     memberRow: {
@@ -339,7 +339,7 @@ const createStyles = (colors) =>
       color: colors.primary,
     },
     description: {
-      paddingHorizontal: 20,
+      paddingHorizontal: 16,
       paddingBottom: 12,
       fontSize: 13,
       color: colors.text_secondary,
@@ -348,7 +348,8 @@ const createStyles = (colors) =>
     avatarStack: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginRight: 8,
+      marginLeft: 4,
+      marginRight: 0,
     },
     avatar: {
       width: 30,
