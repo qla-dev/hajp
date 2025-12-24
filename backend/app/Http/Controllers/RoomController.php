@@ -112,37 +112,52 @@ class RoomController extends Controller
     }
 
     public function join(Request $request, Room $room, string $role = 'user')
-    {
-        $user = $request->user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
-
-        $existingMembership = RoomMember::where('room_id', $room->id)
-            ->where('user_id', $user->id)
-            ->first();
-
-        if ($existingMembership) {
-            $status = $existingMembership->approved ? 'joined' : 'requested';
-            return response()->json([
-                'status' => $status,
-                'message' => 'Već imaš aktivan zahtjev ili članstvo u ovoj sobi.',
-            ], 409);
-        }
-
-        $approved = $room->is_private ? 0 : 1;
-        RoomMember::updateOrCreate(
-            ['room_id' => $room->id, 'user_id' => $user->id],
-            ['approved' => $approved, 'role' => $role]
-        );
-
-        return response()->json([
-            'status' => $approved ? 'joined' : 'requested',
-            'room_id' => $room->id,
-            'room_name' => $room->name,
-            'message' => "Uspješno si se pridružio sobi: {$room->name}",
-        ]);
+{
+    $user = $request->user();
+    if (!$user) {
+        return response()->json(['message' => 'Unauthorized'], 401);
     }
+
+    $isInvite = $request->boolean('is_invite');
+    $targetUserId = $isInvite ? ($request->input('user_id') ?: $user->id) : $user->id;
+
+    $existingMembership = RoomMember::where('room_id', $room->id)
+        ->where('user_id', $targetUserId)
+        ->first();
+
+    if ($existingMembership) {
+        $status = $existingMembership->approved ? 'joined' : 'requested';
+        if ((int) ($existingMembership->accepted ?? 1) === 0) {
+            $status = 'invited';
+        }
+        return response()->json([
+            'status' => $status,
+            'message' => 'Već imaš aktivan zahtjev ili članstvo u ovoj sobi.',
+        ], 409);
+    }
+
+    $approved = $room->is_private ? 0 : 1;
+    $accepted = $isInvite ? 0 : 1;
+
+    RoomMember::updateOrCreate(
+        ['room_id' => $room->id, 'user_id' => $targetUserId],
+        [
+            'approved'   => $approved,
+            'accepted'   => $accepted,
+            'role'       => $role,
+            'invited_by' => $user->id,
+        ]
+    );
+
+    return response()->json([
+        'status'    => $isInvite ? 'invited' : ($approved ? 'joined' : 'requested'),
+        'room_id'   => $room->id,
+        'room_name' => $room->name,
+        'accepted'  => $accepted,
+        'message'   => "Uspješno si se pridružio sobi: {$room->name}",
+    ]);
+}
+
 
     public function joinByCode(Request $request)
     {

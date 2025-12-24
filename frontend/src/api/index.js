@@ -66,11 +66,14 @@ export const removeProfilePhoto = () => api.delete('/user/photo');
 export const logout = () => api.post('/logout');
 export const fetchCoinBalance = () => api.get('/user/coins');
 export const fetchFriendSuggestions = () => api.get('/friends/suggestions');
-export const fetchFriends = () => api.get('/friends');
+export const fetchFriends = (roomId) =>
+  api.get('/friends', { params: roomId ? { room_id: roomId } : undefined });
 export const fetchFriendRequests = () => api.get('/friends/requests');
 export const addFriend = (userId) => api.post(`/friends/${userId}/add`);
 export const removeFriend = (userId) => api.delete(`/friends/${userId}/remove`);
 export const approveFriendRequest = (userId) => api.post(`/friends/${userId}/approve`);
+export const inviteToRoom = (roomId, userId) =>
+  api.post(`/rooms/${roomId}/join`, { user_id: userId, is_invite: 1 });
 export const fetchUserProfile = (userId) => api.get(`/user/${userId}`);
 export const fetchUserRoomsFor = (userId, role = 'user') => api.get(buildUserRoomsPath(userId, role));
 export const fetchUserFriendsCount = (userId) => api.get(`/user/${userId}/friends/count`);
