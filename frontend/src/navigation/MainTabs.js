@@ -369,10 +369,14 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen
         name="ProfileFriendsList"
         component={FriendsScreen}
-        options={{
-          title: 'Prijatelji',
-          headerBackTitle: 'Nazad',
-          gestureEnabled: false,
+        options={({ route }) => {
+          const mode = route?.params?.mode;
+          const title = mode === 'group-invite' ? 'Pozovi prijatelja' : 'Prijatelji';
+          return {
+            title,
+            headerBackTitle: 'Nazad',
+            gestureEnabled: false,
+          };
         }}
         initialParams={{ fromProfile: true }}
       />
@@ -440,7 +444,7 @@ function FriendsStackNavigator() {
       <FriendsStack.Screen
         name="FriendsList"
         component={FriendsScreen}
-        options={({ route }) => {
+        options={({ route, navigation }) => {
           const mode = route?.params?.mode;
           const title =
             mode === 'requests'
@@ -448,10 +452,42 @@ function FriendsStackNavigator() {
               : mode === 'group-invite'
               ? 'Pozovi prijatelje u grupu'
               : 'Prijatelji';
+          const onBack = () => {
+            console.log('[FriendsList back] mode:', mode, 'canGoBack:', navigation.canGoBack());
+            if (mode === 'group-invite') {
+              console.log('[FriendsList back] force navigate to Profile > UserRooms');
+              navigation.getParent()?.navigate('Profile', { screen: 'UserRooms' });
+              return;
+            }
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+              return;
+            }
+            if (mode === 'requests') {
+              console.log('[FriendsList back] fallback to Friends > Suggestions (requests)');
+              navigation.getParent()?.navigate('Friends', { screen: 'Suggestions' });
+            } else {
+              console.log('[FriendsList back] fallback to Friends > Suggestions (default)');
+              navigation.getParent()?.navigate('Friends', { screen: 'Suggestions' });
+            }
+          };
+          const useCustomBack = mode === 'requests' || mode === 'group-invite';
           return {
             title,
-            headerBackVisible: true,
-            headerBackTitle: 'Nazad',
+            headerBackVisible: !useCustomBack,
+            headerBackTitle: useCustomBack ? undefined : 'Nazad',
+            headerLeft: useCustomBack
+              ? () => (
+                  <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={onBack}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons name="chevron-back" size={22} color={colors.text_primary} />
+                    <Text style={styles.backLabel}>Nazad</Text>
+                  </TouchableOpacity>
+                )
+              : undefined,
           };
         }}
       />

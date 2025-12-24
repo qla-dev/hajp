@@ -114,7 +114,7 @@ export default function SuggestionsScreen({ navigation }) {
       }
     >
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Zahtjevi za praćenje</Text>
+        <Text style={styles.sectionTitle}>Zahtjevi za povezivanje i grupe</Text>
         <TouchableOpacity
           onPress={() =>
             navigation.navigate('Friends', {

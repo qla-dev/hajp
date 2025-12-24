@@ -94,9 +94,10 @@ export default function UserRoomsScreen({ navigation }) {
   const handleRoomPress = useCallback(
     (room) => {
       openRoomSheet(room, refreshRooms, () =>
-        navigation.navigate('Friends', {
-          screen: 'FriendsList',
-          params: { mode: 'group-invite', roomId: room.id },
+        navigation.navigate('ProfileFriendsList', {
+          mode: 'group-invite',
+          roomId: room.id,
+          fromProfile: true,
         }),
       );
     },

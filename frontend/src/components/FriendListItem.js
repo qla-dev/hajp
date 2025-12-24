@@ -58,19 +58,19 @@ export default function FriendListItem({
       </View>
       {isInviteMode ? (
         isMember ? (
-          <View style={styles.inRoomBadge}>
-            <Text style={styles.inRoomText}>{accepted === 0 ? 'Zahtjev poslan' : 'U sobi'}</Text>
+          <View style={[styles.inRoomBadge, styles.chip]}>
+            <Text style={styles.chipText}>{accepted === 0 ? 'Zahtjev poslan' : 'U sobi'}</Text>
           </View>
         ) : (
           <TouchableOpacity
-            style={[styles.acceptButton, styles.inviteButton]}
+            style={[styles.acceptButton, styles.inviteButton, styles.chip]}
             onPress={onInvite}
             disabled={inviting}
           >
             {inviting ? (
               <ActivityIndicator size="small" color={colors.primary} />
             ) : (
-              <Text style={styles.acceptButtonText}>Pozovi</Text>
+              <Text style={styles.chipTextPozovi}>Pozovi</Text>
             )}
           </TouchableOpacity>
         )
@@ -144,6 +144,8 @@ const createStyles = (colors) =>
     },
     inviteButton: {
       backgroundColor: colors.transparent,
+      borderWidth: 1,
+      borderColor: colors.primary,
     },
     acceptButtonText: {
       color: colors.primary,
@@ -162,9 +164,22 @@ const createStyles = (colors) =>
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
-    inRoomText: {
+    chip: {
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: 18,
+      minWidth: 96,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    chipText: {
       color: colors.text_secondary,
       fontWeight: '700',
-      fontSize: 12,
+      fontSize: 14,
+    },
+     chipTextPozovi: {
+      color: colors.primary,
+      fontWeight: '700',
+      fontSize: 14,
     },
   });
