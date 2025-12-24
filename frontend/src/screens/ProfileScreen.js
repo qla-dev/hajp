@@ -16,7 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri, SvgXml } from 'react-native-svg';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, recordProfileView } from '../api';
+import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, removeFriend, recordProfileView } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 import BottomCTA from '../components/BottomCTA';
 import SuggestionSlider from '../components/SuggestionSlider';
@@ -240,6 +240,7 @@ export default function ProfileScreen({ navigation, route }) {
   const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
   const isFriendActionLoading = connecting || friendStatusLoading;
   const isConnected = friendStatus.exists && friendStatus.approved === 1;
+  const isPendingRequest = friendStatus.exists && friendStatus.approved !== 1;
   const showConnectedStyle = isConnected && !isFriendActionLoading;
   const connectLabel = friendStatus.exists
     ? friendStatus.approved === 1
@@ -267,12 +268,43 @@ export default function ProfileScreen({ navigation, route }) {
 
   const handleConnectPress = async () => {
     if (!isOtherProfile || !route?.params?.userId || isFriendActionLoading) return;
-    if (hasActiveFriendship) return;
+
+    const targetId = route.params.userId;
+
+    const handleRemove = async () => {
+      setConnecting(true);
+      try {
+        await removeFriend(targetId);
+        setFriendStatus({ exists: false, approved: null });
+      } catch (error) {
+        const message = error?.response?.data?.message || 'Nije moguće ukloniti povezivanje.';
+        Alert.alert('Greška', message);
+      } finally {
+        setConnecting(false);
+      }
+    };
+
+    if (isPendingRequest) {
+      Alert.alert('Povuci zahtjev?', 'Želiš li povući zahtjev za povezivanje?', [
+        { text: 'Nazad', style: 'cancel' },
+        { text: 'Povuci', style: 'destructive', onPress: handleRemove },
+      ]);
+      return;
+    }
+
+    if (isConnected) {
+      const privateNote = user?.is_private ? '\nNapomena: profil je privatan, moraćeš ponovo poslati zahtjev ako se predomisliš.' : '';
+      Alert.alert('Ukloni povezivanje?', `Želiš li ukloniti osobu iz liste povezivanja?${privateNote}`, [
+        { text: 'Nazad', style: 'cancel' },
+        { text: 'Ukloni', style: 'destructive', onPress: handleRemove },
+      ]);
+      return;
+    }
 
     setConnecting(true);
     try {
       playConnectFeedback();
-      const { data } = await addFriend(route.params.userId);
+      const { data } = await addFriend(targetId);
       const approved = typeof data?.approved === 'number' ? data.approved : friendStatus.approved ?? 1;
       setFriendStatus({ exists: true, approved });
     } catch (error) {
@@ -465,7 +497,7 @@ export default function ProfileScreen({ navigation, route }) {
               <TouchableOpacity
                 style={connectButtonStyle}
                 onPress={handleConnectPress}
-                disabled={isFriendActionLoading || hasActiveFriendship}
+                disabled={isFriendActionLoading}
               >
                 {isFriendActionLoading ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
