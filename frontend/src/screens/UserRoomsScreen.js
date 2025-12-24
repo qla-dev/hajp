@@ -93,9 +93,14 @@ export default function UserRoomsScreen({ navigation }) {
 
   const handleRoomPress = useCallback(
     (room) => {
-      openRoomSheet(room, refreshRooms);
+      openRoomSheet(room, refreshRooms, () =>
+        navigation.navigate('Friends', {
+          screen: 'FriendsList',
+          params: { mode: 'group-invite', roomId: room.id },
+        }),
+      );
     },
-    [openRoomSheet, refreshRooms],
+    [openRoomSheet, refreshRooms, navigation],
   );
 
   const handleJoinSuccess = useCallback(() => {

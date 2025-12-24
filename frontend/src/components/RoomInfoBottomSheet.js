@@ -7,7 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL, leaveRoom } from '../api';
 
-const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, onLeaveSuccess, modalHeight = 700 }, ref) => {
+const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, onLeaveSuccess, onInviteFriends, modalHeight = 700 }, ref) => {
   const [copied, setCopied] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const { colors } = useTheme();
@@ -78,6 +78,7 @@ const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, onLeaveSuccess, m
   const invitationLink = `${baseURL}/room/invite-code/${invitationCode}`;
 
   const isAdmin = room?.role === 'admin';
+  const canInvite = !!room?.id;
 
   const handleShareCode = async () => {
     if (!invitationCode) return;
@@ -166,6 +167,18 @@ const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, onLeaveSuccess, m
                 <Text style={styles.badgeText}>{memberCount} članova</Text>
               </View>
             </View>
+            {canInvite && (
+              <TouchableOpacity
+                style={styles.inviteButton}
+                onPress={() => {
+                  onInviteFriends?.(room);
+                  ref?.current?.close();
+                }}
+              >
+                <Ionicons name="person-add-outline" size={16} color={colors.textLight} />
+                <Text style={styles.inviteButtonText}>Pozovi prijatelja</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.vibeSection}>
@@ -284,6 +297,23 @@ const createStyles = (colors, isDark) =>
       borderRadius: 12,
       paddingVertical: 4,
       paddingHorizontal: 10,
+    },
+    inviteButton: {
+      marginTop: 10,
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.3)',
+      backgroundColor: 'rgba(255,255,255,0.15)',
+    },
+    inviteButtonText: {
+      color: colors.textLight,
+      fontWeight: '700',
     },
     badgeText: {
       color: colors.textLight,

@@ -8,9 +8,10 @@ import {
   TextInput,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchFriends, fetchFriendRequests, approveFriendRequest } from '../api';
+import { fetchFriends, fetchFriendRequests, approveFriendRequest, inviteToRoom } from '../api';
 import FriendListItem from '../components/FriendListItem';
 
 export default function FriendsScreen({ navigation, route }) {
@@ -20,21 +21,24 @@ export default function FriendsScreen({ navigation, route }) {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [approvingFriendId, setApprovingFriendId] = useState(null);
+  const [invitingFriendId, setInvitingFriendId] = useState(null);
   const mode = route?.params?.mode || 'friends';
+  const roomId = route?.params?.roomId || null;
   const isRequestList = mode === 'requests';
+  const isGroupInvite = mode === 'group-invite';
 
   const loadFriends = useCallback(async () => {
     setLoading(true);
     try {
       const fetcher = isRequestList ? fetchFriendRequests : fetchFriends;
-      const { data } = await fetcher();
+      const { data } = await fetcher(roomId);
       setFriends(data?.data || data || []);
     } catch {
       setFriends([]);
     } finally {
       setLoading(false);
     }
-  }, [isRequestList]);
+  }, [isRequestList, roomId]);
 
   const handleApprove = useCallback(
     async (friendId) => {
@@ -109,6 +113,8 @@ export default function FriendsScreen({ navigation, route }) {
           <Text style={styles.emptySubtext}>
             {isRequestList
               ? 'Osvježi listu da proveriš nove zahtjeve.'
+              : isGroupInvite
+              ? 'Pozovi prijatelje da uđu u ovu sobu.'
               : 'Poveži se sa preporukama na ekranu Mreža.'}
           </Text>
         </View>
@@ -135,14 +141,31 @@ export default function FriendsScreen({ navigation, route }) {
             const username = item.username ? `@${item.username}` : null;
             const fromProfile = route?.params?.fromProfile;
 
-            const handlePress = () => {
-              if (fromProfile) {
-                navigation.navigate('ProfileFriends', { isMine: false, userId: friendId });
-              } else {
-                navigation.navigate('FriendProfile', {
-                  isMine: false,
-                  userId: friendId,
-                });
+            const handlePress =
+              !isGroupInvite &&
+              (() => {
+                if (fromProfile) {
+                  navigation.navigate('ProfileFriends', { isMine: false, userId: friendId });
+                } else {
+                  navigation.navigate('FriendProfile', {
+                    isMine: false,
+                    userId: friendId,
+                  });
+                }
+              });
+
+            const handleInvite = async () => {
+              if (!roomId || !friendId) return;
+              setInvitingFriendId(friendId);
+              try {
+                await inviteToRoom(roomId, friendId);
+                Alert.alert('Poziv poslan', 'Korisnik je dodan u sobu ili već je član.');
+                await loadFriends();
+              } catch (error) {
+                const message = error?.response?.data?.message || 'Nije moguće poslati poziv.';
+                Alert.alert('Greška', message);
+              } finally {
+                setInvitingFriendId(null);
               }
             };
 
@@ -153,9 +176,13 @@ export default function FriendsScreen({ navigation, route }) {
                 username={username}
                 statusLabel={statusLabel}
                 isRequestList={isRequestList}
+                isInviteMode={isGroupInvite}
+                isMember={Boolean(item.is_member)}
                 approving={approvingFriendId === friendId}
+                inviting={invitingFriendId === friendId}
                 onPress={handlePress}
                 onApprove={isRequestList ? () => handleApprove(friendId) : undefined}
+                onInvite={isGroupInvite && !item.is_member ? handleInvite : undefined}
               />
             );
           }}

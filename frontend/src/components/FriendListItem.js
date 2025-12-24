@@ -16,9 +16,13 @@ export default function FriendListItem({
   username,
   statusLabel,
   isRequestList,
+  isInviteMode,
+  isMember,
   approving,
+  inviting,
   onPress,
   onApprove,
+  onInvite,
 }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -43,7 +47,7 @@ export default function FriendListItem({
   };
 
   return (
-    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={onPress ? 0.7 : 1} disabled={!onPress}>
       {renderAvatar()}
       <View style={styles.info}>
         <Text style={styles.name}>{friend.name || friend.username || 'Korisnik'}</Text>
@@ -51,7 +55,25 @@ export default function FriendListItem({
         {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
         {!!statusLabel && <Text style={styles.meta}>{statusLabel}</Text>}
       </View>
-      {isRequestList ? (
+      {isInviteMode ? (
+        isMember ? (
+          <View style={styles.inRoomBadge}>
+            <Text style={styles.inRoomText}>U sobi</Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.acceptButton, styles.inviteButton]}
+            onPress={onInvite}
+            disabled={inviting}
+          >
+            {inviting ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Text style={styles.acceptButtonText}>Pozovi</Text>
+            )}
+          </TouchableOpacity>
+        )
+      ) : isRequestList ? (
         <TouchableOpacity
           style={styles.acceptButton}
           onPress={onApprove}
@@ -119,6 +141,9 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    inviteButton: {
+      backgroundColor: colors.transparent,
+    },
     acceptButtonText: {
       color: colors.primary,
       fontWeight: '700',
@@ -127,5 +152,18 @@ const createStyles = (colors) =>
       padding: 8,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    inRoomBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    inRoomText: {
+      color: colors.text_secondary,
+      fontWeight: '700',
+      fontSize: 12,
     },
   });
