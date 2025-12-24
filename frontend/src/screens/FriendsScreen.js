@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -27,6 +27,20 @@ export default function FriendsScreen({ navigation, route }) {
   const roomId = route?.params?.roomId || null;
   const isRequestList = mode === 'requests';
   const isGroupInvite = mode === 'group-invite';
+  const headerTitle = isGroupInvite ? 'Pozovi prijatelje u grupu' : 'Pozovi Prijatelje';
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: headerTitle,
+      headerLeft: isGroupInvite
+        ? () => (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingHorizontal: 12 }}>
+              <Text style={{ color: colors.text_secondary, fontWeight: '600' }}>Nazad</Text>
+            </TouchableOpacity>
+          )
+        : undefined,
+    });
+  }, [navigation, headerTitle, isGroupInvite, colors.text_secondary]);
 
   const loadFriends = useCallback(async () => {
     setLoading(true);
