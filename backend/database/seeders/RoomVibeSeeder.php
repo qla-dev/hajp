@@ -133,6 +133,18 @@ class RoomVibeSeeder extends Seeder
                 'icon' => 'logo-apple-appstore',
                 'description' => 'Old-school playlist, kasete i vintage inspiracija.',
             ],
+            [
+                'slug' => 'girls-only',
+                'name' => 'Girls only',
+                'icon' => 'female-outline',
+                'description' => 'Siguran krug za cure, bez muške ekipe.',
+            ],
+            [
+                'slug' => 'boys-only',
+                'name' => 'Boys only',
+                'icon' => 'male-outline',
+                'description' => 'Samo muška ekipa, chill i šala bez filtera.',
+            ],
         ];
 
         $payload = array_map(function ($item) use ($now) {

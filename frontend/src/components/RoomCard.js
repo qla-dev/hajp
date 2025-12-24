@@ -133,6 +133,11 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.92}>
       <ImageBackground source={{ uri: coverUri }} style={styles.cover} imageStyle={styles.coverImage}>
         <View style={styles.overlay} />
+        {room.is_18_over ? (
+          <View style={styles.adultSticker}>
+            <Text style={styles.adultStickerText}>18+</Text>
+          </View>
+        ) : null}
         <View style={styles.vibeBadge}>
           <Ionicons name={vibeIcon} size={28} color={colors.primary} />
         </View>
@@ -141,10 +146,7 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
             <Ionicons name={room.is_private ? 'lock-closed' : 'lock-open'} size={14} color="#fff" />
             <Text style={styles.privacyText}>{privacyLabel}</Text>
           </View>
-          <View style={styles.typeCluster}>
-            <Text style={styles.typeText}>{typeLabel}</Text>
-            {room.is_18_over ? <Text style={[styles.typeText, styles.adultText]}>18+</Text> : null}
-          </View>
+          <View style={styles.typeCluster} />
         </View>
       </ImageBackground>
 
@@ -212,15 +214,10 @@ const createStyles = (colors) =>
       borderRadius: 14,
       borderWidth: 1,
       borderColor: colors.border,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.background,
       alignItems: 'center',
       justifyContent: 'center',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.12,
-      shadowRadius: 8,
-      elevation: 5,
-      zIndex: 3,
+  
     },
     overlay: {
       ...StyleSheet.absoluteFillObject,
@@ -256,20 +253,44 @@ const createStyles = (colors) =>
     typeCluster: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 10,
+    },
+    typeTag: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 12,
+      backgroundColor: 'rgba(255,255,255,0.2)',
     },
     typeText: {
       fontSize: 11,
       fontWeight: '700',
       color: '#fff',
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      backgroundColor: 'rgba(255,255,255,0.2)',
-      borderRadius: 12,
     },
-    adultText: {
-      backgroundColor: 'rgba(255, 0, 0, 0.9)',
-      paddingRight: 7,
+    adultSticker: {
+      position: 'absolute',
+      top: 8,
+      right: 10,
+      width: 42,
+      height: 42,
+      borderRadius: 12,
+      backgroundColor: 'rgba(255, 89, 94, 0.5)',
+      borderWidth: 1,
+      borderColor: '#fff',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transform: [{ rotate: '-12deg' }],
+      shadowColor: 'rgba(255, 89, 94, 0.7)',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 6,
+      elevation: 6,
+      zIndex: 4,
+    },
+    adultStickerText: {
+      color: '#fff',
+      fontWeight: '900',
+      fontSize: 12,
+      letterSpacing: 0.8,
     },
     infoBlock: {
       paddingHorizontal: 16,
