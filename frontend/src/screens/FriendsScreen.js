@@ -20,10 +20,12 @@ import {
   approveRoomMember,
 } from '../api';
 import FriendListItem from '../components/FriendListItem';
+import { useRoomSheet } from '../context/roomSheetContext';
 
 export default function FriendsScreen({ navigation, route }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { openRoomSheet } = useRoomSheet();
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -153,10 +155,25 @@ export default function FriendsScreen({ navigation, route }) {
 
             const handlePress =
               !isGroupInvite &&
-              refType !== 'room-invite' &&
               (() => {
                 if (refType === 'my-room-allowence') {
                   navigation.navigate('FriendProfile', { isMine: false, userId: item.user_id });
+                  return;
+                }
+                if (refType === 'room-invite') {
+                  const roomPayload = {
+                    id: item.id,
+                    name: item.room_name || item.name,
+                    cover_url: item.profile_photo,
+                    type: item.room_icon,
+                  };
+                  openRoomSheet(
+                    roomPayload,
+                    null,
+                    null,
+                    1,
+                    () => setFriends((prev) => prev.filter((f) => f.ref_id !== item.ref_id)),
+                  );
                   return;
                 }
                 if (fromProfile) {

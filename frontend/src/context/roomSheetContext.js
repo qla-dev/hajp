@@ -11,11 +11,15 @@ export function RoomSheetProvider({ children }) {
   const [inviteCallback, setInviteCallback] = useState(null);
   const [leaveCallback, setLeaveCallback] = useState(null);
   const [roomInviteCallback, setRoomInviteCallback] = useState(null);
+  const [actionButtonFlag, setActionButtonFlag] = useState(0);
+  const [acceptCallback, setAcceptCallback] = useState(null);
 
-  const openRoomSheet = useCallback((roomData, onLeaveCallback, onInviteCallback) => {
+  const openRoomSheet = useCallback((roomData, onLeaveCallback, onInviteCallback, actionFlag = 0, onAcceptCallback = null) => {
     setRoom(roomData);
     setLeaveCallback(() => onLeaveCallback ?? null);
     setRoomInviteCallback(() => onInviteCallback ?? null);
+    setActionButtonFlag(actionFlag || 0);
+    setAcceptCallback(() => onAcceptCallback ?? null);
     sheetRef.current?.open();
   }, []);
 
@@ -27,6 +31,8 @@ export function RoomSheetProvider({ children }) {
     setRoom(null);
     setLeaveCallback(null);
     setRoomInviteCallback(null);
+    setActionButtonFlag(0);
+    setAcceptCallback(null);
   }, []);
 
   const openInviteSheet = useCallback((callback) => {
@@ -58,6 +64,8 @@ export function RoomSheetProvider({ children }) {
           onLeaveSuccess={leaveCallback}
           modalHeight={420}
           onInviteFriends={roomInviteCallback}
+          actionButtonFlag={actionButtonFlag}
+          onAcceptSuccess={acceptCallback}
         />
         <InviteCodeBottomSheet
           ref={inviteSheetRef}

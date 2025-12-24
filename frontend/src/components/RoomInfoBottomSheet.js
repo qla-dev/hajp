@@ -5,11 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { baseURL, leaveRoom } from '../api';
+import { baseURL, leaveRoom, acceptRoomInvite } from '../api';
 
-const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, onLeaveSuccess, onInviteFriends, modalHeight = 700 }, ref) => {
+const RoomInfoBottomSheet = React.forwardRef(
+  ({ room, onClose, onLeaveSuccess, onInviteFriends, modalHeight = 700, actionButtonFlag = 0, onAcceptSuccess }, ref) => {
   const [copied, setCopied] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [accepting, setAccepting] = useState(false);
   const { colors } = useTheme();
   const styles = useThemedStyles((c, isDark) => createStyles(c, isDark));
   const snapPoint = Math.min(modalHeight, 700);
@@ -110,8 +112,28 @@ const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, onLeaveSuccess, o
     }
   }, [onLeaveSuccess, ref, room?.id]);
 
+  const handleAcceptInvite = useCallback(async () => {
+    if (!room?.id || accepting) return;
+    setAccepting(true);
+    try {
+      await acceptRoomInvite(room.id);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      Alert.alert('Poziv prihvaćen', `Dobrodošao u grupu ${room.name || ''}.`);
+      onAcceptSuccess?.();
+      ref?.current?.close();
+    } catch (error) {
+      Alert.alert('Greška', 'Nije moguće prihvatiti poziv.');
+    } finally {
+      setAccepting(false);
+    }
+  }, [accepting, onAcceptSuccess, ref, room?.id, room?.name]);
+
   const confirmLeave = () => {
     if (!room) return;
+    if (actionButtonFlag === 1) {
+      handleAcceptInvite();
+      return;
+    }
     const baseMessage = `Da li ste sigurni da želite napustiti sobu ${room.name ?? 'ovu sobu'}?`;
     const adminNote = isAdmin
       ? 'Napomena: Ti si admin ove sobe. Ako je napustiš, dodjelićemo admina drugom korisniku.'
@@ -124,6 +146,7 @@ const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, onLeaveSuccess, o
   };
 
   const memberCount = room ? room.members ?? room.members_count ?? 0 : 0;
+  const isInviteAction = actionButtonFlag === 1;
 
   return (
     <Modalize
@@ -205,16 +228,22 @@ const RoomInfoBottomSheet = React.forwardRef(({ room, onClose, onLeaveSuccess, o
 
 
           <TouchableOpacity
-            style={[styles.leaveButton, leaving && styles.leaveButtonDisabled]}
+            style={[styles.leaveButton, (leaving || accepting) && styles.leaveButtonDisabled]}
             onPress={confirmLeave}
-            disabled={leaving}
+            disabled={leaving || accepting}
           >
-            {leaving ? (
+            {leaving || accepting ? (
               <ActivityIndicator color={colors.textLight} />
             ) : (
               <View style={styles.leaveButtonContent}>
-                <Ionicons name="log-out-outline" size={18} color={colors.textLight} />
-                <Text style={styles.leaveButtonText}>Napusti sobu</Text>
+                <Ionicons
+                  name={isInviteAction ? 'checkmark-circle-outline' : 'log-out-outline'}
+                  size={18}
+                  color={colors.textLight}
+                />
+                <Text style={styles.leaveButtonText}>
+                  {isInviteAction ? 'Prihvati poziv' : 'Napusti sobu'}
+                </Text>
               </View>
             )}
           </TouchableOpacity>
