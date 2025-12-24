@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
@@ -17,6 +18,8 @@ import FriendListItem from '../components/FriendListItem';
 import { fetchFriendRequests, approveFriendRequest, acceptRoomInvite, approveRoomMember } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 import { useRoomSheet } from '../context/roomSheetContext';
+import { Audio } from 'expo-av';
+const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 
 export default function SuggestionsScreen({ navigation }) {
   const { colors } = useTheme();
@@ -29,6 +32,25 @@ export default function SuggestionsScreen({ navigation }) {
   const [skipSliderHaptic, setSkipSliderHaptic] = useState(false);
   const skipSliderHapticRef = useRef(false);
   const { openRoomSheet } = useRoomSheet();
+  const connectSoundRef = useRef(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
+        if (mounted) connectSoundRef.current = sound;
+        else await sound.unloadAsync();
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      mounted = false;
+      connectSoundRef.current?.unloadAsync();
+      connectSoundRef.current = null;
+    };
+  }, []);
 
   const formatStatusDate = (value) => {
     if (!value) return null;
@@ -66,14 +88,17 @@ export default function SuggestionsScreen({ navigation }) {
       setApprovingRequestId(requestKey);
       try {
         if (refType === 'room-invite') {
+          connectSoundRef.current?.replayAsync().catch(() => {});
           await acceptRoomInvite(item.id);
           setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
           Alert.alert('Poziv prihvaćen', `Dobrodošao u grupu ${item.room_name || ''}.`);
         } else if (refType === 'my-room-allowence') {
+          connectSoundRef.current?.replayAsync().catch(() => {});
           await approveRoomMember(item.id, item.user_id);
           setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
           Alert.alert('Član odobren', `Korisnik ${item.name || ''} je odobren.`);
         } else {
+          connectSoundRef.current?.replayAsync().catch(() => {});
           await approveFriendRequest(friendId);
           setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
           Alert.alert('Povezivanje uspjelo', `Sada ste povezani sa korisnikom ${item.name || ''}.`);
