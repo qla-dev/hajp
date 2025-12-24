@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchFriends, fetchFriendRequests, approveFriendRequest, inviteToRoom } from '../api';
 import FriendListItem from '../components/FriendListItem';
@@ -156,10 +157,19 @@ export default function FriendsScreen({ navigation, route }) {
 
             const handleInvite = async () => {
               if (!roomId || !friendId) return;
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
               setInvitingFriendId(friendId);
               try {
-                await inviteToRoom(roomId, friendId);
-                Alert.alert('Poziv poslan', 'Korisnik je dodan u sobu ili već je član.');
+                const response = await inviteToRoom(roomId, friendId);
+                const payload = response?.data || {};
+                const acceptedFlag = typeof payload.accepted !== 'undefined' ? payload.accepted : null;
+                const status = payload.status || '';
+                const isPending = acceptedFlag === 0 || status === 'invited' || status === 'requested';
+                const title = isPending ? 'Zahtjev poslan' : 'U sobi';
+                const body = isPending
+                  ? 'Poziv je poslan, korisnik će prihvatiti kada bude spreman.'
+                  : 'Korisnik je dodan u sobu.';
+                Alert.alert(title, body);
                 await loadFriends();
               } catch (error) {
                 const message = error?.response?.data?.message || 'Nije moguće poslati poziv.';
@@ -172,6 +182,7 @@ export default function FriendsScreen({ navigation, route }) {
             return (
               <FriendListItem
                 friend={item}
+                accepted={item.accepted}
                 subtitle={subtitle}
                 username={username}
                 statusLabel={statusLabel}
@@ -246,3 +257,5 @@ const createStyles = (colors) =>
       textAlign: 'center',
     },
   });
+
+

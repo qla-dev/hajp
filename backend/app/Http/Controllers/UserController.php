@@ -132,11 +132,13 @@ class UserController extends Controller
             $memberships = RoomMember::query()
                 ->where('room_id', $roomId)
                 ->whereIn('user_id', $friends->pluck('friend_id'))
-                ->pluck('user_id')
-                ->flip();
+                ->get(['user_id', 'accepted'])
+                ->keyBy('user_id');
 
             $friends = $friends->map(function ($friend) use ($memberships) {
-                $friend->is_member = $memberships->has($friend->friend_id);
+                $membership = $memberships->get($friend->friend_id);
+                $friend->is_member = (bool) $membership;
+                $friend->accepted = $membership?->accepted ?? null;
                 return $friend;
             });
         }

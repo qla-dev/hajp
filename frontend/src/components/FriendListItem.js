@@ -18,6 +18,7 @@ export default function FriendListItem({
   isRequestList,
   isInviteMode,
   isMember,
+  accepted,
   approving,
   inviting,
   onPress,
@@ -58,7 +59,7 @@ export default function FriendListItem({
       {isInviteMode ? (
         isMember ? (
           <View style={styles.inRoomBadge}>
-            <Text style={styles.inRoomText}>U sobi</Text>
+            <Text style={styles.inRoomText}>{accepted === 0 ? 'Zahtjev poslan' : 'U sobi'}</Text>
           </View>
         ) : (
           <TouchableOpacity
