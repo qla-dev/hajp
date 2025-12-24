@@ -169,7 +169,18 @@ export default function FriendsScreen({ navigation, route }) {
                   ? 'Poziv je poslan, korisnik će prihvatiti kada bude spreman.'
                   : 'Korisnik je dodan u sobu.';
                 Alert.alert(title, body);
-                await loadFriends();
+                setFriends((prev) =>
+                  prev.map((f) => {
+                    if ((f.friend_id || f.id) === friendId) {
+                      return {
+                        ...f,
+                        is_member: true,
+                        accepted: isPending ? 0 : 1,
+                      };
+                    }
+                    return f;
+                  }),
+                );
               } catch (error) {
                 const message = error?.response?.data?.message || 'Nije moguće poslati poziv.';
                 Alert.alert('Greška', message);

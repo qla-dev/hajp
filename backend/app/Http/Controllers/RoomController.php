@@ -121,9 +121,13 @@ class RoomController extends Controller
     $isInvite = $request->boolean('is_invite');
     $targetUserId = $isInvite ? ($request->input('user_id') ?: $user->id) : $user->id;
 
-    $existingMembership = RoomMember::where('room_id', $room->id)
-        ->where('user_id', $targetUserId)
-        ->first();
+        $inviterMembership = RoomMember::where('room_id', $room->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        $existingMembership = RoomMember::where('room_id', $room->id)
+            ->where('user_id', $targetUserId)
+            ->first();
 
     if ($existingMembership) {
         $status = $existingMembership->approved ? 'joined' : 'requested';
@@ -136,7 +140,17 @@ class RoomController extends Controller
         ], 409);
     }
 
-    $approved = $room->is_private ? 0 : 1;
+        // Admin inviter auto-approves, regular inviter keeps invite pending; self-joins respect privacy
+        $inviterIsAdmin = $inviterMembership?->role === 'admin';
+        if ($inviterIsAdmin && $isInvite) {
+            $approved = 1;
+        } elseif ($role === 'admin') {
+            $approved = 1;
+        } elseif ($isInvite) {
+            $approved = 0;
+        } else {
+            $approved = $room->is_private ? 0 : 1;
+        }
     $accepted = $isInvite ? 0 : 1;
 
     RoomMember::updateOrCreate(
@@ -148,6 +162,7 @@ class RoomController extends Controller
             'invited_by' => $user->id,
         ]
     );
+
 
     return response()->json([
         'status'    => $isInvite ? 'invited' : ($approved ? 'joined' : 'requested'),

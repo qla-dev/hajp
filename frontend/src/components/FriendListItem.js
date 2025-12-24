@@ -59,7 +59,7 @@ export default function FriendListItem({
       {isInviteMode ? (
         isMember ? (
           <View style={[styles.inRoomBadge, styles.chip]}>
-            <Text style={styles.chipText}>{accepted === 0 ? 'Zahtjev poslan' : 'U sobi'}</Text>
+            <Text style={styles.chipText}>{accepted === 0 || friend.approved === 0 ? 'Na čekanju' : 'U sobi'}</Text>
           </View>
         ) : (
           <TouchableOpacity
