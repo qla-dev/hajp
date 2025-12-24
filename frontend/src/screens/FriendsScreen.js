@@ -11,7 +11,14 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchFriends, fetchFriendRequests, approveFriendRequest, inviteToRoom } from '../api';
+import {
+  fetchFriends,
+  fetchFriendRequests,
+  approveFriendRequest,
+  inviteToRoom,
+  acceptRoomInvite,
+  approveRoomMember,
+} from '../api';
 import FriendListItem from '../components/FriendListItem';
 
 export default function FriendsScreen({ navigation, route }) {
@@ -131,6 +138,7 @@ export default function FriendsScreen({ navigation, route }) {
             />
           }
           renderItem={({ item }) => {
+            const refType = item.ref_type || null;
             const subtitle = item.title || item.headline || item.bio || '';
             const connectedAt = item.connected_at || item.created_at || null;
             const friendId = item.friend_id || item.id;
@@ -143,6 +151,8 @@ export default function FriendsScreen({ navigation, route }) {
 
             const handlePress =
               !isGroupInvite &&
+              refType !== 'room-invite' &&
+              refType !== 'my-room-allowence' &&
               (() => {
                 if (fromProfile) {
                   navigation.navigate('ProfileFriends', { isMine: false, userId: friendId });
@@ -193,6 +203,7 @@ export default function FriendsScreen({ navigation, route }) {
               <FriendListItem
                 friend={item}
                 accepted={item.accepted}
+                refType={refType}
                 subtitle={subtitle}
                 username={username}
                 statusLabel={statusLabel}
@@ -202,7 +213,29 @@ export default function FriendsScreen({ navigation, route }) {
                 approving={approvingFriendId === friendId}
                 inviting={invitingFriendId === friendId}
                 onPress={handlePress}
-                onApprove={isRequestList ? () => handleApprove(friendId) : undefined}
+                onApprove={
+                  isRequestList
+                    ? async () => {
+                        if (refType === 'room-invite') {
+                          try {
+                            await acceptRoomInvite(item.id);
+                            setFriends((prev) => prev.filter((f) => f.ref_id !== item.ref_id));
+                          } catch {
+                            Alert.alert('Greška', 'Nije moguće prihvatiti poziv.');
+                          }
+                        } else if (refType === 'my-room-allowence') {
+                          try {
+                            await approveRoomMember(item.id, item.user_id);
+                            setFriends((prev) => prev.filter((f) => f.ref_id !== item.ref_id));
+                          } catch {
+                            Alert.alert('Greška', 'Nije moguće odobriti pristup.');
+                          }
+                        } else {
+                          await handleApprove(friendId);
+                        }
+                      }
+                    : undefined
+                }
                 onInvite={isGroupInvite && !item.is_member ? handleInvite : undefined}
               />
             );

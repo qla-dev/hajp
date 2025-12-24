@@ -72,6 +72,8 @@ export const fetchFriendRequests = () => api.get('/friends/requests');
 export const addFriend = (userId) => api.post(`/friends/${userId}/add`);
 export const removeFriend = (userId) => api.delete(`/friends/${userId}/remove`);
 export const approveFriendRequest = (userId) => api.post(`/friends/${userId}/approve`);
+export const acceptRoomInvite = (roomId) => api.post(`/rooms/${roomId}/invites/accept`);
+export const approveRoomMember = (roomId, userId) => api.post(`/rooms/${roomId}/members/${userId}/approve`);
 export const inviteToRoom = (roomId, userId) =>
   api.post(`/rooms/${roomId}/join`, { user_id: userId, is_invite: 1 });
 export const fetchUserProfile = (userId) => api.get(`/user/${userId}`);

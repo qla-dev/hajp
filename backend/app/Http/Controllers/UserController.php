@@ -172,7 +172,7 @@ class UserController extends Controller
 
         // Invites sent to me to join rooms (I need to accept)
         $roomInvitesForMe = RoomMember::query()
-            ->with(['room:id,name,cover_url', 'invitedBy:id,name,username,profile_photo'])
+            ->with(['room:id,name,cover_url,type', 'room.vibe:id,slug,icon', 'invitedBy:id,name,username,profile_photo'])
             ->where('user_id', $userId)
             ->where('accepted', 0)
             ->orderByDesc('created_at')
@@ -184,6 +184,9 @@ class UserController extends Controller
                     'ref_id' => $membership->id,
                     'user_id' => $membership->invitedBy?->id,
                     'name' => $membership->room?->name,
+                    'room_name' => $membership->room?->name,
+                    'room_icon' => $membership->room?->vibe?->icon,
+                    'inviter_name' => $membership->invitedBy?->name,
                     'username' => $membership->invitedBy?->username,
                     'profile_photo' => $membership->room?->cover_url ?? $membership->invitedBy?->profile_photo,
                     'created_at' => $membership->created_at,
@@ -199,7 +202,7 @@ class UserController extends Controller
             ->unique();
 
         $roomApprovals = RoomMember::query()
-            ->with(['user:id,name,username,profile_photo', 'room:id,name,cover_url'])
+            ->with(['user:id,name,username,profile_photo', 'room:id,name,cover_url,type', 'room.vibe:id,slug,icon'])
             ->whereIn('room_id', $adminRoomIds)
             ->where('approved', 0)
             ->where('accepted', 1)
@@ -212,6 +215,8 @@ class UserController extends Controller
                     'ref_id' => $membership->id,
                     'user_id' => $membership->user_id,
                     'name' => $membership->user?->name ?? $membership->room?->name,
+                    'room_name' => $membership->room?->name,
+                    'room_icon' => $membership->room?->vibe?->icon,
                     'username' => $membership->user?->username,
                     'profile_photo' => $membership->user?->profile_photo ?? $membership->room?->cover_url,
                     'created_at' => $membership->created_at,

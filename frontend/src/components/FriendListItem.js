@@ -12,6 +12,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 
 export default function FriendListItem({
   friend,
+  refType,
   subtitle,
   username,
   statusLabel,
@@ -29,6 +30,18 @@ export default function FriendListItem({
   const styles = useThemedStyles(createStyles);
 
   const renderAvatar = () => {
+    if (
+      isRequestList &&
+      (refType === 'room-invite' || refType === 'my-room-allowence') &&
+      friend.room_icon
+    ) {
+      return (
+        <View style={[styles.avatar, styles.roomAvatar]}>
+          <Ionicons name={friend.room_icon || 'home-outline'} size={22} color={colors.primary} />
+        </View>
+      );
+    }
+
     if (friend.profile_photo) {
       return <Image source={{ uri: friend.profile_photo }} style={styles.avatar} />;
     }
@@ -51,9 +64,23 @@ export default function FriendListItem({
     <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={onPress ? 0.7 : 1} disabled={!onPress}>
       {renderAvatar()}
       <View style={styles.info}>
-        <Text style={styles.name}>{friend.name || friend.username || 'Korisnik'}</Text>
-        {username ? <Text style={styles.subtitle}>{username}</Text> : null}
-        {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        <Text style={styles.name}>
+          {refType === 'room-invite'
+            ? friend.room_name || friend.name || 'Soba'
+            : refType === 'my-room-allowence'
+            ? friend.name || 'Korisnik'
+            : friend.name || friend.username || 'Korisnik'}
+        </Text>
+        {refType === 'room-invite' && friend.inviter_name ? (
+          <Text style={styles.subtitle}>Pozvao te je {friend.inviter_name}</Text>
+        ) : refType === 'my-room-allowence' && friend.room_name ? (
+          <Text style={styles.subtitle}>Želi da se pridruži {friend.room_name}</Text>
+        ) : username ? (
+          <Text style={styles.subtitle}>{username}</Text>
+        ) : null}
+        {!!subtitle && refType !== 'room-invite' && refType !== 'my-room-allowence' && (
+          <Text style={styles.subtitle}>{subtitle}</Text>
+        )}
         {!!statusLabel && <Text style={styles.meta}>{statusLabel}</Text>}
       </View>
       {isInviteMode ? (
@@ -112,6 +139,13 @@ const createStyles = (colors) =>
     avatarFallback: {
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    roomAvatar: {
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.primary,
     },
     avatarFallbackText: {
       color: colors.textLight,

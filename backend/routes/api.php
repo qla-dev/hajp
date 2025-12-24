@@ -75,6 +75,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{room}/join', [RoomController::class, 'join']);
         Route::delete('/{room}/leave', [RoomController::class, 'leave']);
         Route::post('/{room}/cover', [RoomController::class, 'uploadCover']);
+        Route::post('/{room}/invites/accept', [RoomController::class, 'acceptInvite']);
+        Route::post('/{room}/members/{user}/approve', [RoomController::class, 'approveMember']);
         Route::get('/{room}/rank/{period}', [RoomController::class, 'rank']);
         Route::post('/join-code', [RoomController::class, 'joinByCode']);
         Route::get('/{room}/invitees', [RoomController::class, 'invitees']);

@@ -164,15 +164,79 @@ class RoomController extends Controller
     );
 
 
-    return response()->json([
-        'status'    => $isInvite ? 'invited' : ($approved ? 'joined' : 'requested'),
-        'room_id'   => $room->id,
-        'room_name' => $room->name,
-        'accepted'  => $accepted,
-        'message'   => "Uspješno si se pridružio sobi: {$room->name}",
-    ]);
-}
+        return response()->json([
+            'status'    => $isInvite ? 'invited' : ($approved ? 'joined' : 'requested'),
+            'room_id'   => $room->id,
+            'room_name' => $room->name,
+            'accepted'  => $accepted,
+            'message'   => "Uspješno si se pridružio sobi: {$room->name}",
+        ]);
+    }
 
+
+    public function acceptInvite(Request $request, Room $room)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $membership = RoomMember::where('room_id', $room->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$membership) {
+            return response()->json(['message' => 'Nema poziva za ovu sobu'], 404);
+        }
+
+        $membership->accepted = 1;
+        $membership->save();
+
+        $status = $membership->approved ? 'joined' : 'pending';
+
+        return response()->json([
+            'status' => $status,
+            'room_id' => $room->id,
+            'accepted' => $membership->accepted,
+            'approved' => $membership->approved,
+        ]);
+    }
+
+    public function approveMember(Request $request, Room $room, User $user)
+    {
+        $auth = $request->user();
+        if (!$auth) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $isAdmin = RoomMember::where('room_id', $room->id)
+            ->where('user_id', $auth->id)
+            ->where('role', 'admin')
+            ->where('approved', 1)
+            ->exists();
+
+        if (!$isAdmin) {
+            return response()->json(['message' => 'Nedostatak ovlaštenja'], 403);
+        }
+
+        $membership = RoomMember::where('room_id', $room->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$membership) {
+            return response()->json(['message' => 'Članstvo nije pronađeno'], 404);
+        }
+
+        $membership->approved = 1;
+        $membership->accepted = $membership->accepted ?? 1;
+        $membership->save();
+
+        return response()->json([
+            'status' => 'approved',
+            'room_id' => $room->id,
+            'user_id' => $user->id,
+        ]);
+    }
 
     public function joinByCode(Request $request)
     {
