@@ -30,18 +30,39 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
 
   const previewMembers = room.preview_members || [];
   const mutualMember = room.mutual_member;
-  const remainingCount = Math.max(memberCount - previewMembers.length, 0);
+
+  const getMemberDisplayName = (member) => {
+    if (!member) return 'Član';
+    const base = member.name || member.username || 'Član';
+    return base.split(' ')[0] || base;
+  };
 
   const memberLabel = useMemo(() => {
+    const displayed = [];
+
     if (mutualMember?.name || mutualMember?.username) {
-      const name = mutualMember.name || mutualMember.username || 'Član';
-      const usernameSuffix =
-        mutualMember.username && mutualMember.name ? ` (@${mutualMember.username})` : '';
-      const tail = remainingCount > 0 ? ` i još ${remainingCount} članova` : '';
-      return `${name}${usernameSuffix}${tail}`;
+      const mutualName = getMemberDisplayName(mutualMember);
+      const usernameSuffix = !mutualMember.name && mutualMember.username ? ` (@${mutualMember.username})` : '';
+      displayed.push(`${mutualName}${usernameSuffix}`);
     }
+
+    const firstOther = previewMembers.find(
+      (member) => !mutualMember || member?.id !== mutualMember.id,
+    );
+    if (firstOther) {
+      displayed.push(getMemberDisplayName(firstOther));
+    }
+
+    const tailCount = Math.max(memberCount - displayed.length, 0);
+
+    if (displayed.length) {
+      const names = displayed.join(', ');
+      const tail = tailCount > 0 ? ` i još ${tailCount} članova` : '';
+      return `${names}${tail}`;
+    }
+
     return `${memberCount} članova`;
-  }, [mutualMember, remainingCount, memberCount]);
+  }, [mutualMember, previewMembers, memberCount]);
 
   const resolveAvatar = (photo) => {
     if (!photo) return null;
@@ -53,7 +74,8 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
 
   const renderAvatar = (member, index) => {
     const uri = resolveAvatar(member?.profile_photo);
-    const label = member?.name || member?.username || 'Član';
+    const rawLabel = member?.name || member?.username || 'Član';
+    const label = rawLabel.split(' ')[0] || rawLabel;
     const initials = label
       .split(' ')
       .map((part) => part.charAt(0).toUpperCase())

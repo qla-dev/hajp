@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchActiveQuestion, fetchRoomCashoutStatus, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
+import { Audio } from 'expo-av';
 
 const { width } = Dimensions.get('window');
 let Haptics;
@@ -11,6 +12,7 @@ if (Platform.OS !== 'android') {
   // defer loading the native module on Android because it may not be available in the current build
   Haptics = require('expo-haptics');
 }
+const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 
 export default function PollingScreen({ route, navigation }) {
   const { roomId } = route.params || {};
@@ -25,6 +27,7 @@ export default function PollingScreen({ route, navigation }) {
   const [interactionLocked, setInteractionLocked] = useState(false);
   const [finished, setFinished] = useState(false);
   const [firstLoad, setFirstLoad] = useState(true);
+  const connectSoundRef = useRef(null);
   const emojis = useMemo(() => ['🔥', '🚀', '💎', '🏆', '🎉', '✨'], []);
   const backgrounds = useMemo(() => [colors.secondary, '#7c3aed', '#2563eb', '#0ea5e9', '#22c55e', '#f97316'], [colors.secondary]);
   const [bgColor, setBgColor] = useState(colors.secondary);
@@ -37,6 +40,27 @@ export default function PollingScreen({ route, navigation }) {
     });
     return unsubscribe;
   }, [navigation]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
+        if (mounted) {
+          connectSoundRef.current = sound;
+        } else {
+          await sound.unloadAsync();
+        }
+      } catch {
+        // ignore sound load errors
+      }
+    })();
+    return () => {
+      mounted = false;
+      connectSoundRef.current?.unloadAsync();
+      connectSoundRef.current = null;
+    };
+  }, []);
 
   const handleNoActivePoll = useCallback(async () => {
     if (!roomId) return;
@@ -103,6 +127,7 @@ export default function PollingScreen({ route, navigation }) {
     if (!question || interactionLocked) return;
     setInteractionLocked(true);
     Haptics?.impactAsync?.(Haptics?.ImpactFeedbackStyle?.Medium)?.catch(() => {});
+    connectSoundRef.current?.replayAsync().catch(() => {});
     try {
       await voteQuestion(question.id, option, roomId);
       await loadQuestion();
