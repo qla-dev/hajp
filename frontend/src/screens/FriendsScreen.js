@@ -154,16 +154,19 @@ export default function FriendsScreen({ navigation, route }) {
             const handlePress =
               !isGroupInvite &&
               refType !== 'room-invite' &&
-              refType !== 'my-room-allowence' &&
               (() => {
+                if (refType === 'my-room-allowence') {
+                  navigation.navigate('FriendProfile', { isMine: false, userId: item.user_id });
+                  return;
+                }
                 if (fromProfile) {
                   navigation.navigate('ProfileFriends', { isMine: false, userId: friendId });
-                } else {
-                  navigation.navigate('FriendProfile', {
-                    isMine: false,
-                    userId: friendId,
-                  });
+                  return;
                 }
+                navigation.navigate('FriendProfile', {
+                  isMine: false,
+                  userId: friendId,
+                });
               });
 
             const handleInvite = async () => {
@@ -222,7 +225,11 @@ export default function FriendsScreen({ navigation, route }) {
                         if (refType === 'room-invite') {
                           try {
                             const { data } = await acceptRoomInvite(item.id);
-                            Alert.alert('Prihvaćeno', data?.message || 'Poziv prihvaćen.');
+                            const roomName = item.room_name || '';
+                            Alert.alert(
+                              'Dobrodošao u grupu!',
+                              data?.message || `Uspješno si prihvatio poziv za grupu ${roomName}.`,
+                            );
                             setFriends((prev) => prev.filter((f) => f.ref_id !== item.ref_id));
                           } catch {
                             Alert.alert('Greška', 'Nije moguće prihvatiti poziv.');
@@ -230,7 +237,10 @@ export default function FriendsScreen({ navigation, route }) {
                         } else if (refType === 'my-room-allowence') {
                           try {
                             const { data } = await approveRoomMember(item.id, item.user_id);
-                            Alert.alert('Odobreno', data?.message || 'Član odobren.');
+                            Alert.alert(
+                              'Član odobren',
+                              data?.message || `Korisnik ${item.name || ''} je odobren, vidjet će sobu čim uđe.`,
+                            );
                             setFriends((prev) => prev.filter((f) => f.ref_id !== item.ref_id));
                           } catch {
                             Alert.alert('Greška', 'Nije moguće odobriti pristup.');
@@ -238,7 +248,11 @@ export default function FriendsScreen({ navigation, route }) {
                         } else {
                           try {
                             const { data } = await approveFriendRequest(approveTargetId);
-                            Alert.alert('Prihvaćeno', data?.message || 'Zahtjev prihvaćen.');
+                            const name = item.name || item.username || 'korisnikom';
+                            Alert.alert(
+                              'Povezivanje uspjelo',
+                              data?.message || `Sada ste povezani sa korisnikom ${name}.`,
+                            );
                             setFriends((prev) => prev.filter((f) => f.ref_id !== item.ref_id));
                           } catch (error) {
                             const message = error?.response?.data?.message || 'Nije moguće prihvatiti zahtjev.';
