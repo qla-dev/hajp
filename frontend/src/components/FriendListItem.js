@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
+import { baseURL } from '../api';
 
 export default function FriendListItem({
   friend,
@@ -34,6 +35,17 @@ export default function FriendListItem({
     friend.inviter_name ||
     friend.name;
 
+  const pickAvatarField = (item) =>
+    item.profile_photo || item.photo || item.avatar || item.image || null;
+
+  const resolveAvatar = (photo) => {
+    if (!photo) return null;
+    if (/^https?:\/\//i.test(photo)) return photo;
+    const cleanBase = (baseURL || '').replace(/\/+$/, '');
+    const cleanPath = photo.replace(/^\/+/, '');
+    return `${cleanBase}/${cleanPath}`;
+  };
+
   const renderAvatar = () => {
     if (
       isRequestList &&
@@ -47,8 +59,9 @@ export default function FriendListItem({
       );
     }
 
-    if (friend.profile_photo) {
-      return <Image source={{ uri: friend.profile_photo }} style={styles.avatar} />;
+    const avatarUri = resolveAvatar(pickAvatarField(friend));
+    if (avatarUri) {
+      return <Image source={{ uri: avatarUri }} style={styles.avatar} />;
     }
 
     const label = friend.name || friend.username || 'Korisnik';
