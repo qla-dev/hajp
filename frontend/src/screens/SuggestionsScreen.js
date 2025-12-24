@@ -14,8 +14,9 @@ import SuggestionSlider from '../components/SuggestionSlider';
 import RoomSuggestions from '../components/RoomSuggestions';
 import SuggestionGrid from '../components/SuggestionGrid';
 import FriendListItem from '../components/FriendListItem';
-import { fetchFriendRequests, approveFriendRequest } from '../api';
+import { fetchFriendRequests, approveFriendRequest, acceptRoomInvite, approveRoomMember } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
+import { useRoomSheet } from '../context/roomSheetContext';
 
 export default function SuggestionsScreen({ navigation }) {
   const { colors } = useTheme();
@@ -27,6 +28,7 @@ export default function SuggestionsScreen({ navigation }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [skipSliderHaptic, setSkipSliderHaptic] = useState(false);
   const skipSliderHapticRef = useRef(false);
+  const { openRoomSheet } = useRoomSheet();
 
   const loadRequests = useCallback(async () => {
     setLoadingRequests(true);
@@ -45,30 +47,64 @@ export default function SuggestionsScreen({ navigation }) {
   }, [loadRequests]);
 
   const handleApprove = useCallback(
-    async (friendId) => {
-      if (!friendId) return;
+    async (item) => {
+      const refType = item.ref_type || null;
+      const friendId = item.user_id || item.friend_id || item.id;
+      const requestKey = item.ref_id || item.id;
+      if (!friendId && refType === 'friendship') return;
       Haptics.selectionAsync().catch(() => {});
-      setApprovingRequestId(friendId);
+      setApprovingRequestId(requestKey);
       try {
-        await approveFriendRequest(friendId);
-        await loadRequests();
+        if (refType === 'room-invite') {
+          await acceptRoomInvite(item.id);
+          setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
+          Alert.alert('Poziv prihvaćen', `Dobrodošao u grupu ${item.room_name || ''}.`);
+        } else if (refType === 'my-room-allowence') {
+          await approveRoomMember(item.id, item.user_id);
+          setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
+          Alert.alert('Član odobren', `Korisnik ${item.name || ''} je odobren.`);
+        } else {
+          await approveFriendRequest(friendId);
+          setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
+          Alert.alert('Povezivanje uspjelo', `Sada ste povezani sa korisnikom ${item.name || ''}.`);
+        }
+      } catch {
+        Alert.alert('Greška', 'Nije moguće obraditi zahtjev.');
       } finally {
         setApprovingRequestId(null);
       }
     },
-    [loadRequests],
+    [],
   );
+
   const handleRequestPress = useCallback(
     (item) => {
-      const friendId = item.friend_id || item.id;
+      const refType = item.ref_type || null;
+      const friendId = item.user_id || item.friend_id || item.id;
       if (!friendId) return;
       Haptics.selectionAsync().catch(() => {});
+      if (refType === 'room-invite') {
+        const roomPayload = {
+          id: item.id,
+          name: item.room_name || item.name,
+          cover_url: item.profile_photo,
+          type: item.room_icon,
+        };
+        openRoomSheet(
+          roomPayload,
+          null,
+          null,
+          1,
+          () => setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id)),
+        );
+        return;
+      }
       navigation.push('FriendProfile', {
         isMine: false,
         userId: friendId,
       });
     },
-    [navigation],
+    [navigation, openRoomSheet],
   );
 
   const onRefresh = useCallback(async () => {
@@ -134,14 +170,16 @@ export default function SuggestionsScreen({ navigation }) {
       ) : (
         <View style={styles.requestsRow}>
           {requests.slice(0, 2).map((item) => (
-              <FriendListItem
-                key={item.id}
-                friend={item}
-                isRequestList
-                approving={approvingRequestId === item.id}
-                onPress={() => handleRequestPress(item)}
-                onApprove={() => handleApprove(item.friend_id || item.id)}
-              />
+            <FriendListItem
+              key={item.ref_id || item.id}
+              friend={item}
+              refType={item.ref_type}
+              isRequestList
+              hideStatus
+              approving={approvingRequestId === (item.ref_id || item.id)}
+              onPress={() => handleRequestPress(item)}
+              onApprove={() => handleApprove(item)}
+            />
           ))}
           {!requests.length && (
             <Text style={styles.emptyRequests}>Nema novih zahtjeva.</Text>

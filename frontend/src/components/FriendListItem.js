@@ -26,6 +26,7 @@ export default function FriendListItem({
   onPress,
   onApprove,
   onInvite,
+  hideStatus = false,
 }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -109,7 +110,7 @@ export default function FriendListItem({
           refType !== 'room-invite' &&
           refType !== 'my-room-allowence' &&
           refType !== 'friendship' && <Text style={styles.subtitle}>{subtitle}</Text>}
-        {!!statusLabel && <Text style={styles.meta}>{statusLabel}</Text>}
+        {!!statusLabel && !hideStatus && <Text style={styles.meta}>{statusLabel}</Text>}
       </View>
       {isInviteMode ? (
         isMember ? (
