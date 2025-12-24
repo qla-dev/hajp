@@ -218,22 +218,32 @@ export default function FriendsScreen({ navigation, route }) {
                 onApprove={
                   isRequestList
                     ? async () => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
                         if (refType === 'room-invite') {
                           try {
-                            await acceptRoomInvite(item.id);
+                            const { data } = await acceptRoomInvite(item.id);
+                            Alert.alert('Prihvaćeno', data?.message || 'Poziv prihvaćen.');
                             setFriends((prev) => prev.filter((f) => f.ref_id !== item.ref_id));
                           } catch {
                             Alert.alert('Greška', 'Nije moguće prihvatiti poziv.');
                           }
                         } else if (refType === 'my-room-allowence') {
                           try {
-                            await approveRoomMember(item.id, item.user_id);
+                            const { data } = await approveRoomMember(item.id, item.user_id);
+                            Alert.alert('Odobreno', data?.message || 'Član odobren.');
                             setFriends((prev) => prev.filter((f) => f.ref_id !== item.ref_id));
                           } catch {
                             Alert.alert('Greška', 'Nije moguće odobriti pristup.');
                           }
                         } else {
-                          await handleApprove(approveTargetId);
+                          try {
+                            const { data } = await approveFriendRequest(approveTargetId);
+                            Alert.alert('Prihvaćeno', data?.message || 'Zahtjev prihvaćen.');
+                            setFriends((prev) => prev.filter((f) => f.ref_id !== item.ref_id));
+                          } catch (error) {
+                            const message = error?.response?.data?.message || 'Nije moguće prihvatiti zahtjev.';
+                            Alert.alert('Greška', message);
+                          }
                         }
                       }
                     : undefined
