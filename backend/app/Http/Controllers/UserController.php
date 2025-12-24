@@ -150,7 +150,8 @@ class UserController extends Controller
     {
         $userId = $request->user()->id;
 
-        $requests = Friendship::query()
+        // Pending friendship requests (sent to me)
+        $friendRequests = Friendship::query()
             ->where('auth_user_id', $userId)
             ->where('approved', 0)
             ->with(['friend:id,name,username,profile_photo'])
@@ -159,7 +160,9 @@ class UserController extends Controller
             ->map(function ($friendship) {
                 return (object) [
                     'id' => $friendship->id,
-                    'friend_id' => $friendship->friend?->id,
+                    'ref_type' => 'friendship',
+                    'ref_id' => $friendship->id,
+                    'user_id' => $friendship->friend?->id,
                     'name' => $friendship->friend?->name,
                     'username' => $friendship->friend?->username,
                     'profile_photo' => $friendship->friend?->profile_photo,
@@ -167,7 +170,61 @@ class UserController extends Controller
                 ];
             });
 
-        return response()->json(['data' => $requests]);
+        // Invites sent to me to join rooms (I need to accept)
+        $roomInvitesForMe = RoomMember::query()
+            ->with(['room:id,name,cover_url', 'invitedBy:id,name,username,profile_photo'])
+            ->where('user_id', $userId)
+            ->where('accepted', 0)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($membership) {
+                return (object) [
+                    'id' => $membership->room_id,
+                    'ref_type' => 'room-invite',
+                    'ref_id' => $membership->id,
+                    'user_id' => $membership->invitedBy?->id,
+                    'name' => $membership->room?->name,
+                    'username' => $membership->invitedBy?->username,
+                    'profile_photo' => $membership->room?->cover_url ?? $membership->invitedBy?->profile_photo,
+                    'created_at' => $membership->created_at,
+                ];
+            });
+
+        // Join requests to my rooms where I'm admin (I need to approve)
+        $adminRoomIds = RoomMember::query()
+            ->where('user_id', $userId)
+            ->where('role', 'admin')
+            ->where('approved', 1)
+            ->pluck('room_id')
+            ->unique();
+
+        $roomApprovals = RoomMember::query()
+            ->with(['user:id,name,username,profile_photo', 'room:id,name,cover_url'])
+            ->whereIn('room_id', $adminRoomIds)
+            ->where('approved', 0)
+            ->where('accepted', 1)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($membership) {
+                return (object) [
+                    'id' => $membership->room_id,
+                    'ref_type' => 'my-room-allowence',
+                    'ref_id' => $membership->id,
+                    'user_id' => $membership->user_id,
+                    'name' => $membership->user?->name ?? $membership->room?->name,
+                    'username' => $membership->user?->username,
+                    'profile_photo' => $membership->user?->profile_photo ?? $membership->room?->cover_url,
+                    'created_at' => $membership->created_at,
+                ];
+            });
+
+        $all = $friendRequests
+            ->concat($roomInvitesForMe)
+            ->concat($roomApprovals)
+            ->sortByDesc('created_at')
+            ->values();
+
+        return response()->json(['data' => $all]);
     }
 
     public function showPublic(User $user)
