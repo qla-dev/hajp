@@ -26,14 +26,17 @@ export default function RoomSuggestions({ refreshKey, onRoomPress }) {
   const handleRoomJoin = useCallback(
     async (roomId) => {
       if (!roomId) return;
+      const targetRoom = rooms.find((r) => r.id === roomId);
       setJoiningRoomId(roomId);
       try {
         const { data } = await joinRoom(roomId);
+        setRooms((prev) => prev.filter((r) => r.id !== roomId));
+        const roomName = targetRoom?.name || '';
         Alert.alert(
           data?.status === 'requested' ? 'Zahtjev poslan' : 'Pridruženo',
           data?.status === 'requested'
-            ? 'Poslan je zahtjev za pridruživanje sobi.'
-            : 'Uspješno ste se pridružili sobi.',
+            ? `Poslan je zahtjev za pridruživanje sobi ${roomName}.`
+            : `Uspješno ste se pridružili sobi ${roomName}.`,
         );
       } catch (error) {
         const message = error?.response?.data?.message || 'Nije moguće poslati zahtjev za sobu.';
@@ -42,7 +45,7 @@ export default function RoomSuggestions({ refreshKey, onRoomPress }) {
         setJoiningRoomId(null);
       }
     },
-    [],
+    [rooms],
   );
 
   useEffect(() => {
