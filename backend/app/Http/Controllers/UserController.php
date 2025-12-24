@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\ProfileView;
 use App\Models\User;
+use App\Models\Friendship;
+use App\Models\RoomMember;
 
 class UserController extends Controller
 {
@@ -101,30 +103,43 @@ class UserController extends Controller
     public function friends(Request $request)
     {
         $userId = $request->user()->id;
+        $roomId = $request->query('room_id');
 
-        $friends = DB::table('friendships')
-            ->join('users as u1', function ($join) use ($userId) {
-                $join->on('friendships.auth_user_id', '=', 'u1.id');
+        $friends = Friendship::query()
+            ->where(function ($query) use ($userId) {
+                $query->where('auth_user_id', $userId)->orWhere('user_id', $userId);
             })
-            ->join('users as u2', function ($join) use ($userId) {
-                $join->on('friendships.user_id', '=', 'u2.id');
-            })
-        ->where(function ($query) use ($userId) {
-            $query->where('friendships.auth_user_id', $userId)->orWhere('friendships.user_id', $userId);
-        })
-        ->where('friendships.approved', 1)
-        ->selectRaw(
-            'friendships.id,
-            CASE WHEN friendships.auth_user_id = ? THEN u2.id ELSE u1.id END as friend_id,
-            CASE WHEN friendships.auth_user_id = ? THEN u2.name ELSE u1.name END as name,
-            CASE WHEN friendships.auth_user_id = ? THEN u2.username ELSE u1.username END as username,
-            CASE WHEN friendships.auth_user_id = ? THEN u2.profile_photo ELSE u1.profile_photo END as profile_photo,
-            friendships.created_at',
-                [$userId, $userId, $userId, $userId]
-            )
-            ->orderByDesc('friendships.created_at')
+            ->where('approved', 1)
+            ->with(['requester:id,name,username,profile_photo', 'friend:id,name,username,profile_photo'])
+            ->orderByDesc('created_at')
             ->limit(50)
-            ->get();
+            ->get()
+            ->map(function ($friendship) use ($userId) {
+                $isRequester = (int) $friendship->auth_user_id === (int) $userId;
+                $other = $isRequester ? $friendship->friend : $friendship->requester;
+
+                return (object) [
+                    'id' => $friendship->id,
+                    'friend_id' => $other?->id,
+                    'name' => $other?->name,
+                    'username' => $other?->username,
+                    'profile_photo' => $other?->profile_photo,
+                    'created_at' => $friendship->created_at,
+                ];
+            });
+
+        if ($roomId) {
+            $memberships = RoomMember::query()
+                ->where('room_id', $roomId)
+                ->whereIn('user_id', $friends->pluck('friend_id'))
+                ->pluck('user_id')
+                ->flip();
+
+            $friends = $friends->map(function ($friend) use ($memberships) {
+                $friend->is_member = $memberships->has($friend->friend_id);
+                return $friend;
+            });
+        }
 
         return response()->json(['data' => $friends]);
     }
@@ -133,26 +148,22 @@ class UserController extends Controller
     {
         $userId = $request->user()->id;
 
-        $requests = DB::table('friendships')
-            ->join('users as u1', function ($join) use ($userId) {
-                $join->on('friendships.auth_user_id', '=', 'u1.id');
-            })
-            ->join('users as u2', function ($join) use ($userId) {
-                $join->on('friendships.user_id', '=', 'u2.id');
-            })
-            ->where('friendships.auth_user_id', $userId)
-            ->where('friendships.approved', 0)
-            ->selectRaw(
-                'friendships.id,
-                CASE WHEN friendships.auth_user_id = ? THEN u2.id ELSE u1.id END as friend_id,
-                CASE WHEN friendships.auth_user_id = ? THEN u2.name ELSE u1.name END as name,
-                CASE WHEN friendships.auth_user_id = ? THEN u2.username ELSE u1.username END as username,
-                CASE WHEN friendships.auth_user_id = ? THEN u2.profile_photo ELSE u1.profile_photo END as profile_photo,
-                friendships.created_at',
-                [$userId, $userId, $userId, $userId]
-            )
-            ->orderByDesc('friendships.created_at')
-            ->get();
+        $requests = Friendship::query()
+            ->where('auth_user_id', $userId)
+            ->where('approved', 0)
+            ->with(['friend:id,name,username,profile_photo'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($friendship) {
+                return (object) [
+                    'id' => $friendship->id,
+                    'friend_id' => $friendship->friend?->id,
+                    'name' => $friendship->friend?->name,
+                    'username' => $friendship->friend?->username,
+                    'profile_photo' => $friendship->friend?->profile_photo,
+                    'created_at' => $friendship->created_at,
+                ];
+            });
 
         return response()->json(['data' => $requests]);
     }
@@ -174,29 +185,25 @@ class UserController extends Controller
 
     public function profileViews(User $user)
     {
-        $roomMemberships = DB::table('room_members')
-            ->selectRaw('user_id, MIN(room_id) as room_id')
-            ->groupBy('user_id');
-
-        $views = DB::table('profile_views')
-            ->join('users as visitors', 'profile_views.visitor_id', '=', 'visitors.id')
-            ->leftJoinSub($roomMemberships, 'rm', function ($join) {
-                $join->on('rm.user_id', '=', 'visitors.id');
-            })
-            ->leftJoin('rooms', 'rooms.id', '=', 'rm.room_id')
-            ->where('profile_views.auth_user_id', $user->id)
-            ->orderByDesc('profile_views.updated_at')
+        $views = ProfileView::query()
+            ->with(['visitor.roomMembers.room'])
+            ->where('auth_user_id', $user->id)
+            ->orderByDesc('updated_at')
             ->limit(100)
-            ->selectRaw(
-                'visitors.id as visitor_id,
-                visitors.name,
-                visitors.username,
-                visitors.profile_photo,
-                visitors.sex,
-                profile_views.updated_at as viewed_at,
-                rooms.name as room_name'
-            )
-            ->get();
+            ->get()
+            ->map(function ($view) {
+                $visitor = $view->visitor;
+                $firstRoom = $visitor?->roomMembers?->sortBy('id')->first();
+                return [
+                    'visitor_id' => $visitor?->id,
+                    'name' => $visitor?->name,
+                    'username' => $visitor?->username,
+                    'profile_photo' => $visitor?->profile_photo,
+                    'sex' => $visitor?->sex,
+                    'viewed_at' => $view->updated_at,
+                    'room_name' => $firstRoom?->room?->name,
+                ];
+            });
 
         return response()->json(['data' => $views]);
     }
@@ -222,13 +229,14 @@ class UserController extends Controller
 
     public function roomsForUser(User $user)
     {
-        $roomsQuery = $user
-            ->rooms()
-            ->select('rooms.id', 'rooms.name')
-            ->orderByDesc('room_members.created_at');
+        $membershipQuery = $user->roomMemberships()
+            ->with('room:id,name')
+            ->where('approved', 1)
+            ->orderByDesc('id');
 
-        $total = (clone $roomsQuery)->count();
-        $roomNames = (clone $roomsQuery)->limit(3)->pluck('name')->values();
+        $memberships = $membershipQuery->get();
+        $total = $memberships->count();
+        $roomNames = $memberships->take(3)->pluck('room.name')->filter()->values();
 
         return response()->json([
             'total' => $total,
@@ -238,7 +246,7 @@ class UserController extends Controller
 
     public function friendsCount(User $user)
     {
-        $count = DB::table('friendships')
+        $count = Friendship::query()
             ->where(function ($query) use ($user) {
                 $query->where('auth_user_id', $user->id)->orWhere('user_id', $user->id);
             })
@@ -253,7 +261,7 @@ class UserController extends Controller
         $authId = $request->user()->id;
         $otherId = $user->id;
 
-        $friendship = DB::table('friendships')
+        $friendship = Friendship::query()
             ->where(function ($query) use ($authId, $otherId) {
                 $query->where('auth_user_id', $authId)->where('user_id', $otherId);
             })
@@ -299,7 +307,7 @@ class UserController extends Controller
         $low = min($authId, $otherId);
         $high = max($authId, $otherId);
 
-        $existing = DB::table('friendships')
+        $existing = Friendship::query()
             ->where('auth_user_id', $low)
             ->where('user_id', $high)
             ->first();
@@ -323,12 +331,10 @@ class UserController extends Controller
         $approved = (int) $request->attributes->get('friendship_approved', 1);
 
         try {
-            DB::table('friendships')->insert([
+            Friendship::create([
                 'auth_user_id' => $low,
                 'user_id' => $high,
                 'approved' => $approved,
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
 
             Log::info('AddFriend: friendship created', [
@@ -359,7 +365,7 @@ class UserController extends Controller
     {
         $authUser = $request->user();
 
-        $updated = DB::table('friendships')
+        $updated = Friendship::query()
             ->where('auth_user_id', $authUser->id)
             ->where('user_id', $user->id)
             ->where('approved', 0)
@@ -389,7 +395,7 @@ class UserController extends Controller
         $low = min($authId, $otherId);
         $high = max($authId, $otherId);
 
-        DB::table('friendships')
+        Friendship::query()
             ->where('auth_user_id', $low)
             ->where('user_id', $high)
             ->delete();

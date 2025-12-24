@@ -6,6 +6,7 @@ use App\Models\CashoutHistory;
 use App\Models\Question;
 use App\Models\Room;
 use App\Models\RoomMember;
+use App\Models\Friendship;
 use App\Models\User;
 use App\Models\Vote;
 use Illuminate\Http\Request;
@@ -50,7 +51,7 @@ class RoomController extends Controller
 
         $friendIds = collect();
         if ($user) {
-            $friendIds = DB::table('friendships')
+            $friendIds = Friendship::query()
                 ->where('approved', 1)
                 ->where(function ($query) use ($user) {
                     $query->where('auth_user_id', $user->id)->orWhere('user_id', $user->id);

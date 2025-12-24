@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RoomMember extends Model
 {
-    protected $fillable = ['user_id', 'room_id', 'approved', 'role'];
+    protected $fillable = ['user_id', 'room_id', 'approved', 'role', 'invited_by'];
 
     public function user(): BelongsTo
     {
