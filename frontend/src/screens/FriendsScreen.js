@@ -142,6 +142,8 @@ export default function FriendsScreen({ navigation, route }) {
             const subtitle = item.title || item.headline || item.bio || '';
             const connectedAt = item.connected_at || item.created_at || null;
             const friendId = item.friend_id || item.id;
+            const approveTargetId =
+              refType === 'friendship' && item.user_id ? item.user_id : friendId;
             const statusDate = formatStatusDate(connectedAt);
             const statusLabel = statusDate
               ? `${isRequestList ? 'Zahtjev poslan' : 'Povezano'} ${statusDate}`
@@ -231,7 +233,7 @@ export default function FriendsScreen({ navigation, route }) {
                             Alert.alert('Greška', 'Nije moguće odobriti pristup.');
                           }
                         } else {
-                          await handleApprove(friendId);
+                          await handleApprove(approveTargetId);
                         }
                       }
                     : undefined

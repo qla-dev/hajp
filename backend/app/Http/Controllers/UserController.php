@@ -152,9 +152,9 @@ class UserController extends Controller
 
         // Pending friendship requests (sent to me)
         $friendRequests = Friendship::query()
-            ->where('auth_user_id', $userId)
+            ->where('user_id', $userId)
             ->where('approved', 0)
-            ->with(['friend:id,name,username,profile_photo'])
+            ->with(['requester:id,name,username,profile_photo'])
             ->orderByDesc('created_at')
             ->get()
             ->map(function ($friendship) {
@@ -162,10 +162,10 @@ class UserController extends Controller
                     'id' => $friendship->id,
                     'ref_type' => 'friendship',
                     'ref_id' => $friendship->id,
-                    'user_id' => $friendship->friend?->id,
-                    'name' => $friendship->friend?->name,
-                    'username' => $friendship->friend?->username,
-                    'profile_photo' => $friendship->friend?->profile_photo,
+                    'user_id' => $friendship->requester?->id,
+                    'name' => $friendship->requester?->name,
+                    'username' => $friendship->requester?->username,
+                    'profile_photo' => $friendship->requester?->profile_photo,
                     'created_at' => $friendship->created_at,
                 ];
             });
@@ -368,12 +368,13 @@ class UserController extends Controller
         $authId = $authUser->id;
         $otherId = $user->id;
 
-        $low = min($authId, $otherId);
-        $high = max($authId, $otherId);
-
+        // Always store requester as auth_user_id and target as user_id
         $existing = Friendship::query()
-            ->where('auth_user_id', $low)
-            ->where('user_id', $high)
+            ->where('auth_user_id', $authId)
+            ->where('user_id', $otherId)
+            ->orWhere(function ($q) use ($authId, $otherId) {
+                $q->where('auth_user_id', $otherId)->where('user_id', $authId);
+            })
             ->first();
 
         if ($existing) {
@@ -396,8 +397,8 @@ class UserController extends Controller
 
         try {
             Friendship::create([
-                'auth_user_id' => $low,
-                'user_id' => $high,
+                'auth_user_id' => $authId,
+                'user_id' => $otherId,
                 'approved' => $approved,
             ]);
 
@@ -425,13 +426,25 @@ class UserController extends Controller
         }
     }
 
-    public function approveFriend(Request $request, User $user)
+        public function approveFriend(Request $request, User $user)
     {
         $authUser = $request->user();
 
+        $authId = $authUser->id;
+        $otherId = $user->id;
+        $low = min($authId, $otherId);
+        $high = max($authId, $otherId);
+
+        Log::info("ApproveFriend called", [
+            "auth_id" => $authId,
+            "other_id" => $otherId,
+            "low" => $low,
+            "high" => $high,
+        ]);
+
         $updated = Friendship::query()
-            ->where('auth_user_id', $authUser->id)
-            ->where('user_id', $user->id)
+            ->where('auth_user_id', $low)
+            ->where('user_id', $high)
             ->where('approved', 0)
             ->update([
                 'approved' => 1,
@@ -439,11 +452,23 @@ class UserController extends Controller
             ]);
 
         if (!$updated) {
-            return response()->json(['message' => 'Zahtjev nije pronađen.'], 404);
+            Log::warning("ApproveFriend: no pending request found", [
+                "auth_id" => $authId,
+                "other_id" => $otherId,
+            ]);
+            return response()->json(['message' => 'Zahtjev nije pronaden.'], 404);
         }
 
-        return response()->json(['message' => 'Zahtjev prihvaćen.', 'approved' => 1]);
+        Log::info("ApproveFriend: request approved", [
+            "auth_id" => $authId,
+            "other_id" => $otherId,
+            "updated" => $updated,
+        ]);
+
+        return response()->json(['message' => 'Zahtjev prihvacen.', 'approved' => 1]);
     }
+
+
 
     public function removeFriend(Request $request, User $user)
     {

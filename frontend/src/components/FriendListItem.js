@@ -83,7 +83,10 @@ export default function FriendListItem({
           </Text>
         )}
         {refType === 'room-invite' && friend.inviter_name ? (
-          <Text style={styles.subtitle}>Poziva te {friend.inviter_name}</Text>
+          <Text style={styles.subtitle}>
+            Poziva te {friend.inviter_name}
+            {friend.room_name ? ` u sobu ${friend.room_name}` : ''}
+          </Text>
         ) : refType === 'my-room-allowence' && friend.room_name ? (
           <Text style={styles.subtitle}>Želi da se pridruži {friend.room_name}</Text>
         ) : refType === 'friendship' ? (
@@ -153,7 +156,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     roomAvatar: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.background,
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
