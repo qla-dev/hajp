@@ -442,7 +442,12 @@ function FriendsStackNavigator() {
         component={FriendsScreen}
         options={({ route }) => {
           const mode = route?.params?.mode;
-          const title = mode === 'requests' ? 'Zahtjevi za povezivanje' : 'Prijatelji';
+          const title =
+            mode === 'requests'
+              ? 'Zahtjevi za povezivanje'
+              : mode === 'group-invite'
+              ? 'Pozovi prijatelje u grupu'
+              : 'Prijatelji';
           return {
             title,
             headerBackVisible: true,
