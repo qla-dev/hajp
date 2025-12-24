@@ -28,6 +28,11 @@ export default function FriendListItem({
 }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const usernameLabel =
+    username ||
+    (friend.username ? `@${friend.username}` : null) ||
+    friend.inviter_name ||
+    friend.name;
 
   const renderAvatar = () => {
     if (
@@ -67,20 +72,27 @@ export default function FriendListItem({
         <Text style={styles.name}>
           {refType === 'room-invite'
             ? friend.room_name || friend.name || 'Soba'
-            : refType === 'my-room-allowence'
+            : refType === 'my-room-allowence' || refType === 'friendship'
             ? friend.name || 'Korisnik'
             : friend.name || friend.username || 'Korisnik'}
         </Text>
+        {usernameLabel && (
+          <Text style={styles.subtitleMuted}>
+            {refType === 'room-invite' ? 'Poziv od ' : ''}
+            {usernameLabel}
+          </Text>
+        )}
         {refType === 'room-invite' && friend.inviter_name ? (
-          <Text style={styles.subtitle}>Pozvao te je {friend.inviter_name}</Text>
+          <Text style={styles.subtitle}>Poziva te {friend.inviter_name}</Text>
         ) : refType === 'my-room-allowence' && friend.room_name ? (
           <Text style={styles.subtitle}>Želi da se pridruži {friend.room_name}</Text>
-        ) : username ? (
-          <Text style={styles.subtitle}>{username}</Text>
+        ) : refType === 'friendship' ? (
+          <Text style={styles.subtitle}>Želi da se povežete</Text>
         ) : null}
-        {!!subtitle && refType !== 'room-invite' && refType !== 'my-room-allowence' && (
-          <Text style={styles.subtitle}>{subtitle}</Text>
-        )}
+        {!!subtitle &&
+          refType !== 'room-invite' &&
+          refType !== 'my-room-allowence' &&
+          refType !== 'friendship' && <Text style={styles.subtitle}>{subtitle}</Text>}
         {!!statusLabel && <Text style={styles.meta}>{statusLabel}</Text>}
       </View>
       {isInviteMode ? (
@@ -146,6 +158,7 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       borderWidth: 1,
       borderColor: colors.primary,
+      borderRadius: 5,
     },
     avatarFallbackText: {
       color: colors.textLight,
@@ -162,6 +175,12 @@ const createStyles = (colors) =>
     },
     subtitle: {
       color: colors.text_secondary,
+      fontSize: 12,
+      paddingTop: 7,
+    },
+    subtitleMuted: {
+      color: colors.text_secondary,
+      fontSize: 12,
     },
     meta: {
       color: colors.text_secondary,
