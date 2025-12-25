@@ -7,6 +7,7 @@ import Purchases from 'react-native-purchases';
 import { PurchasesUI } from 'react-native-purchases-ui';
 import { subscriptionStatus, subscribeWithPayload } from '../api';
 import { darkColors } from '../theme/colors';
+import AvatarHeroAnimated from '../components/AvatarHeroAnimated';
 
 const perks = [
   'Brze sobe i hajpovi',
@@ -282,9 +283,16 @@ export default function SubscriptionScreen() {
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="never"
       >
-        <View style={styles.hero}>
-          <Ionicons name="diamond" size={28} color={colors.primary} />
-          <Text style={styles.heroTitle}>Pretplati se na Premium</Text>
+        <View style={styles.coverWrapper}>
+          <AvatarHeroAnimated>
+            <View style={styles.heroContent}>
+              <Ionicons name="diamond" size={28} color={colors.primary} />
+              <Text style={styles.heroTitle}>Pretplati se na Premium</Text>
+              <Text style={styles.heroSubtitle}>
+                30 novih lica u pozadini, postojani hajpovi i ekstra avatari.
+              </Text>
+            </View>
+          </AvatarHeroAnimated>
         </View>
 
         <View style={styles.cancellationText}>
@@ -451,17 +459,44 @@ const createStyles = (colors) =>
       justifyContent: 'flex-end',
       minHeight: '100%',
     },
-    hero: {
-      borderRadius: 26,
-      padding: 22,
+    coverWrapper: {
+      marginBottom: SECTION_GAP,
+      marginTop: SECTION_GAP,
+    },
+    heroContent: {
+      alignItems: 'center',
+      gap: 8,
+      paddingTop: 8,
+      paddingBottom: 12,
+    },
+    heroChip: {
+      flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      paddingBottom: SECTION_GAP,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      backgroundColor: 'rgba(0,0,0,0.25)',
+      borderRadius: 12,
+      borderWidth: 1,
+    },
+    heroChipText: {
+      color: colors.textLight,
+      fontSize: 12,
+      fontWeight: '700',
+      letterSpacing: 0.3,
+      textTransform: 'uppercase',
     },
     heroTitle: {
       color: colors.primary,
       fontSize: 26,
       fontWeight: '800',
+    },
+    heroSubtitle: {
+      color: colors.text_secondary,
+      fontSize: 14,
+      textAlign: 'center',
+      lineHeight: 20,
+      paddingHorizontal: 20,
     },
     perks: {
       borderRadius: 20,

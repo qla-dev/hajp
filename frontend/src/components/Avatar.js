@@ -3,13 +3,15 @@ import { View, Text, Image, StyleSheet } from 'react-native';
 import { SvgUri, SvgXml } from 'react-native-svg';
 import { useTheme } from '../theme/darkMode';
 
-const sizeMap = {
+export const sizeMap = {
   xs: { size: 64, font: 22 },
   s: { size: 88, font: 26 },
   m: { size: 120, font: 32 }, // current default
   l: { size: 150, font: 40 },
   xl: { size: 190, font: 48 },
+  hero: { size: 180, font: 38 },
   xxl: { size: 230, font: 56 },
+
 };
 
 const normalizeVariant = (variant) => {
