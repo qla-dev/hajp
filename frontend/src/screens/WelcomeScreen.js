@@ -16,7 +16,7 @@ export default function WelcomeScreen({ navigation }) {
     <View style={styles.container}>
       <AvatarHeroAnimated fixed height={HERO_HEIGHT} colorsOverride={colors}>
         <View style={styles.heroOverlay}>
-          <Text style={styles.welcomeText}>DOBRODOŠLI U</Text>
+          <Text style={styles.welcomeText}>DOBRODOŠLI NA</Text>
           <SvgUri
             width={300}
             height={80}
@@ -53,7 +53,7 @@ export default function WelcomeScreen({ navigation }) {
 
         <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginButton}>
           <Text style={styles.loginText}>
-            Vec imas racun? <Text style={styles.loginLinkBold}>Prijavi se</Text>
+            Već imas račun? <Text style={styles.loginLinkBold}>Prijavi se</Text>
           </Text>
         </TouchableOpacity>
       </View>
