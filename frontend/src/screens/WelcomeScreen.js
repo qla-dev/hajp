@@ -39,7 +39,7 @@ export default function WelcomeScreen({ navigation }) {
 
           <View style={styles.featureCard}>
             <View style={styles.phonePreview2}>
-              <Text style={styles.featureEmoji}>💎</Text>
+              <Text style={styles.featureEmoji}>🔥</Text>
             </View>
             <Text style={styles.featureDescription}>Dobij hajp kad te{'\n'}izaberu u anketi</Text>
           </View>
@@ -70,7 +70,7 @@ const createStyles = (colors) =>
     content: {
       flex: 1,
       padding: 24,
-      paddingTop: HERO_HEIGHT + 24,
+      paddingTop: HERO_HEIGHT + 4,
       justifyContent: 'center',
     },
     heroOverlay: {
@@ -99,7 +99,7 @@ const createStyles = (colors) =>
     featuresContainer: {
       flexDirection: 'row',
       justifyContent: 'space-around',
-      marginTop: 20,
+      marginTop: 8,
     },
     featureCard: {
       alignItems: 'center',
