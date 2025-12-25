@@ -329,7 +329,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.selectorBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={[styles.selectorBar, { backgroundColor: colors.transparent, borderColor: colors.border }]}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
