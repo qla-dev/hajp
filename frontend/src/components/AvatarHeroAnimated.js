@@ -157,9 +157,9 @@ export default function AvatarHeroAnimated({
 
       <LinearGradient
         colors={[
-          buildGradientColor(colors.backgroundDark, 0.7),
-          buildGradientColor(colors.backgroundDark, 0.3),
-          buildGradientColor(colors.backgroundDark, 0),
+          buildGradientColor(colors.background, 0),
+          buildGradientColor(colors.background, 0.7),
+          buildGradientColor(colors.background, 1),
         ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
