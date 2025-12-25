@@ -15,7 +15,7 @@ import SubscriptionScreen from './src/screens/SubscriptionScreen';
 import CreatePollScreen from './src/screens/CreatePollScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
-import AvatarGenerator from './src/screens/AvatarGenerator';
+import AvatarGeneratorScreen from './src/screens/AvatarGeneratorScreen';
 import SetupProfileScreen from './src/screens/SetupProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import ShareScreen from './src/screens/ShareScreen';
@@ -99,7 +99,7 @@ function MainStackNavigator() {
       />
       <MainStack.Screen
         name="AvatarGenerator"
-        component={AvatarGenerator}
+        component={AvatarGeneratorScreen}
         options={{
           title: 'Kreiraj avatar',
         }}

@@ -9,6 +9,7 @@ const sizeMap = {
   m: { size: 120, font: 32 }, // current default
   l: { size: 150, font: 40 },
   xl: { size: 190, font: 48 },
+  xxl: { size: 230, font: 56 },
 };
 
 const normalizeVariant = (variant) => {
