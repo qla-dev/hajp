@@ -80,6 +80,16 @@ const iconMap = {
   Profile: { active: 'user-line', inactive: 'user-line' },
 };
 
+const profileFriendsListOptions = ({ route }) => {
+  const mode = route?.params?.mode;
+  const title = mode === 'group-invite' ? 'Pozovi prijatelja' : 'Prijatelji';
+  return {
+    title,
+    headerBackTitle: 'Nazad',
+    gestureEnabled: false,
+  };
+};
+
 const customTabIconUriMap = {
   Hajp: {
     active: `${NAV_ICON_BASE_URI}/home-active.svg`,
@@ -235,6 +245,12 @@ function RankStackNavigator() {
         ),
       })}
     />
+    <RankStack.Screen
+      name="ProfileFriendsList"
+      component={FriendsScreen}
+      options={profileFriendsListOptions}
+      initialParams={{ fromProfile: true, profileRouteName: 'LiveFriendProfile' }}
+    />
     <RankStack.Screen name="RankRooms" component={RankRoomsScreen} options={{ title: 'Sobe' }} />
     <RankStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
     </RankStack.Navigator>
@@ -369,16 +385,8 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen
         name="ProfileFriendsList"
         component={FriendsScreen}
-        options={({ route }) => {
-          const mode = route?.params?.mode;
-          const title = mode === 'group-invite' ? 'Pozovi prijatelja' : 'Prijatelji';
-          return {
-            title,
-            headerBackTitle: 'Nazad',
-            gestureEnabled: false,
-          };
-        }}
-        initialParams={{ fromProfile: true }}
+        options={profileFriendsListOptions}
+        initialParams={{ fromProfile: true, profileRouteName: 'ProfileFriends' }}
       />
     </ProfileStack.Navigator>
   );
@@ -492,6 +500,12 @@ function FriendsStackNavigator() {
         }}
       />
       <FriendsStack.Screen
+        name="ProfileFriendsList"
+        component={FriendsScreen}
+        options={profileFriendsListOptions}
+        initialParams={{ fromProfile: true, profileRouteName: 'FriendProfile' }}
+      />
+      <FriendsStack.Screen
         name="FriendProfile"
         component={ProfileScreen}
         options={({ navigation }) => ({
@@ -592,7 +606,10 @@ function MainTabsContent() {
         ) {
           hideTabBar = true;
         }
-        if (route.name === 'Friends' && focused === 'FriendProfile') {
+        if (route.name === 'Friends' && (focused === 'FriendProfile' || focused === 'ProfileFriendsList')) {
+          hideTabBar = true;
+        }
+        if (route.name === 'Rank' && focused === 'ProfileFriendsList') {
           hideTabBar = true;
         }
 

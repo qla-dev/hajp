@@ -20,6 +20,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import ShareScreen from './src/screens/ShareScreen';
 import SendAnonymousMessageScreen from './src/screens/SendAnonymousMessageScreen';
 import ShareLinkScreen from './src/screens/ShareLinkScreen';
+import FriendsScreen from './src/screens/FriendsScreen';
 import MainTabs from './src/navigation/MainTabs';
 import { RoomSheetProvider } from './src/context/roomSheetContext';
 import { ThemeProvider, useTheme } from './src/theme/darkMode';
@@ -79,6 +80,15 @@ function MainStackNavigator() {
         }}
       />
       <MainStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil' }} />
+      <MainStack.Screen
+        name="ProfileFriendsList"
+        component={FriendsScreen}
+        options={{
+          title: 'Prijatelji',
+          headerBackTitle: 'Nazad',
+        }}
+        initialParams={{ fromProfile: true, profileRouteName: 'Profile' }}
+      />
       <MainStack.Screen
         name="EditProfile"
         component={EditProfileScreen}

@@ -68,6 +68,7 @@ export const fetchCoinBalance = () => api.get('/user/coins');
 export const fetchFriendSuggestions = () => api.get('/friends/suggestions');
 export const fetchFriends = (roomId) =>
   api.get('/friends', { params: roomId ? { room_id: roomId } : undefined });
+export const fetchUserFriends = (userId) => api.get(`/user/${userId}/friends`);
 export const fetchFriendRequests = () => api.get('/friends/requests');
 export const addFriend = (userId) => api.post(`/friends/${userId}/add`);
 export const removeFriend = (userId) => api.delete(`/friends/${userId}/remove`);

@@ -13,6 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import {
   fetchFriends,
+  fetchUserFriends,
   fetchFriendRequests,
   approveFriendRequest,
   inviteToRoom,
@@ -35,6 +36,8 @@ export default function FriendsScreen({ navigation, route }) {
   const [invitingFriendId, setInvitingFriendId] = useState(null);
   const mode = route?.params?.mode || 'friends';
   const roomId = route?.params?.roomId || null;
+  const targetUserId = route?.params?.userId || null;
+  const fromProfile = route?.params?.fromProfile;
   const isRequestList = mode === 'requests';
   const isGroupInvite = mode === 'group-invite';
   const connectSoundRef = React.useRef(null);
@@ -58,17 +61,37 @@ export default function FriendsScreen({ navigation, route }) {
   }, []);
 
   const loadFriends = useCallback(async () => {
+    console.log('[FriendsScreen] loadFriends start', {
+      mode,
+      isRequestList,
+      isGroupInvite,
+      roomId,
+      targetUserId,
+      fromProfile,
+    });
     setLoading(true);
     try {
-      const fetcher = isRequestList ? fetchFriendRequests : fetchFriends;
-      const { data } = await fetcher(roomId);
+      let response;
+      if (isRequestList) {
+        response = await fetchFriendRequests();
+      } else if (targetUserId && !isGroupInvite) {
+        response = await fetchUserFriends(targetUserId);
+      } else {
+        response = await fetchFriends(roomId);
+      }
+      const data = response?.data;
       setFriends(data?.data || data || []);
-    } catch {
+      console.log('[FriendsScreen] loadFriends success', {
+        count: (data?.data || data || []).length,
+        keys: data ? Object.keys(data) : null,
+      });
+    } catch (err) {
+      console.log('[FriendsScreen] loadFriends error', err?.message || err);
       setFriends([]);
     } finally {
       setLoading(false);
     }
-  }, [isRequestList, roomId]);
+  }, [isRequestList, roomId, targetUserId, isGroupInvite, fromProfile, mode]);
 
   const handleApprove = useCallback(
     async (friendId) => {
@@ -173,6 +196,7 @@ export default function FriendsScreen({ navigation, route }) {
               : null;
             const username = item.username ? `@${item.username}` : null;
             const fromProfile = route?.params?.fromProfile;
+            const profileRouteName = route?.params?.profileRouteName || 'ProfileFriends';
 
             const handlePress =
               !isGroupInvite &&
@@ -198,7 +222,7 @@ export default function FriendsScreen({ navigation, route }) {
                   return;
                 }
                 if (fromProfile) {
-                  navigation.navigate('ProfileFriends', { isMine: false, userId: friendId });
+                  navigation.navigate(profileRouteName, { isMine: false, userId: friendId });
                   return;
                 }
                 navigation.navigate('FriendProfile', {

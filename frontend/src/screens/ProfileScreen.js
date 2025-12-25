@@ -440,7 +440,11 @@ export default function ProfileScreen({ navigation, route }) {
               <View style={styles.statsRow}>
                 <TouchableOpacity
                   style={styles.statItemRow}
-                  onPress={() => navigation.navigate('ProfileFriendsList')}
+                  onPress={() =>
+                    navigation.navigate('ProfileFriendsList', {
+                      userId: isOtherProfile ? route?.params?.userId : undefined,
+                    })
+                  }
                 >
                   <Text style={styles.statNumber}>{friendsCount}</Text>
                   <Text style={styles.statLabel}>prijatelja</Text>

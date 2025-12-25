@@ -55,6 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{user}/views', [UserController::class, 'recordProfileView']);
         Route::get('/{user}', [UserController::class, 'showPublic']);
         Route::get('/{user}/rooms', [UserController::class, 'roomsForUser']);
+        Route::get('/{user}/friends', [UserController::class, 'friendsForUser']);
         Route::get('/{user}/friends/count', [UserController::class, 'friendsCount']);
         Route::get('/{user}/friendship/status', [UserController::class, 'friendshipStatus']);
         Route::get('/{user}/rooms/{role}', [RoomController::class, 'userRooms']);

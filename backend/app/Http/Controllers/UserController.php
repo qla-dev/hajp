@@ -100,6 +100,52 @@ class UserController extends Controller
         return response()->json(['data' => $suggestions]);
     }
 
+    public function friendsForUser(Request $request, User $user)
+    {
+        $targetId = $user->id;
+        $roomId = $request->query('room_id');
+
+        $friends = Friendship::query()
+            ->where(function ($query) use ($targetId) {
+                $query->where('auth_user_id', $targetId)->orWhere('user_id', $targetId);
+            })
+            ->where('approved', 1)
+            ->with(['requester:id,name,username,profile_photo', 'friend:id,name,username,profile_photo'])
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get()
+            ->map(function ($friendship) use ($targetId) {
+                $isRequester = (int) $friendship->auth_user_id === (int) $targetId;
+                $other = $isRequester ? $friendship->friend : $friendship->requester;
+
+                return (object) [
+                    'id' => $friendship->id,
+                    'friend_id' => $other?->id,
+                    'name' => $other?->name,
+                    'username' => $other?->username,
+                    'profile_photo' => $other?->profile_photo,
+                    'created_at' => $friendship->created_at,
+                ];
+            });
+
+        if ($roomId) {
+            $memberships = RoomMember::query()
+                ->where('room_id', $roomId)
+                ->whereIn('user_id', $friends->pluck('friend_id'))
+                ->get(['user_id', 'accepted'])
+                ->keyBy('user_id');
+
+            $friends = $friends->map(function ($friend) use ($memberships) {
+                $membership = $memberships->get($friend->friend_id);
+                $friend->is_member = (bool) $membership;
+                $friend->accepted = $membership?->accepted ?? null;
+                return $friend;
+            });
+        }
+
+        return response()->json(['data' => $friends]);
+    }
+
     public function friends(Request $request)
     {
         $userId = $request->user()->id;
