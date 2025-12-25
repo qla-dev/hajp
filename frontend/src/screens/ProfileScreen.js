@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
   Image,
   StyleSheet,
   ScrollView,
@@ -11,7 +12,9 @@ import {
   ActivityIndicator,
   PanResponder,
   Alert,
+  Modal,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri, SvgXml } from 'react-native-svg';
@@ -43,6 +46,8 @@ export default function ProfileScreen({ navigation, route }) {
   const [connecting, setConnecting] = useState(false);
   const [connectIconXml, setConnectIconXml] = useState(null);
   const glowAnim = useRef(new Animated.Value(0)).current;
+  const avatarZoomAnim = useRef(new Animated.Value(0)).current;
+  const [showAvatarZoom, setShowAvatarZoom] = useState(false);
   const connectSoundRef = useRef(null);
 
   useEffect(() => {
@@ -369,6 +374,36 @@ export default function ProfileScreen({ navigation, route }) {
     const cleanPath = photo.replace(/^\/+/, '');
     return `${cleanBase}/${cleanPath}`;
   };
+  const avatarPhotoUri = resolveAvatar(user?.profile_photo, user?.name);
+  const hasAvatarImage = Boolean(avatarPhotoUri);
+  const avatarUri =
+    avatarPhotoUri ||
+    'https://ui-avatars.com/api/?name=' +
+      (user?.name || 'Korisnik') +
+      '&size=200&background=' +
+      encodeURIComponent(colors.profilePurple.replace('#', '')) +
+      '&color=' +
+      encodeURIComponent(colors.textLight.replace('#', ''));
+
+  const openAvatarZoom = useCallback(() => {
+    if (!hasAvatarImage) return;
+    setShowAvatarZoom(true);
+    avatarZoomAnim.setValue(0);
+    Animated.spring(avatarZoomAnim, {
+      toValue: 1,
+      friction: 7,
+      tension: 80,
+      useNativeDriver: true,
+    }).start();
+  }, [avatarZoomAnim, hasAvatarImage]);
+
+  const closeAvatarZoom = useCallback(() => {
+    Animated.timing(avatarZoomAnim, {
+      toValue: 0,
+      duration: 180,
+      useNativeDriver: true,
+    }).start(() => setShowAvatarZoom(false));
+  }, [avatarZoomAnim]);
 
   return (
     <View style={styles.screen} {...panResponder.panHandlers}>
@@ -422,19 +457,13 @@ export default function ProfileScreen({ navigation, route }) {
         )}
         <View style={styles.profileSection}>
           <View style={styles.profileRow}>
-            <Image
-              source={{
-                uri:
-                  resolveAvatar(user?.profile_photo, user?.name) ||
-                  'https://ui-avatars.com/api/?name=' +
-                    (user?.name || 'Korisnik') +
-                    '&size=200&background=' +
-                    encodeURIComponent(colors.profilePurple.replace('#', '')) +
-                    '&color=' +
-                    avatarTextColor,
-              }}
-              style={styles.profileImage}
-            />
+            {hasAvatarImage ? (
+              <TouchableOpacity onPress={openAvatarZoom} activeOpacity={0.9}>
+                <Image source={{ uri: avatarUri }} style={styles.profileImage} />
+              </TouchableOpacity>
+            ) : (
+              <Image source={{ uri: avatarUri }} style={styles.profileImage} />
+            )}
 
             <View style={styles.statsColumn}>
               <Text style={styles.userName}>{user?.name || ''}</Text>
@@ -560,6 +589,29 @@ export default function ProfileScreen({ navigation, route }) {
         )}
 
       </ScrollView>
+
+      {showAvatarZoom && (
+        <Modal transparent visible animationType="fade">
+          <Pressable style={styles.avatarOverlay} onPress={closeAvatarZoom}>
+            <BlurView intensity={35} tint={colors.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+            <Animated.View
+              style={[
+                styles.avatarZoomCard,
+                {
+                  opacity: avatarZoomAnim,
+                  transform: [
+                    {
+                      scale: avatarZoomAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1.02] }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <Image source={{ uri: avatarUri }} style={styles.avatarZoomImage} />
+            </Animated.View>
+          </Pressable>
+        </Modal>
+      )}
 
       {isMine && (
         <BottomCTA
@@ -936,5 +988,31 @@ const createStyles = (colors) =>
     emptyHype: {
       fontSize: 14,
       color: colors.text_secondary,
+    },
+    avatarOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.82)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+    },
+    avatarZoomCard: {
+      width: '95%',
+      aspectRatio: 1,
+      borderRadius: 24,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      shadowColor: colors.primary,
+      shadowOpacity: 0.25,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 10,
+    },
+    avatarZoomImage: {
+      width: '100%',
+      height: '100%',
+      resizeMode: 'cover',
     },
   });
