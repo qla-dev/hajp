@@ -49,17 +49,19 @@ function AuthStackNavigator() {
 function MainStackNavigator() {
   const { colors } = useTheme();
 
+  const defaultHeaderTint = colors.text_primary;
+
   return (
     <MainStack.Navigator
       initialRouteName="MainTabs"
       screenOptions={({ navigation }) => ({
         headerShown: true,
         headerTitleAlign: 'center',
-        headerTintColor: '#fff',
+        headerTintColor: defaultHeaderTint,
         headerTransparent: true,
         headerShadowVisible: false,
         headerStyle: { backgroundColor: 'transparent' },
-        headerTitleStyle: { color: '#fff' },
+        headerTitleStyle: { color: defaultHeaderTint },
         headerBackTitleVisible: false,
         headerLeft: ({ canGoBack, tintColor }) =>
           canGoBack ? (
@@ -78,6 +80,8 @@ function MainStackNavigator() {
           title: 'Pretplati se na Premium',
           headerTransparent: true,
           headerStyle: { backgroundColor: 'transparent' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { color: '#fff' },
         }}
       />
       <MainStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil' }} />
