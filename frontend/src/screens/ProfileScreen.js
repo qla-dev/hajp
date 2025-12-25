@@ -28,6 +28,7 @@ import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import NoteBottomSheet from '../components/NoteBottomSheet';
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
+const NOTE_MARQUEE_WIDTH = 220;
 
 export default function ProfileScreen({ navigation, route }) {
   const NAV_ICON_BASE_URI = `${baseURL}/img/nav-icons`;
@@ -58,9 +59,9 @@ export default function ProfileScreen({ navigation, route }) {
   const marqueeAnim = useRef(new Animated.Value(0)).current;
   const marqueeLoop = useRef(null);
   const MARQUEE_SPACER = 32;
-  const marqueeDistance = useRef(0);
   const connectSoundRef = useRef(null);
   const derivedTextWidth = Math.max(noteTextWidth, (noteDisplay?.length || 0) * 12);
+  const marqueeDistance = derivedTextWidth + MARQUEE_SPACER;
 
   useEffect(() => {
     let isMounted = true;
@@ -290,7 +291,7 @@ export default function ProfileScreen({ navigation, route }) {
   useEffect(() => {
     const estimate = (noteDisplay || '').length * 12;
     setNoteTextWidth(estimate || 0);
-    setNoteContainerWidth(0);
+    setNoteContainerWidth(NOTE_MARQUEE_WIDTH);
   }, [noteDisplay, showNoteBubble]);
 
   useEffect(() => {
@@ -298,7 +299,6 @@ export default function ProfileScreen({ navigation, route }) {
     if (!shouldScroll) {
       marqueeLoop.current?.stop?.();
       marqueeLoop.current = null;
-      marqueeDistance.current = 0;
       marqueeAnim.stopAnimation();
       marqueeAnim.setValue(0);
       return;
@@ -308,13 +308,12 @@ export default function ProfileScreen({ navigation, route }) {
     marqueeAnim.stopAnimation();
     marqueeAnim.setValue(0);
 
-    const distance = derivedTextWidth + MARQUEE_SPACER;
-    marqueeDistance.current = distance;
-    const duration = Math.max(8000, (derivedTextWidth + noteContainerWidth) * 16);
+    const distance = marqueeDistance;
+    const duration = Math.max(6000, (derivedTextWidth + noteContainerWidth) * 14);
 
     marqueeLoop.current = Animated.loop(
       Animated.timing(marqueeAnim, {
-        toValue: 1,
+        toValue: distance,
         duration,
         useNativeDriver: true,
         easing: Easing.linear,
@@ -328,7 +327,7 @@ export default function ProfileScreen({ navigation, route }) {
       marqueeAnim.stopAnimation();
       marqueeAnim.setValue(0);
     };
-  }, [noteDisplay, noteContainerWidth, derivedTextWidth, marqueeAnim]);
+  }, [noteDisplay, noteContainerWidth, derivedTextWidth, marqueeAnim, marqueeDistance]);
 
   const handleConnectPress = async () => {
     if (!isOtherProfile || !route?.params?.userId || isFriendActionLoading) return;
@@ -558,7 +557,7 @@ export default function ProfileScreen({ navigation, route }) {
                 >
                   <View
                     style={styles.noteBubbleInner}
-                    onLayout={(e) => setNoteContainerWidth(e.nativeEvent.layout.width)}
+                    onLayout={(e) => setNoteContainerWidth(Math.max(NOTE_MARQUEE_WIDTH, e.nativeEvent.layout.width))}
                   >
                     {derivedTextWidth > noteContainerWidth + 4 ? (
                       <Animated.View
@@ -568,8 +567,8 @@ export default function ProfileScreen({ navigation, route }) {
                           transform: [
                             {
                               translateX: marqueeAnim.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [0, -marqueeDistance.current || 0],
+                                inputRange: [0, marqueeDistance || 1],
+                                outputRange: [0, -marqueeDistance || 0],
                               }),
                             },
                           ],
@@ -839,7 +838,8 @@ const createStyles = (colors) =>
     },
     noteBubbleInner: {
       overflow: 'hidden',
-      maxWidth: 220,
+      width: NOTE_MARQUEE_WIDTH,
+      minWidth: NOTE_MARQUEE_WIDTH,
       alignItems: 'center',
     },
     noteBubbleText: {
