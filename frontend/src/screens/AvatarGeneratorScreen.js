@@ -257,6 +257,40 @@ const optionGroups = [
   },
 ];
 
+const tabOrder = [
+  'skinColor',
+  'hairColor',
+  'topType',
+  'accessoriesType',
+  'eyeType',
+  'eyebrowType',
+  'mouthType',
+  'facialHairType',
+  'clotheType',
+  'clotheColor',
+];
+
+const tabLabels = {
+  skinColor: '🧴 Koža',
+  hairColor: '🎨 Boja kose',
+  topType: '💇 Frizura i dodaci na glavi',
+  accessoriesType: '😎 Dodaci na licu',
+  eyeType: '👀 Oči',
+  eyebrowType: '〰️ Obrve',
+  mouthType: '👄 Usta',
+  facialHairType: '🧔 Brada i brkovi',
+  clotheType: '👕 Odjeća',
+  clotheColor: '🧥 Boja odjeće',
+};
+
+const orderedOptionGroups = tabOrder
+  .map((key) => {
+    const group = optionGroups.find((item) => item.key === key);
+    if (!group) return null;
+    return { ...group, label: tabLabels[key] || group.label };
+  })
+  .filter(Boolean);
+
 const buildAvatarParams = (config) =>
   new URLSearchParams({
     avatarStyle: 'Circle',
@@ -278,7 +312,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   const seedConfig = route?.params?.seedConfig;
   const [config, setConfig] = useState(() => ({ ...defaultConfig, ...(seedConfig || {}) }));
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState(optionGroups[0].key);
+  const [activeTab, setActiveTab] = useState(orderedOptionGroups[0]?.key || optionGroups[0].key);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
@@ -325,7 +359,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     }
   }, [route?.params?.preset]);
 
-  const activeGroup = optionGroups.find((group) => group.key === activeTab);
+  const activeGroup = orderedOptionGroups.find((group) => group.key === activeTab);
 
   return (
     <View style={styles.screen}>
@@ -336,7 +370,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
           contentContainerStyle={styles.tabRow}
           style={styles.tabs}
         >
-          {optionGroups.map((group) => {
+          {orderedOptionGroups.map((group) => {
             const active = activeTab === group.key;
             return (
               <TouchableOpacity
@@ -352,7 +386,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
         </ScrollView>
 
         {activeGroup ? (
-          <View style={[styles.optionsPanel, { borderColor: colors.border, backgroundColor: colors.background }]}>
+          <View style={[styles.optionsPanel, { borderColor: colors.border }]}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.optionsRow}>
               {activeGroup.options.map((option) => {
                 const active = config[activeGroup.key] === option.value;
@@ -451,7 +485,7 @@ const createStyles = (colors) =>
     selectorBar: {
       paddingTop: 8,
       paddingBottom: 12,
-      borderBottomWidth: 1,
+      borderBottomWidth: 0,
       shadowColor: '#000',
       shadowOpacity: 0.06,
       shadowRadius: 8,
@@ -484,26 +518,30 @@ const createStyles = (colors) =>
       color: colors.text_secondary,
     },
     optionsPanel: {
-      marginTop: 8,
-      borderRadius: 18,
-      paddingVertical: 12,
-      paddingHorizontal: 12,
-      borderWidth: 1,
+      marginTop: 0,
+      paddingVertical: 8,
+      paddingHorizontal: 0,
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderLeftWidth: 0,
+      borderRightWidth: 0,
     },
     optionsRow: {
       gap: 12,
       paddingVertical: 6,
-      paddingHorizontal: 2,
+      paddingHorizontal: 0,
     },
     optionCard: {
       width: 140,
       paddingVertical: 14,
       paddingHorizontal: 12,
       backgroundColor: colors.surface,
+      height: 140,
       borderRadius: 16,
       borderWidth: 1,
       borderColor: colors.border,
       alignItems: 'center',
+      justifyContent: 'center',
       gap: 10,
     },
     optionCardActive: {
