@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import RemixIcon from 'react-native-remix-icon';
 import { SvgUri } from 'react-native-svg';
-import { StyleSheet, Pressable, TouchableOpacity, Text, View, Image } from 'react-native';
+import { StyleSheet, Pressable, TouchableOpacity, Text, View } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
@@ -27,6 +27,7 @@ import { baseURL, getCurrentUser } from '../api';
 import { addProfileUpdatedListener } from '../utils/profileEvents';
 import UserRoomsScreen from '../screens/UserRoomsScreen';
 import { MenuRefreshProvider, useMenuRefresh } from '../context/menuRefreshContext';
+import Avatar from '../components/Avatar';
 
 const logoUri = `${baseURL}/img/logo.svg`;
 const NAV_ICON_BASE_URI = `${baseURL}/img/nav-icons`;
@@ -648,18 +649,17 @@ function MainTabsContent() {
           tabBarIcon: ({ focused: isFocused, color, size }) => {
             if (route.name === 'Profile') {
               const borderColor = isFocused ? colors.primary : colors.border;
-              const containerStyle = [
-                tabStyles.profileIconContainer,
-                { borderColor, backgroundColor: profileAvatarUri ? colors.surface : colors.secondary },
-              ];
               return (
-                <View style={containerStyle}>
-                  {profileAvatarUri ? (
-                    <Image source={{ uri: profileAvatarUri }} style={tabStyles.profileIconImage} />
-                  ) : (
-                    <Text style={tabStyles.profileIconInitials}>{profileInitials}</Text>
-                  )}
-                </View>
+                <Avatar
+                  uri={profileAvatarUri}
+                  name={profileInitials}
+                  variant="avatar-xs"
+                  size={PROFILE_ICON_SIZE}
+                  style={[
+                    tabStyles.profileIconContainer,
+                    { borderColor, backgroundColor: profileAvatarUri ? 'transparent' : colors.secondary },
+                  ]}
+                />
               );
             }
 

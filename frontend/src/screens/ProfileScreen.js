@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Pressable,
-  Image,
   StyleSheet,
   ScrollView,
   RefreshControl,
@@ -23,6 +22,7 @@ import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fe
 import { useMenuRefresh } from '../context/menuRefreshContext';
 import BottomCTA from '../components/BottomCTA';
 import SuggestionSlider from '../components/SuggestionSlider';
+import Avatar from '../components/Avatar';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
@@ -459,10 +459,10 @@ export default function ProfileScreen({ navigation, route }) {
           <View style={styles.profileRow}>
             {hasAvatarImage ? (
               <TouchableOpacity onPress={openAvatarZoom} activeOpacity={0.9}>
-                <Image source={{ uri: avatarUri }} style={styles.profileImage} />
+                <Avatar uri={avatarUri} name={user?.name || 'Korisnik'} variant="avatar-l" style={styles.profileImage} />
               </TouchableOpacity>
             ) : (
-              <Image source={{ uri: avatarUri }} style={styles.profileImage} />
+              <Avatar uri={avatarUri} name={user?.name || 'Korisnik'} variant="avatar-l" style={styles.profileImage} />
             )}
 
             <View style={styles.statsColumn}>
@@ -595,19 +595,16 @@ export default function ProfileScreen({ navigation, route }) {
           <Pressable style={styles.avatarOverlay} onPress={closeAvatarZoom}>
             <BlurView intensity={35} tint={colors.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
             <Animated.View
-              style={[
-                styles.avatarZoomCard,
-                {
-                  opacity: avatarZoomAnim,
-                  transform: [
-                    {
-                      scale: avatarZoomAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1.02] }),
-                    },
-                  ],
-                },
-              ]}
+              style={{
+                opacity: avatarZoomAnim,
+                transform: [
+                  {
+                    scale: avatarZoomAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1.02] }),
+                  },
+                ],
+              }}
             >
-              <Image source={{ uri: avatarUri }} style={styles.avatarZoomImage} />
+              <Avatar uri={avatarUri} name={user?.name || 'Korisnik'} size={320} style={styles.avatarZoomImage} />
             </Animated.View>
           </Pressable>
         </Modal>
@@ -654,9 +651,6 @@ const createStyles = (colors) =>
       paddingHorizontal: 20,
     },
     profileImage: {
-      width: 110,
-      height: 110,
-      borderRadius: 55,
       backgroundColor: colors.surface,
     },
     statsRow: {
@@ -996,23 +990,8 @@ const createStyles = (colors) =>
       alignItems: 'center',
       padding: 24,
     },
-    avatarZoomCard: {
-      width: '95%',
-      aspectRatio: 1,
-      borderRadius: 24,
-      overflow: 'hidden',
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-      shadowColor: colors.primary,
-      shadowOpacity: 0.25,
-      shadowRadius: 20,
-      shadowOffset: { width: 0, height: 12 },
-      elevation: 10,
-    },
     avatarZoomImage: {
       width: '100%',
       height: '100%',
-      resizeMode: 'cover',
     },
   });
