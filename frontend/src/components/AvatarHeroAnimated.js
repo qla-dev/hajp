@@ -66,7 +66,7 @@ const buildGradientColor = (hex, opacity) => {
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };
 
-export default function AvatarHeroAnimated({ children, style, height = 340 }) {
+export default function AvatarHeroAnimated({ children, style, height = 340, fixed = false }) {
   const { colors } = useTheme();
   const avatars = useMemo(
     () => new Array(TOTAL_AVATARS).fill(0).map(() => buildAvatarSvgUrl(generateRandomConfig())),
@@ -116,7 +116,14 @@ export default function AvatarHeroAnimated({ children, style, height = 340 }) {
   }, [animatedValues]);
 
   return (
-    <View style={[styles.container, { height, backgroundColor: colors.backgroundDark }, style]}>
+    <View
+      style={[
+        styles.container,
+        fixed && styles.fixedContainer,
+        { height, backgroundColor: colors.backgroundDark },
+        style,
+      ]}
+    >
       <View style={styles.grid}>
         {columns.map((column, colIdx) => (
           <Animated.View
@@ -142,7 +149,11 @@ export default function AvatarHeroAnimated({ children, style, height = 340 }) {
       </View>
 
       <LinearGradient
-        colors={[buildGradientColor(colors.backgroundDark, 0.7), buildGradientColor(colors.backgroundDark, 0)]}
+        colors={[
+          buildGradientColor(colors.backgroundDark, 0.7),
+          buildGradientColor(colors.backgroundDark, 0.3),
+          buildGradientColor(colors.backgroundDark, 0),
+        ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         style={styles.gradient}
@@ -181,5 +192,13 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 18,
     paddingVertical: 18,
+    opacity: 0.7,
+  },
+  fixedContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
   },
 });

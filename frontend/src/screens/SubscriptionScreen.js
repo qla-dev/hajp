@@ -16,6 +16,7 @@ const perks = [
 ];
 
 const SECTION_GAP = 16;
+const COVER_HEIGHT = 340;
 const ENTITLEMENT = 'HAJP Pro';
 const RC_API_KEY =
   process.env.EXPO_PUBLIC_REVENUECAT_KEY ||
@@ -276,6 +277,15 @@ export default function SubscriptionScreen() {
 
   return (
     <View style={styles.container}>
+      <AvatarHeroAnimated fixed height={COVER_HEIGHT}>
+        <View style={styles.heroContent}>
+          <Ionicons name="diamond" size={28} color={colors.primary} />
+          <Text style={styles.heroTitle}>Pretplati se na Premium</Text>
+          <Text style={styles.heroSubtitle}>
+            30 novih lica u pozadini, postojani hajpovi i ekstra avatari.
+          </Text>
+        </View>
+      </AvatarHeroAnimated>
       <StatusBar style="light" />
       <ScrollView
         style={styles.scrollView}
@@ -283,18 +293,6 @@ export default function SubscriptionScreen() {
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="never"
       >
-        <View style={styles.coverWrapper}>
-          <AvatarHeroAnimated>
-            <View style={styles.heroContent}>
-              <Ionicons name="diamond" size={28} color={colors.primary} />
-              <Text style={styles.heroTitle}>Pretplati se na Premium</Text>
-              <Text style={styles.heroSubtitle}>
-                30 novih lica u pozadini, postojani hajpovi i ekstra avatari.
-              </Text>
-            </View>
-          </AvatarHeroAnimated>
-        </View>
-
         <View style={styles.cancellationText}>
           <Text style={styles.cancellationCopy}>
             Pretplatu možeš otkazati u bilo kom trenutku u postavkama.
@@ -448,20 +446,18 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.backgroundDark,
+      position: 'relative',
     },
     scrollView: {
       flex: 1,
+      marginTop: COVER_HEIGHT,
     },
     content: {
       paddingHorizontal: 20,
-      paddingVertical: 0,
+      paddingVertical: SECTION_GAP,
       flexGrow: 1,
       justifyContent: 'flex-end',
       minHeight: '100%',
-    },
-    coverWrapper: {
-      marginBottom: SECTION_GAP,
-      marginTop: SECTION_GAP,
     },
     heroContent: {
       alignItems: 'center',
