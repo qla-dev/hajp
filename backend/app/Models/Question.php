@@ -31,10 +31,11 @@ class Question extends Model
 
         return $query->inRandomOrder()
             ->limit($limit)
-            ->get(['users.id', 'users.name'])
+            ->get(['users.id', 'users.name', 'users.profile_photo'])
             ->map(fn(User $user) => [
                 'user_id' => $user->id,
                 'name' => $user->name,
+                'profile_photo' => $user->profile_photo,
             ])
             ->toArray();
     }

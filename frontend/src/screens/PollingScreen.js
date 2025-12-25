@@ -3,8 +3,9 @@ import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator
 import { Ionicons } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchActiveQuestion, fetchRoomCashoutStatus, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
+import { baseURL, fetchActiveQuestion, fetchRoomCashoutStatus, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
 import { Audio } from 'expo-av';
+import Avatar from '../components/Avatar';
 
 const { width } = Dimensions.get('window');
 let Haptics;
@@ -197,13 +198,46 @@ export default function PollingScreen({ route, navigation }) {
   const emoji = question.emoji || emojis[index % emojis.length];
   const options = question.options || [];
 
-  const normalizedOptions = options.slice(0, 4).map((option) => {
+  const resolveAvatar = (photo) => {
+    if (!photo) return null;
+    // Raw SVG markup -> convert to data URI so Avatar can render it
+    if (typeof photo === 'string' && photo.includes('<svg')) {
+      const encoded = encodeURIComponent(photo);
+      return `data:image/svg+xml;utf8,${encoded}`;
+    }
+    if (typeof photo === 'string' && /^https?:\/\//i.test(photo)) return photo;
+    const cleanBase = (baseURL || '').replace(/\/+$/, '');
+    const cleanPath = String(photo).replace(/^\/+/, '');
+    if (!cleanBase) return null;
+    return `${cleanBase}/${cleanPath}`;
+  };
+
+  const normalizedOptions = options.slice(0, 4).map((option, idx) => {
     if (option && typeof option === 'object') {
       const value = option.user_id ?? option.id;
       const label = option.name ?? String(value ?? '');
-      return { value, label };
+      const rawAvatar =
+        option.profile_photo ||
+        option.avatar ||
+        option.avatar_url ||
+        option.avatarSvg ||
+        option.avatar_svg ||
+        option.avatar_svg_url ||
+        option.avatarSvgUrl ||
+        option.photo ||
+        option.image ||
+        option.picture ||
+        option.user?.profile_photo ||
+        option.user?.avatar ||
+        option.user?.avatar_url ||
+        option.user?.photo ||
+        option.user?.image ||
+        null;
+      const avatarUri = resolveAvatar(rawAvatar);
+      return { value, label, avatarUri };
     }
-    return { value: option, label: String(option ?? '') };
+    const avatarUri = resolveAvatar(option);
+    return { value: option, label: String(option ?? ''), avatarUri };
   });
 
   return (
@@ -237,6 +271,18 @@ export default function PollingScreen({ route, navigation }) {
             style={styles.optionButton}
             disabled={refreshingQuestion || interactionLocked}
           >
+            <Avatar
+              uri={option.avatarUri}
+              name={option.label}
+              size={36}
+              style={[
+                styles.optionAvatar,
+                idx === 0 && styles.avatarTopLeft,
+                idx === 1 && styles.avatarTopRight,
+                idx === 2 && styles.avatarBottomLeft,
+                idx === 3 && styles.avatarBottomRight,
+              ]}
+            />
             <Text style={styles.optionText}>{option.label}</Text>
           </TouchableOpacity>
         ))}
@@ -300,6 +346,8 @@ const createStyles = (colors, isDark) =>
       justifyContent: 'center',
       borderWidth: 1,
       borderColor: '#ffffff',
+      position: 'relative',
+      overflow: 'visible',
     },
     optionText: {
       color: '#000000',
@@ -307,6 +355,27 @@ const createStyles = (colors, isDark) =>
       fontWeight: '600',
       textAlign: 'center',
       lineHeight: 20,
+    },
+    optionAvatar: {
+      position: 'absolute',
+      width: 36,
+      height: 36,
+    },
+    avatarTopLeft: {
+      top: -18,
+      left: -18,
+    },
+    avatarTopRight: {
+      top: -18,
+      right: -18,
+    },
+    avatarBottomLeft: {
+      bottom: -18,
+      left: -18,
+    },
+    avatarBottomRight: {
+      bottom: -18,
+      right: -18,
     },
     bottomActions: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 40, paddingBottom: 40 },
     actionButton: { alignItems: 'center' },
