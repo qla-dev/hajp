@@ -1,0 +1,188 @@
+[
+  {
+    "key": "topType",
+    "label": "Frizura",
+    "options": [
+      { "value": "NoHair", "label": "Bez kose", "emoji": "🧑‍🦲" },
+      { "value": "Eyepatch", "label": "Povez na oku", "emoji": "🏴‍☠️" },
+      { "value": "Hat", "label": "Šešir", "emoji": "🎩" },
+      { "value": "Hijab", "label": "Hidžab", "emoji": "🧕" },
+      { "value": "Turban", "label": "Turban", "emoji": "👳" },
+      { "value": "WinterHat1", "label": "Zimska kapa 1", "emoji": "🧢" },
+      { "value": "WinterHat2", "label": "Zimska kapa 2", "emoji": "🧢" },
+      { "value": "WinterHat3", "label": "Zimska kapa 3", "emoji": "🧢" },
+      { "value": "WinterHat4", "label": "Zimska kapa 4", "emoji": "🧢" },
+      { "value": "LongHairBigHair", "label": "Duga kosa - bujna", "emoji": "💁" },
+      { "value": "LongHairBob", "label": "Duga kosa - bob", "emoji": "💇" },
+      { "value": "LongHairBun", "label": "Duga kosa - punđa", "emoji": "💁‍♀️" },
+      { "value": "LongHairCurly", "label": "Duga kosa - kovrdžava", "emoji": "💁‍♂️" },
+      { "value": "LongHairCurvy", "label": "Duga kosa - talasi", "emoji": "💁" },
+      { "value": "LongHairDreads", "label": "Duga kosa - dredovi", "emoji": "🧑‍🦱" },
+      { "value": "LongHairFrida", "label": "Frida stil", "emoji": "🌺" },
+      { "value": "LongHairFro", "label": "Afro duga", "emoji": "🦱" },
+      { "value": "LongHairFroBand", "label": "Afro s trakom", "emoji": "🎀" },
+      { "value": "LongHairNotTooLong", "label": "Duga kosa - srednja", "emoji": "💇" },
+      { "value": "LongHairShavedSides", "label": "Duga s izbrijanim stranama", "emoji": "✂️" },
+      { "value": "LongHairMiaWallace", "label": "Mia Wallace", "emoji": "💃" },
+      { "value": "LongHairStraight", "label": "Duga kosa - ravna", "emoji": "💇‍♀️" },
+      { "value": "LongHairStraight2", "label": "Duga kosa - ravna 2", "emoji": "💇‍♀️" },
+      { "value": "LongHairStraightStrand", "label": "Duga kosa - pramen", "emoji": "🧵" },
+      { "value": "ShortHairDreads01", "label": "Kratki dredovi 1", "emoji": "🧑‍🦱" },
+      { "value": "ShortHairDreads02", "label": "Kratki dredovi 2", "emoji": "🧑‍🦱" },
+      { "value": "ShortHairFrizzle", "label": "Kovrdžava kratka", "emoji": "🌀" },
+      { "value": "ShortHairShaggyMullet", "label": "Šegi mullet", "emoji": "🦊" },
+      { "value": "ShortHairShortCurly", "label": "Kratka kovrdžava", "emoji": "🌀" },
+      { "value": "ShortHairShortFlat", "label": "Kratka ravna", "emoji": "✂️" },
+      { "value": "ShortHairShortRound", "label": "Kratka zaobljena", "emoji": "⭕️" },
+      { "value": "ShortHairShortWaved", "label": "Kratka valovita", "emoji": "🌊" },
+      { "value": "ShortHairSides", "label": "Kratka sa stranama", "emoji": "📐" },
+      { "value": "ShortHairTheCaesar", "label": "Cezar", "emoji": "🏺" },
+      { "value": "ShortHairTheCaesarSidePart", "label": "Cezar sa razdjeljkom", "emoji": "📏" }
+    ]
+  },
+  {
+    "key": "accessoriesType",
+    "label": "Dodaci",
+    "options": [
+      { "value": "Blank", "label": "Bez dodataka", "emoji": "✨" },
+      { "value": "Kurt", "label": "Kurt naočale", "emoji": "😎" },
+      { "value": "Prescription01", "label": "Naočale 1", "emoji": "👓" },
+      { "value": "Prescription02", "label": "Naočale 2", "emoji": "👓" },
+      { "value": "Round", "label": "Okrugle naočale", "emoji": "🕶️" },
+      { "value": "Sunglasses", "label": "Sunčane naočale", "emoji": "🕶️" },
+      { "value": "Wayfarers", "label": "Wayfarer naočale", "emoji": "🕶️" }
+    ]
+  },
+  {
+    "key": "hairColor",
+    "label": "Boja kose",
+    "options": [
+      { "value": "Auburn", "label": "Kesten" },
+      { "value": "Black", "label": "Crna" },
+      { "value": "Blue", "label": "Plava" },
+      { "value": "Blonde", "label": "Plava svijetla" },
+      { "value": "BlondeGolden", "label": "Plava zlatna" },
+      { "value": "Brown", "label": "Smeđa" },
+      { "value": "BrownDark", "label": "Tamno smeđa" },
+      { "value": "PastelPink", "label": "Pastelno roza" },
+      { "value": "Platinum", "label": "Platinasta" },
+      { "value": "Red", "label": "Crvena" },
+      { "value": "SilverGray", "label": "Srebrno siva" }
+    ]
+  },
+  {
+    "key": "facialHairType",
+    "label": "Brada i brkovi",
+    "options": [
+      { "value": "Blank", "label": "Bez brade", "emoji": "🙂" },
+      { "value": "BeardMedium", "label": "Brada srednja", "emoji": "🧔" },
+      { "value": "BeardLight", "label": "Brada svijetla", "emoji": "🧔‍♂️" },
+      { "value": "BeardMajestic", "label": "Impozantna brada", "emoji": "🧔‍♀️" },
+      { "value": "MoustacheFancy", "label": "Ufrizirani brkovi", "emoji": "👨" },
+      { "value": "MoustacheMagnum", "label": "Magnum brkovi", "emoji": "👨‍🦰" }
+    ]
+  },
+  {
+    "key": "clotheType",
+    "label": "Odjeća",
+    "options": [
+      { "value": "BlazerShirt", "label": "Sako + košulja", "emoji": "🧥" },
+      { "value": "BlazerSweater", "label": "Sako + džemper", "emoji": "🧥" },
+      { "value": "CollarSweater", "label": "Džemper s kragnom", "emoji": "🧶" },
+      { "value": "GraphicShirt", "label": "Majica s printom", "emoji": "👕" },
+      { "value": "Hoodie", "label": "Dukserica", "emoji": "🧥" },
+      { "value": "Overall", "label": "Tregerice", "emoji": "👖" },
+      { "value": "ShirtCrewNeck", "label": "Majica (okrugli izrez)", "emoji": "👕" },
+      { "value": "ShirtScoopNeck", "label": "Majica (široki izrez)", "emoji": "👚" },
+      { "value": "ShirtVNeck", "label": "Majica (V-izrez)", "emoji": "👕" }
+    ]
+  },
+  {
+    "key": "clotheColor",
+    "label": "Boja odjeće",
+    "options": [
+      { "value": "Black", "label": "Crna" },
+      { "value": "Blue01", "label": "Plava 01" },
+      { "value": "Blue02", "label": "Plava 02" },
+      { "value": "Blue03", "label": "Plava 03" },
+      { "value": "Gray01", "label": "Siva 01" },
+      { "value": "Gray02", "label": "Siva 02" },
+      { "value": "Heather", "label": "Melirano" },
+      { "value": "PastelBlue", "label": "Pastel plava" },
+      { "value": "PastelGreen", "label": "Pastel zelena" },
+      { "value": "PastelOrange", "label": "Pastel narandžasta" },
+      { "value": "PastelRed", "label": "Pastel crvena" },
+      { "value": "PastelYellow", "label": "Pastel žuta" },
+      { "value": "Pink", "label": "Roza" },
+      { "value": "Red", "label": "Crvena" },
+      { "value": "White", "label": "Bijela" }
+    ]
+  },
+  {
+    "key": "eyeType",
+    "label": "Oči",
+    "options": [
+      { "value": "Close", "label": "Zatvorene", "emoji": "😌" },
+      { "value": "Cry", "label": "Plačne", "emoji": "😭" },
+      { "value": "Default", "label": "Standard", "emoji": "👀" },
+      { "value": "Dizzy", "label": "Zbunjene", "emoji": "😵" },
+      { "value": "EyeRoll", "label": "Prevrtanje", "emoji": "🙄" },
+      { "value": "Happy", "label": "Sretne", "emoji": "😊" },
+      { "value": "Hearts", "label": "Srca", "emoji": "😍" },
+      { "value": "Side", "label": "Na stranu", "emoji": "👁️" },
+      { "value": "Squint", "label": "Poluzatvorene", "emoji": "😑" },
+      { "value": "Surprised", "label": "Iznenađene", "emoji": "😮" },
+      { "value": "Wink", "label": "Namig", "emoji": "😉" },
+      { "value": "WinkWacky", "label": "Namig (šaljivo)", "emoji": "😜" }
+    ]
+  },
+  {
+    "key": "eyebrowType",
+    "label": "Obrve",
+    "options": [
+      { "value": "Angry", "label": "Ljute", "emoji": "😠" },
+      { "value": "AngryNatural", "label": "Ljute prirodne", "emoji": "😡" },
+      { "value": "Default", "label": "Standard", "emoji": "🙂" },
+      { "value": "DefaultNatural", "label": "Standard prirodne", "emoji": "😊" },
+      { "value": "FlatNatural", "label": "Ravne", "emoji": "😐" },
+      { "value": "RaisedExcited", "label": "Podignute", "emoji": "😲" },
+      { "value": "RaisedExcitedNatural", "label": "Podignute prirodne", "emoji": "🤨" },
+      { "value": "SadConcerned", "label": "Zabrinute", "emoji": "😟" },
+      { "value": "SadConcernedNatural", "label": "Zabrinute prirodne", "emoji": "😔" },
+      { "value": "UnibrowNatural", "label": "Spajene obrve", "emoji": "🤨" },
+      { "value": "UpDown", "label": "Gore-dolje", "emoji": "😯" },
+      { "value": "UpDownNatural", "label": "Gore-dolje prirodne", "emoji": "😯" }
+    ]
+  },
+  {
+    "key": "mouthType",
+    "label": "Usta",
+    "options": [
+      { "value": "Concerned", "label": "Zabrinuta", "emoji": "😟" },
+      { "value": "Default", "label": "Neutralna", "emoji": "😐" },
+      { "value": "Disbelief", "label": "Nevjerica", "emoji": "😲" },
+      { "value": "Eating", "label": "Jede", "emoji": "😋" },
+      { "value": "Grimace", "label": "Grimas", "emoji": "😬" },
+      { "value": "Sad", "label": "Tužna", "emoji": "😢" },
+      { "value": "ScreamOpen", "label": "Vrisak", "emoji": "😱" },
+      { "value": "Serious", "label": "Ozbiljna", "emoji": "😑" },
+      { "value": "Smile", "label": "Osmijeh", "emoji": "😄" },
+      { "value": "Tongue", "label": "Jezik", "emoji": "😛" },
+      { "value": "Twinkle", "label": "Iskra", "emoji": "🤩" },
+      { "value": "Vomit", "label": "Povraća", "emoji": "🤮" }
+    ]
+  },
+  {
+    "key": "skinColor",
+    "label": "Koža",
+    "options": [
+      { "value": "Tanned", "label": "Preplanula" },
+      { "value": "Yellow", "label": "Žuta" },
+      { "value": "Pale", "label": "Svijetla" },
+      { "value": "Light", "label": "Blijeda" },
+      { "value": "Brown", "label": "Smeđa" },
+      { "value": "DarkBrown", "label": "Tamno smeđa" },
+      { "value": "Black", "label": "Crna" }
+    ]
+  }
+]

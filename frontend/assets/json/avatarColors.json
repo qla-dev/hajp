@@ -1,0 +1,54 @@
+{
+  "hairColors": {
+    "Auburn": "#A55728",
+    "Black": "#2C1B18",
+    "Blue": "#65C9FF",
+    "Blonde": "#B58143",
+    "BlondeGolden": "#D6A57B",
+    "Brown": "#724133",
+    "BrownDark": "#4A312C",
+    "PastelPink": "#F4C1C4",
+    "Platinum": "#ECDCBF",
+    "Red": "#C65F48",
+    "SilverGray": "#E8E1E1"
+  },
+  "hairColorGradients": {
+    "Auburn": ["#f7797d", "#fbd786"],
+    "Black": ["#232526", "#414345"],
+    "Blue": ["#00d2ff", "#3a7bd5"],
+    "Blonde": ["#fceabb", "#f8b500"],
+    "BlondeGolden": ["#f6d365", "#fda085"],
+    "Brown": ["#8a5a3b", "#dcb994"],
+    "BrownDark": ["#1f1300", "#5c3b09"],
+    "PastelPink": ["#ff9a9e", "#fecfef"],
+    "Platinum": ["#d9a7c7", "#fffcdc"],
+    "Red": ["#ff512f", "#dd2476"],
+    "SilverGray": ["#cfd9df", "#e2ebf0"]
+  },
+  "clotheColors": {
+    "Black": "#262E33",
+    "Blue01": "#65C9FF",
+    "Blue02": "#5199E4",
+    "Blue03": "#25557C",
+    "Gray01": "#E6E6E6",
+    "Gray02": "#929598",
+    "Heather": "#3C4F5C",
+    "PastelBlue": "#B1E2FF",
+    "PastelGreen": "#A7FFC4",
+    "PastelOrange": "#FFDEB5",
+    "PastelRed": "#FFAFB9",
+    "PastelYellow": "#FFFFB1",
+    "Pink": "#FF488E",
+    "Red": "#FF5C5C",
+    "White": "#FFFFFF"
+  },
+  "skinColors": {
+    "Tanned": "#F1C27D",
+    "Yellow": "#F9D976",
+    "Pale": "#FFDBB4",
+    "Light": "#F2D3B1",
+    "Brown": "#D1A3A4",
+    "DarkBrown": "#A1665E",
+    "Black": "#533724"
+  }
+}

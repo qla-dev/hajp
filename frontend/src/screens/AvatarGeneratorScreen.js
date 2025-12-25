@@ -7,299 +7,48 @@ import { updateCurrentUser } from '../api';
 import { emitProfileUpdated } from '../utils/profileEvents';
 import Avatar from '../components/Avatar';
 import BottomCTA from '../components/BottomCTA';
+import defaultConfig from '../../assets/json/avatarDefaultConfig.json';
+import colorsData from '../../assets/json/avatarColors.json';
+import optionGroupsData from '../../assets/json/avatarOptionGroups.json';
+import tabsData from '../../assets/json/avatarTabs.json';
 
 const sampleHeroUri =
   'https://cdn.dribbble.com/userupload/30645890/file/original-500c027610acebba14fe69de5572dcdd.png?resize=752x&vertical=center';
 
-const defaultConfig = {
-  topType: 'LongHairCurly',
-  accessoriesType: 'Blank',
-  hairColor: 'BrownDark',
-  facialHairType: 'Blank',
-  clotheType: 'BlazerShirt',
-  clotheColor: 'Black',
-  eyeType: 'Default',
-  eyebrowType: 'Default',
-  mouthType: 'Default',
-  skinColor: 'Light',
-};
+const { hairColors, hairColorGradients, clotheColors, skinColors } = colorsData;
+const { tabOrder = [], tabLabels = {} } = tabsData;
 
-const hairColors = {
-  Auburn: '#A55728',
-  Black: '#2C1B18',
-  Blue: '#65C9FF',
-  Blonde: '#B58143',
-  BlondeGolden: '#D6A57B',
-  Brown: '#724133',
-  BrownDark: '#4A312C',
-  PastelPink: '#F4C1C4',
-  Platinum: '#ECDCBF',
-  Red: '#C65F48',
-  SilverGray: '#E8E1E1',
-};
-
-const hairColorGradients = {
-  Auburn: ['#f7797d', '#fbd786'],
-  Black: ['#232526', '#414345'],
-  Blue: ['#00d2ff', '#3a7bd5'],
-  Blonde: ['#fceabb', '#f8b500'],
-  BlondeGolden: ['#f6d365', '#fda085'],
-  Brown: ['#8a5a3b', '#dcb994'],
-  BrownDark: ['#1f1300', '#5c3b09'],
-  PastelPink: ['#ff9a9e', '#fecfef'],
-  Platinum: ['#d9a7c7', '#fffcdc'],
-  Red: ['#ff512f', '#dd2476'],
-  SilverGray: ['#cfd9df', '#e2ebf0'],
-};
-
-const clotheColors = {
-  Black: '#262E33',
-  Blue01: '#65C9FF',
-  Blue02: '#5199E4',
-  Blue03: '#25557C',
-  Gray01: '#E6E6E6',
-  Gray02: '#929598',
-  Heather: '#3C4F5C',
-  PastelBlue: '#B1E2FF',
-  PastelGreen: '#A7FFC4',
-  PastelOrange: '#FFDEB5',
-  PastelRed: '#FFAFB9',
-  PastelYellow: '#FFFFB1',
-  Pink: '#FF488E',
-  Red: '#FF5C5C',
-  White: '#FFFFFF',
-};
-
-const skinColors = {
-  Tanned: '#F1C27D',
-  Yellow: '#F9D976',
-  Pale: '#FFDBB4',
-  Light: '#F2D3B1',
-  Brown: '#D1A3A4',
-  DarkBrown: '#A1665E',
-  Black: '#533724',
-};
-
-const optionGroups = [
-  {
-    key: 'topType',
-    label: 'Frizura',
-    options: [
-      { value: 'NoHair', label: 'Bez kose', emoji: '🧑‍🦲' },
-      { value: 'Eyepatch', label: 'Povez na oku', emoji: '🏴‍☠️' },
-      { value: 'Hat', label: 'Šešir', emoji: '🎩' },
-      { value: 'Hijab', label: 'Hidžab', emoji: '🧕' },
-      { value: 'Turban', label: 'Turban', emoji: '👳' },
-      { value: 'WinterHat1', label: 'Zimska kapa 1', emoji: '🧢' },
-      { value: 'WinterHat2', label: 'Zimska kapa 2', emoji: '🧢' },
-      { value: 'WinterHat3', label: 'Zimska kapa 3', emoji: '🧢' },
-      { value: 'WinterHat4', label: 'Zimska kapa 4', emoji: '🧢' },
-      { value: 'LongHairBigHair', label: 'Duga kosa - bujna', emoji: '💁' },
-      { value: 'LongHairBob', label: 'Duga kosa - bob', emoji: '💇' },
-      { value: 'LongHairBun', label: 'Duga kosa - punđa', emoji: '💁‍♀️' },
-      { value: 'LongHairCurly', label: 'Duga kosa - kovrdžava', emoji: '💁‍♂️' },
-      { value: 'LongHairCurvy', label: 'Duga kosa - talasi', emoji: '💁' },
-      { value: 'LongHairDreads', label: 'Duga kosa - dredovi', emoji: '🧑‍🦱' },
-      { value: 'LongHairFrida', label: 'Frida stil', emoji: '🌺' },
-      { value: 'LongHairFro', label: 'Afro duga', emoji: '🦱' },
-      { value: 'LongHairFroBand', label: 'Afro s trakom', emoji: '🎀' },
-      { value: 'LongHairNotTooLong', label: 'Duga kosa - srednja', emoji: '💇' },
-      { value: 'LongHairShavedSides', label: 'Duga s izbrijanim stranama', emoji: '✂️' },
-      { value: 'LongHairMiaWallace', label: 'Mia Wallace', emoji: '💃' },
-      { value: 'LongHairStraight', label: 'Duga kosa - ravna', emoji: '💇‍♀️' },
-      { value: 'LongHairStraight2', label: 'Duga kosa - ravna 2', emoji: '💇‍♀️' },
-      { value: 'LongHairStraightStrand', label: 'Duga kosa - pramen', emoji: '🧵' },
-      { value: 'ShortHairDreads01', label: 'Kratki dredovi 1', emoji: '🧑‍🦱' },
-      { value: 'ShortHairDreads02', label: 'Kratki dredovi 2', emoji: '🧑‍🦱' },
-      { value: 'ShortHairFrizzle', label: 'Kovrdžava kratka', emoji: '🌀' },
-      { value: 'ShortHairShaggyMullet', label: 'Šegi mullet', emoji: '🦊' },
-      { value: 'ShortHairShortCurly', label: 'Kratka kovrdžava', emoji: '🌀' },
-      { value: 'ShortHairShortFlat', label: 'Kratka ravna', emoji: '✂️' },
-      { value: 'ShortHairShortRound', label: 'Kratka zaobljena', emoji: '⭕️' },
-      { value: 'ShortHairShortWaved', label: 'Kratka valovita', emoji: '🌊' },
-      { value: 'ShortHairSides', label: 'Kratka sa stranama', emoji: '📐' },
-      { value: 'ShortHairTheCaesar', label: 'Cezar', emoji: '🏺' },
-      { value: 'ShortHairTheCaesarSidePart', label: 'Cezar sa razdjeljkom', emoji: '📏' },
-    ],
-  },
-  {
-    key: 'accessoriesType',
-    label: 'Dodaci',
-    options: [
-      { value: 'Blank', label: 'Bez dodataka', emoji: '✨' },
-      { value: 'Kurt', label: 'Kurt naočale', emoji: '😎' },
-      { value: 'Prescription01', label: 'Naočale 1', emoji: '👓' },
-      { value: 'Prescription02', label: 'Naočale 2', emoji: '👓' },
-      { value: 'Round', label: 'Okrugle naočale', emoji: '🕶️' },
-      { value: 'Sunglasses', label: 'Sunčane naočale', emoji: '🕶️' },
-      { value: 'Wayfarers', label: 'Wayfarer naočale', emoji: '🕶️' },
-    ],
-  },
-  {
-    key: 'hairColor',
-    label: 'Boja kose',
-    options: Object.entries(hairColors).map(([value, swatch]) => {
-      const labels = {
-        Auburn: 'Kesten',
-        Black: 'Crna',
-        Blue: 'Plava',
-        Blonde: 'Plava svijetla',
-        BlondeGolden: 'Plava zlatna',
-        Brown: 'Smeđa',
-        BrownDark: 'Tamno smeđa',
-        PastelPink: 'Pastelno roza',
-        Platinum: 'Platinasta',
-        Red: 'Crvena',
-        SilverGray: 'Srebrno siva',
-      };
-      return { value, label: labels[value] || value, swatch, swatchGradient: hairColorGradients[value] };
-    }),
-  },
-  {
-    key: 'facialHairType',
-    label: 'Brada i brkovi',
-    options: [
-      { value: 'Blank', label: 'Bez brade', emoji: '🙂' },
-      { value: 'BeardMedium', label: 'Brada srednja', emoji: '🧔' },
-      { value: 'BeardLight', label: 'Brada svijetla', emoji: '🧔‍♂️' },
-      { value: 'BeardMajestic', label: 'Impozantna brada', emoji: '🧔‍♀️' },
-      { value: 'MoustacheFancy', label: 'Ufrizirani brkovi', emoji: '👨' },
-      { value: 'MoustacheMagnum', label: 'Magnum brkovi', emoji: '👨‍🦰' },
-    ],
-  },
-  {
-    key: 'clotheType',
-    label: 'Odjeća',
-    options: [
-      { value: 'BlazerShirt', label: 'Sako + košulja', emoji: '🧥' },
-      { value: 'BlazerSweater', label: 'Sako + džemper', emoji: '🧥' },
-      { value: 'CollarSweater', label: 'Džemper s kragnom', emoji: '🧶' },
-      { value: 'GraphicShirt', label: 'Majica s printom', emoji: '👕' },
-      { value: 'Hoodie', label: 'Dukserica', emoji: '🧥' },
-      { value: 'Overall', label: 'Tregerice', emoji: '👖' },
-      { value: 'ShirtCrewNeck', label: 'Majica (okrugli izrez)', emoji: '👕' },
-      { value: 'ShirtScoopNeck', label: 'Majica (široki izrez)', emoji: '👚' },
-      { value: 'ShirtVNeck', label: 'Majica (V-izrez)', emoji: '👕' },
-    ],
-  },
-  {
-    key: 'clotheColor',
-    label: 'Boja odjeće',
-    options: Object.entries(clotheColors).map(([value, swatch]) => {
-      const labels = {
-        Black: 'Crna',
-        Blue01: 'Plava 01',
-        Blue02: 'Plava 02',
-        Blue03: 'Plava 03',
-        Gray01: 'Siva 01',
-        Gray02: 'Siva 02',
-        Heather: 'Melirano',
-        PastelBlue: 'Pastel plava',
-        PastelGreen: 'Pastel zelena',
-        PastelOrange: 'Pastel narandžasta',
-        PastelRed: 'Pastel crvena',
-        PastelYellow: 'Pastel žuta',
-        Pink: 'Roza',
-        Red: 'Crvena',
-        White: 'Bijela',
-      };
-      return { value, label: labels[value] || value, swatch };
-    }),
-  },
-  {
-    key: 'eyeType',
-    label: 'Oči',
-    options: [
-      { value: 'Close', label: 'Zatvorene', emoji: '😌' },
-      { value: 'Cry', label: 'Plačne', emoji: '😭' },
-      { value: 'Default', label: 'Standard', emoji: '👀' },
-      { value: 'Dizzy', label: 'Zbunjene', emoji: '😵' },
-      { value: 'EyeRoll', label: 'Prevrtanje', emoji: '🙄' },
-      { value: 'Happy', label: 'Sretne', emoji: '😊' },
-      { value: 'Hearts', label: 'Srca', emoji: '😍' },
-      { value: 'Side', label: 'Na stranu', emoji: '👁️' },
-      { value: 'Squint', label: 'Poluzatvorene', emoji: '😑' },
-      { value: 'Surprised', label: 'Iznenađene', emoji: '😮' },
-      { value: 'Wink', label: 'Namig', emoji: '😉' },
-      { value: 'WinkWacky', label: 'Namig (šaljivo)', emoji: '😜' },
-    ],
-  },
-  {
-    key: 'eyebrowType',
-    label: 'Obrve',
-    options: [
-      { value: 'Angry', label: 'Ljute', emoji: '😠' },
-      { value: 'AngryNatural', label: 'Ljute prirodne', emoji: '😡' },
-      { value: 'Default', label: 'Standard', emoji: '🙂' },
-      { value: 'DefaultNatural', label: 'Standard prirodne', emoji: '😊' },
-      { value: 'FlatNatural', label: 'Ravne', emoji: '😐' },
-      { value: 'RaisedExcited', label: 'Podignute', emoji: '😲' },
-      { value: 'RaisedExcitedNatural', label: 'Podignute prirodne', emoji: '🤨' },
-      { value: 'SadConcerned', label: 'Zabrinute', emoji: '😟' },
-      { value: 'SadConcernedNatural', label: 'Zabrinute prirodne', emoji: '😔' },
-      { value: 'UnibrowNatural', label: 'Spajene obrve', emoji: '🤨' },
-      { value: 'UpDown', label: 'Gore-dolje', emoji: '😯' },
-      { value: 'UpDownNatural', label: 'Gore-dolje prirodne', emoji: '😯' },
-    ],
-  },
-  {
-    key: 'mouthType',
-    label: 'Usta',
-    options: [
-      { value: 'Concerned', label: 'Zabrinuta', emoji: '😟' },
-      { value: 'Default', label: 'Neutralna', emoji: '😐' },
-      { value: 'Disbelief', label: 'Nevjerica', emoji: '😲' },
-      { value: 'Eating', label: 'Jede', emoji: '😋' },
-      { value: 'Grimace', label: 'Grimas', emoji: '😬' },
-      { value: 'Sad', label: 'Tužna', emoji: '😢' },
-      { value: 'ScreamOpen', label: 'Vrisak', emoji: '😱' },
-      { value: 'Serious', label: 'Ozbiljna', emoji: '😑' },
-      { value: 'Smile', label: 'Osmijeh', emoji: '😄' },
-      { value: 'Tongue', label: 'Jezik', emoji: '😛' },
-      { value: 'Twinkle', label: 'Iskra', emoji: '🤩' },
-      { value: 'Vomit', label: 'Povraća', emoji: '🤮' },
-    ],
-  },
-  {
-    key: 'skinColor',
-    label: 'Koža',
-    options: [
-      { value: 'Tanned', label: 'Preplanula', swatch: skinColors.Tanned },
-      { value: 'Yellow', label: 'Žuta', swatch: skinColors.Yellow },
-      { value: 'Pale', label: 'Svijetla', swatch: skinColors.Pale },
-      { value: 'Light', label: 'Blijeda', swatch: skinColors.Light },
-      { value: 'Brown', label: 'Smeđa', swatch: skinColors.Brown },
-      { value: 'DarkBrown', label: 'Tamno smeđa', swatch: skinColors.DarkBrown },
-      { value: 'Black', label: 'Crna', swatch: skinColors.Black },
-    ],
-  },
-];
-
-const tabOrder = [
-  'skinColor',
-  'hairColor',
-  'topType',
-  'accessoriesType',
-  'eyeType',
-  'eyebrowType',
-  'mouthType',
-  'facialHairType',
-  'clotheType',
-  'clotheColor',
-];
-
-const tabLabels = {
-  skinColor: '🧴 Koža',
-  hairColor: '🎨 Boja kose',
-  topType: '💇 Frizura i dodaci na glavi',
-  accessoriesType: '😎 Dodaci na licu',
-  eyeType: '👀 Oči',
-  eyebrowType: '〰️ Obrve',
-  mouthType: '👄 Usta',
-  facialHairType: '🧔 Brada i brkovi',
-  clotheType: '👕 Odjeća',
-  clotheColor: '🧥 Boja odjeće',
-};
+const optionGroups = optionGroupsData.map((group) => {
+  if (group.key === 'hairColor') {
+    return {
+      ...group,
+      options: group.options.map((option) => ({
+        ...option,
+        swatch: hairColors[option.value],
+        swatchGradient: hairColorGradients[option.value],
+      })),
+    };
+  }
+  if (group.key === 'clotheColor') {
+    return {
+      ...group,
+      options: group.options.map((option) => ({
+        ...option,
+        swatch: clotheColors[option.value],
+      })),
+    };
+  }
+  if (group.key === 'skinColor') {
+    return {
+      ...group,
+      options: group.options.map((option) => ({
+        ...option,
+        swatch: skinColors[option.value],
+      })),
+    };
+  }
+  return group;
+});
 
 const orderedOptionGroups = tabOrder
   .map((key) => {

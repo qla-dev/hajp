@@ -1,0 +1,26 @@
+{
+  "tabOrder": [
+    "skinColor",
+    "hairColor",
+    "topType",
+    "accessoriesType",
+    "eyeType",
+    "eyebrowType",
+    "mouthType",
+    "facialHairType",
+    "clotheType",
+    "clotheColor"
+  ],
+  "tabLabels": {
+    "skinColor": "🧴 Koža",
+    "hairColor": "🎨 Boja kose",
+    "topType": "💇 Frizura i dodaci na glavi",
+    "accessoriesType": "😎 Dodaci na licu",
+    "eyeType": "👀 Oči",
+    "eyebrowType": "〰️ Obrve",
+    "mouthType": "👄 Usta",
+    "facialHairType": "🧔 Brada i brkovi",
+    "clotheType": "👕 Odjeća",
+    "clotheColor": "🧥 Boja odjeće"
+  }
+}
