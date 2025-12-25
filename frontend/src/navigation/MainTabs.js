@@ -609,7 +609,7 @@ function MainTabsContent() {
         if (route.name === 'Friends' && (focused === 'FriendProfile' || focused === 'ProfileFriendsList')) {
           hideTabBar = true;
         }
-        if (route.name === 'Rank' && focused === 'ProfileFriendsList') {
+        if (route.name === 'Rank' && (focused === 'ProfileFriendsList' || focused === 'LiveFriendProfile')) {
           hideTabBar = true;
         }
 

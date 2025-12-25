@@ -201,6 +201,7 @@ export default function FriendsScreen({ navigation, route }) {
             const handlePress =
               !isGroupInvite &&
               (() => {
+                Haptics.selectionAsync().catch(() => {});
                 if (refType === 'my-room-allowence') {
                   navigation.navigate('FriendProfile', { isMine: false, userId: item.user_id });
                   return;
