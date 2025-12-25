@@ -12,6 +12,7 @@ import {
   PanResponder,
   Alert,
   Modal,
+  Easing,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useFocusEffect } from '@react-navigation/native';
@@ -56,7 +57,10 @@ export default function ProfileScreen({ navigation, route }) {
   const [noteTextWidth, setNoteTextWidth] = useState(0);
   const marqueeAnim = useRef(new Animated.Value(0)).current;
   const marqueeLoop = useRef(null);
+  const MARQUEE_SPACER = 32;
+  const marqueeDistance = useRef(0);
   const connectSoundRef = useRef(null);
+  const derivedTextWidth = Math.max(noteTextWidth, (noteDisplay?.length || 0) * 12);
 
   useEffect(() => {
     let isMounted = true;
@@ -284,34 +288,47 @@ export default function ProfileScreen({ navigation, route }) {
   const connectSpinnerColor = isConnectCta ? colors.textLight : colors.primary;
 
   useEffect(() => {
-    setNoteTextWidth(0);
+    const estimate = (noteDisplay || '').length * 12;
+    setNoteTextWidth(estimate || 0);
     setNoteContainerWidth(0);
   }, [noteDisplay, showNoteBubble]);
 
   useEffect(() => {
-    if (!noteDisplay || !noteContainerWidth || !noteTextWidth || noteTextWidth <= noteContainerWidth + 8) {
-      marqueeLoop.current?.stop();
+    const shouldScroll = noteDisplay && noteContainerWidth && derivedTextWidth > noteContainerWidth + 4;
+    if (!shouldScroll) {
+      marqueeLoop.current?.stop?.();
       marqueeLoop.current = null;
+      marqueeDistance.current = 0;
+      marqueeAnim.stopAnimation();
       marqueeAnim.setValue(0);
       return;
     }
-    marqueeLoop.current?.stop();
+
+    marqueeLoop.current?.stop?.();
+    marqueeAnim.stopAnimation();
     marqueeAnim.setValue(0);
-    const distance = noteTextWidth + 24;
-    const duration = Math.max(4000, distance * 15);
+
+    const distance = derivedTextWidth + MARQUEE_SPACER;
+    marqueeDistance.current = distance;
+    const duration = Math.max(8000, (derivedTextWidth + noteContainerWidth) * 16);
+
     marqueeLoop.current = Animated.loop(
-      Animated.sequence([
-        Animated.timing(marqueeAnim, { toValue: -distance, duration, useNativeDriver: true }),
-        Animated.delay(600),
-        Animated.timing(marqueeAnim, { toValue: 0, duration: 0, useNativeDriver: true }),
-        Animated.delay(400),
-      ]),
+      Animated.timing(marqueeAnim, {
+        toValue: 1,
+        duration,
+        useNativeDriver: true,
+        easing: Easing.linear,
+      }),
     );
+
     marqueeLoop.current.start();
+
     return () => {
-      marqueeLoop.current?.stop();
+      marqueeLoop.current?.stop?.();
+      marqueeAnim.stopAnimation();
+      marqueeAnim.setValue(0);
     };
-  }, [noteDisplay, noteContainerWidth, noteTextWidth, marqueeAnim]);
+  }, [noteDisplay, noteContainerWidth, derivedTextWidth, marqueeAnim]);
 
   const handleConnectPress = async () => {
     if (!isOtherProfile || !route?.params?.userId || isFriendActionLoading) return;
@@ -370,6 +387,7 @@ export default function ProfileScreen({ navigation, route }) {
   const handleOpenNote = useCallback(() => {
     if (!isMine) return;
     setNoteDraft(noteText);
+    Haptics.selectionAsync().catch(() => {});
     noteSheetRef.current?.open?.();
   }, [isMine, noteText]);
 
@@ -542,24 +560,63 @@ export default function ProfileScreen({ navigation, route }) {
                     style={styles.noteBubbleInner}
                     onLayout={(e) => setNoteContainerWidth(e.nativeEvent.layout.width)}
                   >
-                    <Animated.View
-                      style={[
-                        noteTextWidth > noteContainerWidth
-                          ? { transform: [{ translateX: marqueeAnim }] }
-                          : null,
-                      ]}
-                    >
+                    {derivedTextWidth > noteContainerWidth + 4 ? (
+                      <Animated.View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          transform: [
+                            {
+                              translateX: marqueeAnim.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0, -marqueeDistance.current || 0],
+                              }),
+                            },
+                          ],
+                          width: derivedTextWidth * 2 + MARQUEE_SPACER,
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.noteBubbleText,
+                            !noteText && isMine ? styles.noteBubbleHint : { color: colors.text_primary },
+                          ]}
+                          numberOfLines={1}
+                          onLayout={(e) => {
+                            const width = e?.nativeEvent?.layout?.width ?? 0;
+                            const estimate = (noteDisplay || '').length * 10;
+                            setNoteTextWidth((prev) => Math.max(prev, width, estimate));
+                          }}
+                        >
+                          {noteDisplay}
+                        </Text>
+                        <View style={{ width: MARQUEE_SPACER }} />
+                        <Text
+                          style={[
+                            styles.noteBubbleText,
+                            !noteText && isMine ? styles.noteBubbleHint : { color: colors.text_primary },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {noteDisplay}
+                        </Text>
+                      </Animated.View>
+                    ) : (
                       <Text
                         style={[
                           styles.noteBubbleText,
                           !noteText && isMine ? styles.noteBubbleHint : { color: colors.text_primary },
                         ]}
                         numberOfLines={1}
-                        onLayout={(e) => setNoteTextWidth(e.nativeEvent.layout.width)}
+                        onLayout={(e) => {
+                          const width = e?.nativeEvent?.layout?.width ?? 0;
+                          const estimate = (noteDisplay || '').length * 10;
+                          setNoteTextWidth((prev) => Math.max(prev, width, estimate));
+                        }}
                       >
                         {noteDisplay}
                       </Text>
-                    </Animated.View>
+                    )}
                   </View>
                 </TouchableOpacity>
               )}
@@ -782,11 +839,15 @@ const createStyles = (colors) =>
     },
     noteBubbleInner: {
       overflow: 'hidden',
-      maxWidth: 180,
+      maxWidth: 220,
+      alignItems: 'center',
     },
     noteBubbleText: {
       fontSize: 12,
       fontWeight: '700',
+      flexShrink: 0,
+      includeFontPadding: false,
+      lineHeight: 14,
     },
     noteBubbleHint: {
       color: colors.text_secondary,
