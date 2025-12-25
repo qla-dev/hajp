@@ -7,10 +7,10 @@ import { updateCurrentUser } from '../api';
 import { emitProfileUpdated } from '../utils/profileEvents';
 import Avatar from '../components/Avatar';
 import BottomCTA from '../components/BottomCTA';
-import defaultConfig from '../../assets/json/avatarDefaultConfig.json';
-import colorsData from '../../assets/json/avatarColors.json';
-import optionGroupsData from '../../assets/json/avatarOptionGroups.json';
-import tabsData from '../../assets/json/avatarTabs.json';
+import defaultConfig from '../../assets/json/avatar/avatarDefaultConfig.json';
+import colorsData from '../../assets/json/avatar/avatarColors.json';
+import optionGroupsData from '../../assets/json/avatar/avatarOptionGroups.json';
+import tabsData from '../../assets/json/avatar/avatarTabs.json';
 
 const sampleHeroUri =
   'https://cdn.dribbble.com/userupload/30645890/file/original-500c027610acebba14fe69de5572dcdd.png?resize=752x&vertical=center';
