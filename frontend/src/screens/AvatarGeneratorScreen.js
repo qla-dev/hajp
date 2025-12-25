@@ -1,6 +1,7 @@
 ﻿import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { updateCurrentUser } from '../api';
 import { emitProfileUpdated } from '../utils/profileEvents';
@@ -35,6 +36,20 @@ const hairColors = {
   Platinum: '#ECDCBF',
   Red: '#C65F48',
   SilverGray: '#E8E1E1',
+};
+
+const hairColorGradients = {
+  Auburn: ['#f7797d', '#fbd786'],
+  Black: ['#232526', '#414345'],
+  Blue: ['#00d2ff', '#3a7bd5'],
+  Blonde: ['#fceabb', '#f8b500'],
+  BlondeGolden: ['#f6d365', '#fda085'],
+  Brown: ['#8a5a3b', '#dcb994'],
+  BrownDark: ['#1f1300', '#5c3b09'],
+  PastelPink: ['#ff9a9e', '#fecfef'],
+  Platinum: ['#d9a7c7', '#fffcdc'],
+  Red: ['#ff512f', '#dd2476'],
+  SilverGray: ['#cfd9df', '#e2ebf0'],
 };
 
 const clotheColors = {
@@ -123,19 +138,22 @@ const optionGroups = [
   {
     key: 'hairColor',
     label: 'Boja kose',
-    options: [
-      { value: 'Auburn', label: 'Kesten', swatch: hairColors.Auburn },
-      { value: 'Black', label: 'Crna', swatch: hairColors.Black },
-      { value: 'Blue', label: 'Plava', swatch: hairColors.Blue },
-      { value: 'Blonde', label: 'Plava svijetla', swatch: hairColors.Blonde },
-      { value: 'BlondeGolden', label: 'Plava zlatna', swatch: hairColors.BlondeGolden },
-      { value: 'Brown', label: 'Smeđa', swatch: hairColors.Brown },
-      { value: 'BrownDark', label: 'Tamno smeđa', swatch: hairColors.BrownDark },
-      { value: 'PastelPink', label: 'Pastelno roza', swatch: hairColors.PastelPink },
-      { value: 'Platinum', label: 'Platinasta', swatch: hairColors.Platinum },
-      { value: 'Red', label: 'Crvena', swatch: hairColors.Red },
-      { value: 'SilverGray', label: 'Srebrno siva', swatch: hairColors.SilverGray },
-    ],
+    options: Object.entries(hairColors).map(([value, swatch]) => {
+      const labels = {
+        Auburn: 'Kesten',
+        Black: 'Crna',
+        Blue: 'Plava',
+        Blonde: 'Plava svijetla',
+        BlondeGolden: 'Plava zlatna',
+        Brown: 'Smeđa',
+        BrownDark: 'Tamno smeđa',
+        PastelPink: 'Pastelno roza',
+        Platinum: 'Platinasta',
+        Red: 'Crvena',
+        SilverGray: 'Srebrno siva',
+      };
+      return { value, label: labels[value] || value, swatch, swatchGradient: hairColorGradients[value] };
+    }),
   },
   {
     key: 'facialHairType',
@@ -397,10 +415,17 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
                     style={[styles.optionCard, active && [styles.optionCardActive, { borderColor: colors.primary }]]}
                     activeOpacity={0.9}
                   >
-                    {option.swatch ? (
+                    {option.swatchGradient ? (
+                      <LinearGradient
+                        colors={option.swatchGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={[styles.swatch, { borderColor: colors.border }]}
+                      />
+                    ) : option.swatch ? (
                       <View style={[styles.swatch, { backgroundColor: option.swatch }]} />
                     ) : (
-                      <Text style={[styles.optionEmoji, active && { color: colors.primary }]}>{option.emoji || '🙂'}</Text>
+                      <Text style={[styles.optionEmoji, active && { color: colors.primary }]}>{option.emoji || '??'}</Text>
                     )}
                     <Text style={[styles.optionText, active && styles.optionTextActive]} numberOfLines={1}>
                       {option.label}
