@@ -824,8 +824,8 @@ const createStyles = (colors) =>
     noteBubble: {
       position: 'absolute',
       top: -6,
-      left: -6,
-      right: -6,
+      left: '15%',
+      right: '15%',
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 18,
@@ -841,6 +841,7 @@ const createStyles = (colors) =>
       width: NOTE_MARQUEE_WIDTH,
       minWidth: NOTE_MARQUEE_WIDTH,
       alignItems: 'center',
+      alignSelf: 'center',
     },
     noteBubbleText: {
       fontSize: 12,

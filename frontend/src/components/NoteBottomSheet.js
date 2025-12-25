@@ -63,12 +63,12 @@ const NoteBottomSheet = React.forwardRef(({ initialValue = '', onSave, onClose }
     >
       <View style={styles.content}>
         <Text style={styles.sheetTitle}>Dodaj misao</Text>
-        <Text style={styles.sheetSubtitle}>Kratka biljeska na tvom profilu.</Text>
+        <Text style={styles.sheetSubtitle}>Kratka bilješka na tvom profilu.</Text>
         <View style={styles.inputWrapper}>
           <TextInput
             ref={inputRef}
             value={note}
-            placeholder="Upisi misao..."
+            placeholder="Podijeli u čemu danas razmišljaš..."
             placeholderTextColor={colors.text_secondary}
             onChangeText={handleNoteChange}
             onFocus={() => setInputFocused(true)}
@@ -84,7 +84,7 @@ const NoteBottomSheet = React.forwardRef(({ initialValue = '', onSave, onClose }
           </View>
         </View>
         <TouchableOpacity style={styles.submit} onPress={handleSave} disabled={loading}>
-          {loading ? <ActivityIndicator color={colors.textLight} /> : <Text style={styles.submitText}>Sacuvaj</Text>}
+          {loading ? <ActivityIndicator color={colors.textLight} /> : <Text style={styles.submitText}>Sačuvaj</Text>}
         </TouchableOpacity>
       </View>
     </Modalize>
