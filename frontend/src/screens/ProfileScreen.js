@@ -18,13 +18,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri, SvgXml } from 'react-native-svg';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, removeFriend, recordProfileView } from '../api';
+import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, removeFriend, recordProfileView, updateCurrentUser } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 import BottomCTA from '../components/BottomCTA';
 import SuggestionSlider from '../components/SuggestionSlider';
 import Avatar from '../components/Avatar';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
+import NoteBottomSheet from '../components/NoteBottomSheet';
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 
 export default function ProfileScreen({ navigation, route }) {
@@ -48,6 +49,13 @@ export default function ProfileScreen({ navigation, route }) {
   const glowAnim = useRef(new Animated.Value(0)).current;
   const avatarZoomAnim = useRef(new Animated.Value(0)).current;
   const [showAvatarZoom, setShowAvatarZoom] = useState(false);
+  const [noteDraft, setNoteDraft] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
+  const noteSheetRef = useRef(null);
+  const [noteContainerWidth, setNoteContainerWidth] = useState(0);
+  const [noteTextWidth, setNoteTextWidth] = useState(0);
+  const marqueeAnim = useRef(new Animated.Value(0)).current;
+  const marqueeLoop = useRef(null);
   const connectSoundRef = useRef(null);
 
   useEffect(() => {
@@ -240,6 +248,9 @@ export default function ProfileScreen({ navigation, route }) {
       ? `Član ${displayedRooms.join(', ')}${remainingRooms > 0 ? ` i još ${remainingRooms} soba` : ''}`
       : 'Nema članstava u sobama';
   const coinBalance = user?.coins ?? 58;
+  const noteText = (user?.note || '').trim();
+  const showNoteBubble = isMine || !!noteText;
+  const noteDisplay = isMine ? noteText || 'Dodaj misao' : noteText;
   const avatarTextColor = encodeURIComponent(colors.textLight.replace('#', ''));
   const glowScale = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.25] });
@@ -271,6 +282,36 @@ export default function ProfileScreen({ navigation, route }) {
     <SvgUri uri={CONNECT_ICON_URI} width={18} height={18} color={connectIconColor} fill={connectIconColor} />
   );
   const connectSpinnerColor = isConnectCta ? colors.textLight : colors.primary;
+
+  useEffect(() => {
+    setNoteTextWidth(0);
+    setNoteContainerWidth(0);
+  }, [noteDisplay, showNoteBubble]);
+
+  useEffect(() => {
+    if (!noteDisplay || !noteContainerWidth || !noteTextWidth || noteTextWidth <= noteContainerWidth + 8) {
+      marqueeLoop.current?.stop();
+      marqueeLoop.current = null;
+      marqueeAnim.setValue(0);
+      return;
+    }
+    marqueeLoop.current?.stop();
+    marqueeAnim.setValue(0);
+    const distance = noteTextWidth + 24;
+    const duration = Math.max(4000, distance * 15);
+    marqueeLoop.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(marqueeAnim, { toValue: -distance, duration, useNativeDriver: true }),
+        Animated.delay(600),
+        Animated.timing(marqueeAnim, { toValue: 0, duration: 0, useNativeDriver: true }),
+        Animated.delay(400),
+      ]),
+    );
+    marqueeLoop.current.start();
+    return () => {
+      marqueeLoop.current?.stop();
+    };
+  }, [noteDisplay, noteContainerWidth, noteTextWidth, marqueeAnim]);
 
   const handleConnectPress = async () => {
     if (!isOtherProfile || !route?.params?.userId || isFriendActionLoading) return;
@@ -325,6 +366,30 @@ export default function ProfileScreen({ navigation, route }) {
       setConnecting(false);
     }
   };
+
+  const handleOpenNote = useCallback(() => {
+    if (!isMine) return;
+    setNoteDraft(noteText);
+    noteSheetRef.current?.open?.();
+  }, [isMine, noteText]);
+
+  const handleSaveNote = useCallback(
+    async (value) => {
+      if (!isMine || savingNote) return;
+      const payloadNote = (value ?? noteDraft).trim();
+      setSavingNote(true);
+      try {
+        const { data } = await updateCurrentUser({ note: payloadNote.length ? payloadNote : null });
+        setUser(data);
+        setNoteDraft(payloadNote);
+      } catch (error) {
+        Alert.alert('Greska', 'Nismo mogli sacuvati biljesku. Pokusaj ponovo.');
+      } finally {
+        setSavingNote(false);
+      }
+    },
+    [isMine, noteDraft, savingNote],
+  );
 
   useEffect(() => {
     const title = user?.username
@@ -457,13 +522,48 @@ export default function ProfileScreen({ navigation, route }) {
         )}
         <View style={styles.profileSection}>
           <View style={styles.profileRow}>
-            {hasAvatarImage ? (
-              <TouchableOpacity onPress={openAvatarZoom} activeOpacity={0.9}>
+            <View style={styles.avatarWrapper}>
+              {hasAvatarImage ? (
+                <TouchableOpacity onPress={openAvatarZoom} activeOpacity={0.9}>
+                  <Avatar uri={avatarUri} name={user?.name || 'Korisnik'} variant="avatar-l" style={styles.profileImage} />
+                </TouchableOpacity>
+              ) : (
                 <Avatar uri={avatarUri} name={user?.name || 'Korisnik'} variant="avatar-l" style={styles.profileImage} />
-              </TouchableOpacity>
-            ) : (
-              <Avatar uri={avatarUri} name={user?.name || 'Korisnik'} variant="avatar-l" style={styles.profileImage} />
-            )}
+              )}
+
+              {showNoteBubble && (
+                <TouchableOpacity
+                  activeOpacity={isMine ? 0.85 : 1}
+                  disabled={!isMine}
+                  onPress={handleOpenNote}
+                  style={[styles.noteBubble, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                >
+                  <View
+                    style={styles.noteBubbleInner}
+                    onLayout={(e) => setNoteContainerWidth(e.nativeEvent.layout.width)}
+                  >
+                    <Animated.View
+                      style={[
+                        noteTextWidth > noteContainerWidth
+                          ? { transform: [{ translateX: marqueeAnim }] }
+                          : null,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.noteBubbleText,
+                          !noteText && isMine ? styles.noteBubbleHint : { color: colors.text_primary },
+                        ]}
+                        numberOfLines={1}
+                        onLayout={(e) => setNoteTextWidth(e.nativeEvent.layout.width)}
+                      >
+                        {noteDisplay}
+                      </Text>
+                    </Animated.View>
+                  </View>
+                </TouchableOpacity>
+              )}
+            </View>
 
             <View style={styles.statsColumn}>
               <Text style={styles.userName}>{user?.name || ''}</Text>
@@ -606,9 +706,16 @@ export default function ProfileScreen({ navigation, route }) {
             >
               <Avatar uri={avatarUri} name={user?.name || 'Korisnik'} size={320} style={styles.avatarZoomImage} />
             </Animated.View>
-          </Pressable>
-        </Modal>
-      )}
+            </Pressable>
+          </Modal>
+        )}
+
+      <NoteBottomSheet
+        ref={noteSheetRef}
+        initialValue={noteText}
+        onSave={handleSaveNote}
+        onClose={() => setSavingNote(false)}
+      />
 
       {isMine && (
         <BottomCTA
@@ -650,8 +757,40 @@ const createStyles = (colors) =>
       gap: 20,
       paddingHorizontal: 20,
     },
+    avatarWrapper: {
+      position: 'relative',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     profileImage: {
       backgroundColor: colors.surface,
+    },
+    noteBubble: {
+      position: 'absolute',
+      top: -6,
+      left: -6,
+      right: -6,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 18,
+      borderWidth: 1,
+      shadowColor: '#000',
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 3,
+    },
+    noteBubbleInner: {
+      overflow: 'hidden',
+      maxWidth: 180,
+    },
+    noteBubbleText: {
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    noteBubbleHint: {
+      color: colors.text_secondary,
+      fontStyle: 'italic',
     },
     statsRow: {
       flexDirection: 'row',
@@ -993,5 +1132,53 @@ const createStyles = (colors) =>
     avatarZoomImage: {
       width: '100%',
       height: '100%',
+    },
+    noteModalCard: {
+      width: '100%',
+      borderRadius: 20,
+      padding: 18,
+      borderWidth: 1,
+    },
+    noteModalContent: {
+      flex: 1,
+      width: '100%',
+      justifyContent: 'center',
+      paddingHorizontal: 20,
+      paddingBottom: 140,
+    },
+    noteOverlay: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    noteModalTitle: {
+      fontSize: 18,
+      fontWeight: '800',
+      marginBottom: 6,
+    },
+    noteModalSubtitle: {
+      fontSize: 14,
+      marginBottom: 12,
+    },
+    noteInput: {
+      borderWidth: 1,
+      borderRadius: 14,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      minHeight: 90,
+      textAlignVertical: 'top',
+      fontSize: 15,
+      marginBottom: 14,
+    },
+    noteCta: {
+      marginTop: 12,
+      paddingHorizontal: 16,
+      paddingBottom: 50,
+    },
+    noteCloseFloating: {
+      position: 'absolute',
+      top: 46,
+      right: 18,
+      zIndex: 20,
     },
   });

@@ -25,6 +25,7 @@ class UserController extends Controller
                 'username' => ['sometimes', 'string', 'max:50', Rule::unique('users', 'username')->ignore($user->id)],
                 'sex' => 'sometimes|nullable|string|max:10',
                 'profile_photo' => 'sometimes|nullable|url',
+                'note' => 'sometimes|nullable|string|max:280',
             ],
             [
                 'name.max' => 'Ime može imati najviše 255 karaktera.',
@@ -34,6 +35,7 @@ class UserController extends Controller
                 'username.max' => 'Korisničko ime može imati najviše 50 karaktera.',
                 'sex.max' => 'Pol može imati najviše 10 karaktera.',
                 'profile_photo.url' => 'Link za profilnu sliku nije ispravan.',
+                'note.max' => 'Bilješka može imati najviše 280 karaktera.',
             ]
         );
 
@@ -208,6 +210,7 @@ class UserController extends Controller
         'username' => $user->username,
         'profile_photo' => $user->profile_photo,
         'sex' => $user->sex,
+        'note' => $user->note,
         'coins' => $user->coins ?? 0,
         'is_private' => $user->is_private ?? 0,
             ],

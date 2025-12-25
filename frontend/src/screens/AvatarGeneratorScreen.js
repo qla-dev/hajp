@@ -508,19 +508,15 @@ const createStyles = (colors) =>
       borderRadius: 20,
     },
     selectorBar: {
-      paddingTop: 8,
+      paddingTop: 0,
       paddingBottom: 12,
       borderBottomWidth: 0,
-      shadowColor: '#000',
-      shadowOpacity: 0.06,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 4 },
       elevation: 2,
       zIndex: 2,
     },
     tabs: {
       paddingHorizontal: 10,
-      paddingBottom: 4,
+      paddingBottom: 8,
     },
     tabRow: {
       gap: 10,
@@ -571,10 +567,6 @@ const createStyles = (colors) =>
     },
     optionCardActive: {
       backgroundColor: colors.background,
-      shadowColor: colors.primary,
-      shadowOpacity: 0.22,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 6 },
       elevation: 5,
     },
     optionEmoji: {
