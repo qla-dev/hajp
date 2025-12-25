@@ -218,6 +218,7 @@ export default function ProfileScreen({ navigation, route }) {
   const hasActiveFriendship = friendStatus.exists && friendStatus.approved === 1;
   const isPrivateProfile = Boolean(user?.is_private);
   const showPrivateNotice = isOtherProfile && isPrivateProfile && !hasActiveFriendship;
+  const canViewFriendsList = !showPrivateNotice;
 
   const username = user?.name ? user.name.toLowerCase().replace(' ', '') : 'gost';
   const normalizedRooms = (roomSummary.rooms || [])
@@ -440,7 +441,9 @@ export default function ProfileScreen({ navigation, route }) {
               <View style={styles.statsRow}>
                 <TouchableOpacity
                   style={styles.statItemRow}
+                  disabled={!canViewFriendsList}
                   onPress={() =>
+                    canViewFriendsList &&
                     navigation.navigate('ProfileFriendsList', {
                       userId: isOtherProfile ? route?.params?.userId : undefined,
                     })
