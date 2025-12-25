@@ -234,7 +234,13 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      <BottomCTA label="Sačuvaj avatar" iconName="person-circle-outline" onPress={handleSave} fixed />
+      <BottomCTA
+        label="Sačuvaj avatar"
+        iconName="person-circle-outline"
+        onPress={handleSave}
+        fixed
+        style={{ paddingHorizontal: 16, paddingBottom: 50 }}
+      />
     </>
   );
 }

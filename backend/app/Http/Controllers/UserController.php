@@ -216,15 +216,21 @@ class UserController extends Controller
 
     public function profileViews(User $user)
     {
+        Log::info('[ProfileViews] fetch', [
+            'auth_user_id' => $user->id,
+            'route' => request()->path(),
+            'query' => request()->query(),
+        ]);
+
         $views = ProfileView::query()
-            ->with(['visitor.roomMembers.room'])
+            ->with(['visitor.roomMemberships.room'])
             ->where('auth_user_id', $user->id)
             ->orderByDesc('updated_at')
             ->limit(100)
             ->get()
             ->map(function ($view) {
                 $visitor = $view->visitor;
-                $firstRoom = $visitor?->roomMembers?->sortBy('id')->first();
+                $firstRoom = $visitor?->roomMemberships?->sortBy('id')->first();
                 return [
                     'visitor_id' => $visitor?->id,
                     'name' => $visitor?->name,
