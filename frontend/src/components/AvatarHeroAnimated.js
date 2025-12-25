@@ -66,8 +66,15 @@ const buildGradientColor = (hex, opacity) => {
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };
 
-export default function AvatarHeroAnimated({ children, style, height = 340, fixed = false }) {
-  const { colors } = useTheme();
+export default function AvatarHeroAnimated({
+  children,
+  style,
+  height = 340,
+  fixed = false,
+  colorsOverride,
+}) {
+  const { colors: themeColors } = useTheme();
+  const colors = colorsOverride || themeColors;
   const avatars = useMemo(
     () => new Array(TOTAL_AVATARS).fill(0).map(() => buildAvatarSvgUrl(generateRandomConfig())),
     [],
@@ -120,7 +127,7 @@ export default function AvatarHeroAnimated({ children, style, height = 340, fixe
       style={[
         styles.container,
         fixed && styles.fixedContainer,
-        { height, backgroundColor: colors.backgroundDark },
+        { height },
         style,
       ]}
     >
@@ -192,7 +199,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 18,
     paddingVertical: 18,
-    opacity: 0.7,
   },
   fixedContainer: {
     position: 'absolute',

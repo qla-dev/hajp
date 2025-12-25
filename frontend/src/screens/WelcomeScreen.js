@@ -1,19 +1,22 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SvgUri } from 'react-native-svg';
-import { useThemedStyles } from '../theme/darkMode';
+import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL } from '../api';
+import AvatarHeroAnimated from '../components/AvatarHeroAnimated';
 
 const logoUri = `${baseURL}/img/logo.svg`;
+const HERO_HEIGHT = 320;
 
 export default function WelcomeScreen({ navigation }) {
+  const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.welcomeText}>DOBRODOŠLI U</Text>
-        <View style={styles.logoContainer}>
+      <AvatarHeroAnimated fixed height={HERO_HEIGHT} colorsOverride={colors}>
+        <View style={styles.heroOverlay}>
+          <Text style={styles.welcomeText}>DOBRODOŠLI U</Text>
           <SvgUri
             width={300}
             height={80}
@@ -22,7 +25,9 @@ export default function WelcomeScreen({ navigation }) {
             style={styles.logoImage}
           />
         </View>
+      </AvatarHeroAnimated>
 
+      <View style={styles.content}>
         <View style={styles.featuresContainer}>
           <View style={styles.featureCard}>
             <View style={styles.phonePreview}>
@@ -34,7 +39,7 @@ export default function WelcomeScreen({ navigation }) {
 
           <View style={styles.featureCard}>
             <View style={styles.phonePreview2}>
-              <Text style={styles.featureEmoji}>🔥</Text>
+              <Text style={styles.featureEmoji}>💎</Text>
             </View>
             <Text style={styles.featureDescription}>Dobij hajp kad te{'\n'}izaberu u anketi</Text>
           </View>
@@ -47,9 +52,10 @@ export default function WelcomeScreen({ navigation }) {
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginButton}>
-          <Text style={styles.loginText}>Već imaš račun? <Text style={styles.loginLinkBold}>Prijavi se</Text></Text>
+          <Text style={styles.loginText}>
+            Vec imas racun? <Text style={styles.loginLinkBold}>Prijavi se</Text>
+          </Text>
         </TouchableOpacity>
-
       </View>
     </View>
   );
@@ -64,7 +70,14 @@ const createStyles = (colors) =>
     content: {
       flex: 1,
       padding: 24,
+      paddingTop: HERO_HEIGHT + 24,
       justifyContent: 'center',
+    },
+    heroOverlay: {
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      paddingBottom: 24,
+      gap: 6,
     },
     welcomeText: {
       fontSize: 16,
@@ -73,12 +86,11 @@ const createStyles = (colors) =>
       textAlign: 'center',
       letterSpacing: 1,
     },
-    logoContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: 8,
-      marginBottom: 40,
+    heroTitle: {
+      fontSize: 32,
+      fontWeight: '800',
+      color: colors.text_primary,
+      letterSpacing: 1,
     },
     logoImage: {
       width: 220,
@@ -168,7 +180,7 @@ const createStyles = (colors) =>
       textAlign: 'center',
       fontSize: 13,
     },
-      loginLinkBold: {
+    loginLinkBold: {
       fontWeight: '700',
       color: colors.secondary,
     },

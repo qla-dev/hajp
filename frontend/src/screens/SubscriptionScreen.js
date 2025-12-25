@@ -277,7 +277,7 @@ export default function SubscriptionScreen() {
 
   return (
     <View style={styles.container}>
-      <AvatarHeroAnimated fixed height={COVER_HEIGHT}>
+      <AvatarHeroAnimated fixed height={COVER_HEIGHT} colorsOverride={colors}>
         <View style={styles.heroContent}>
           <Ionicons name="diamond" size={28} color={colors.primary} />
           <Text style={styles.heroTitle}>Pretplati se na Premium</Text>
