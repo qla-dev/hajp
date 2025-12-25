@@ -70,7 +70,7 @@ const createStyles = (colors) =>
     content: {
       flex: 1,
       padding: 24,
-      paddingTop: HERO_HEIGHT + 4,
+      paddingTop: HERO_HEIGHT,
       justifyContent: 'center',
     },
     heroOverlay: {
@@ -99,7 +99,7 @@ const createStyles = (colors) =>
     featuresContainer: {
       flexDirection: 'row',
       justifyContent: 'space-around',
-      marginTop: 8,
+      marginTop: 0,
     },
     featureCard: {
       alignItems: 'center',
