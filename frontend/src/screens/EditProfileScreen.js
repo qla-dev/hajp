@@ -13,6 +13,8 @@ const genderOptions = [
   { key: 'boy', label: 'Muško', icon: 'male-outline' },
 ];
 const years = Array.from({ length: 35 }, (_, i) => 16 + i); // 16 through 50
+const AVATAR_SIZE = 180;
+const PROFILE_SIZE = 135;
 
 const normalizeUser = (user) => ({
   name: user?.name || '',
@@ -21,6 +23,7 @@ const normalizeUser = (user) => ({
   sex: user?.sex || '',
   grade: user?.grade ? Number(user.grade) || 18 : 18,
   profile_photo: user?.profile_photo || '',
+  avatar: user?.avatar || '',
 });
 
 const resolveAvatar = (photo) => {
@@ -41,6 +44,13 @@ export default function EditProfileScreen({ navigation, route }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const avatarTextColor = encodeURIComponent(colors.textLight.replace('#', ''));
+  const profileFallback =
+    'https://ui-avatars.com/api/?name=' +
+    (form.name || 'Korisnik') +
+    '&size=200&background=' +
+    encodeURIComponent(colors.profilePurple.replace('#', '')) +
+    '&color=' +
+    avatarTextColor;
 
   const isDirty = ['name', 'email', 'sex'].some((key) => form[key] !== initialValues[key]);
 
@@ -175,6 +185,16 @@ export default function EditProfileScreen({ navigation, route }) {
     }
   }, [applyUser]);
 
+  const onRemoveAvatar = useCallback(async () => {
+    try {
+      const { data } = await updateCurrentUser({ avatar: null });
+      applyUser(data);
+      Alert.alert('Uspjeh', 'Avatar je uklonjen.');
+    } catch (e) {
+      Alert.alert('Greška', 'Nismo mogli ukloniti avatar. Pokusaj ponovo.');
+    }
+  }, [applyUser]);
+
   const onOpenAvatarGenerator = useCallback(() => {
     navigation.navigate('AvatarGenerator', { seedConfig: { avatarStyle: 'Circle' } });
   }, [navigation]);
@@ -211,15 +231,11 @@ export default function EditProfileScreen({ navigation, route }) {
             <Avatar
               uri={
                 resolveAvatar(form.profile_photo, form.name) ||
-                'https://ui-avatars.com/api/?name=' +
-                  (form.name || 'Korisnik') +
-                  '&size=200&background=' +
-                  encodeURIComponent(colors.profilePurple.replace('#', '')) +
-                  '&color=' +
-                  avatarTextColor
+                profileFallback
               }
               name={form.name || 'Korisnik'}
               variant="avatar-m"
+              size={PROFILE_SIZE}
               style={styles.avatar}
             />
             <TouchableOpacity style={styles.cameraBadge} onPress={onPickPhoto} activeOpacity={0.9} disabled={uploadingPhoto}>
@@ -234,21 +250,26 @@ export default function EditProfileScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.avatarSeparator}>
-            <Text style={styles.avatarSeparatorText}>ILI</Text>
-          </View>
-
-          <TouchableOpacity style={styles.avatarGenerator} onPress={onOpenAvatarGenerator} activeOpacity={0.9} disabled={uploadingPhoto}>
-            <View style={styles.avatarGeneratorIcon}>
-              <Ionicons name="happy-outline" size={48} color={colors.primary} />
-            </View>
-            <Text style={styles.avatarGeneratorText}>Kreiraj avatar</Text>
+          <TouchableOpacity style={[styles.avatarContainer, styles.avatarGenerator]} onPress={onOpenAvatarGenerator} activeOpacity={0.9} disabled={uploadingPhoto}>
+            {form.avatar ? (
+              <Avatar uri={form.avatar} name={form.name || 'Avatar'} variant="avatar-m" size={AVATAR_SIZE} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatarGeneratorIcon, styles.avatarPlaceholder]}>
+                <Ionicons name="happy-outline" size={48} color={colors.primary} />
+              </View>
+            )}
+            <Text style={styles.avatarGeneratorText}>{form.avatar ? 'Izmijeni avatar' : 'Kreiraj avatar'}</Text>
           </TouchableOpacity>
         </View>
         <Text style={styles.avatarNote}>Dodaj sliku do 3 MB ili kreiraj avatar. Ista će biti javno dostupna.</Text>
-        <TouchableOpacity style={styles.removePhotoButton} onPress={onRemovePhoto} disabled={uploadingPhoto || saving}>
-          <Text style={styles.removePhotoText}>Ukloni profilnu sliku</Text>
-        </TouchableOpacity>
+        <View style={styles.removeRow}>
+          <TouchableOpacity style={styles.removePhotoButton} onPress={onRemovePhoto} disabled={uploadingPhoto || saving}>
+            <Text style={styles.removePhotoText}>Ukloni profilnu sliku</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.removePhotoButton} onPress={onRemoveAvatar} disabled={uploadingPhoto || saving}>
+            <Text style={styles.removePhotoText}>Ukloni avatar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.formSection}>
@@ -319,7 +340,7 @@ export default function EditProfileScreen({ navigation, route }) {
       {loading && (
         <View style={styles.loadingRow}>
           <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={styles.loadingText}>Ucitavanje profila...</Text>
+          <Text style={styles.loadingText}>Učitavanje profila...</Text>
         </View>
       )}
 
@@ -351,12 +372,14 @@ const createStyles = (colors) =>
     },
     avatarRow: {
       flexDirection: 'row',
-      alignItems: 'center',
-      gap: 16,
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+      gap: 20,
       paddingHorizontal: 12,
     },
     avatarContainer: {
-      width: 140,
+      width: '45%',
+      maxWidth: 200,
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
@@ -390,16 +413,6 @@ const createStyles = (colors) =>
       fontWeight: '700',
       color: colors.primary,
     },
-    avatarSeparator: {
-      paddingHorizontal: 8,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    avatarSeparatorText: {
-      fontSize: 13,
-      fontWeight: '800',
-      color: colors.text_secondary,
-    },
     avatarGenerator: {
       alignItems: 'center',
       justifyContent: 'center',
@@ -414,6 +427,14 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       backgroundColor: colors.surface,
     },
+    avatarPlaceholder: {
+      gap: 6,
+    },
+    avatarPlaceholderText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.text_secondary,
+    },
     avatarGeneratorText: {
       fontSize: 13,
       fontWeight: '700',
@@ -426,7 +447,6 @@ const createStyles = (colors) =>
       textAlign: 'center',
     },
     removePhotoButton: {
-      marginTop: 6,
       paddingHorizontal: 12,
       paddingVertical: 8,
     },
@@ -435,6 +455,12 @@ const createStyles = (colors) =>
       fontWeight: '700',
       fontSize: 13,
       textDecorationLine: 'underline',
+    },
+    removeRow: {
+      marginTop: 6,
+      flexDirection: 'row',
+      gap: 12,
+      justifyContent: 'center',
     },
     label: {
       marginBottom: 4,

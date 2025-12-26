@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'sex',
         'profile_photo',
+        'avatar',
         'note',
         'is_subscribed',
         'hajp_coins',

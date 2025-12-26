@@ -87,9 +87,9 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     if (saving) return;
     setSaving(true);
     try {
-      const { data } = await updateCurrentUser({ profile_photo: avatarSvgUrl });
+      const { data } = await updateCurrentUser({ avatar: avatarSvgUrl });
       emitProfileUpdated(data);
-      Alert.alert('Avatar sačuvan', 'Tvoj novi avatar je postavljen kao profilna slika.');
+      Alert.alert('Avatar sačuvan', 'Tvoj novi avatar je postavljen na profil.');
       navigation.goBack();
     } catch (error) {
       Alert.alert('Greška', 'Nismo mogli sačuvati avatar. Pokušaj ponovo.');
