@@ -1,12 +1,11 @@
 ﻿import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert, Image, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { updateCurrentUser } from '../api';
 import { emitProfileUpdated } from '../utils/profileEvents';
 import Avatar from '../components/Avatar';
-import BottomCTA from '../components/BottomCTA';
 import defaultConfig from '../../assets/json/avatar/avatarDefaultConfig.json';
 import colorsData from '../../assets/json/avatar/avatarColors.json';
 import optionGroupsData from '../../assets/json/avatar/avatarOptionGroups.json';
@@ -83,6 +82,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   const [config, setConfig] = useState(() => enforceCirclePurple({ ...defaultConfig, ...(seedConfig || {}) }));
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState(orderedOptionGroups[0]?.key || optionGroups[0].key);
+  const [showAiModal, setShowAiModal] = useState(false);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
@@ -91,6 +91,14 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   const handleSelect = useCallback((key, value) => {
     setConfig((prev) => enforceCirclePurple({ ...prev, [key]: value }));
   }, []);
+
+  const handleRandomGender = useCallback(
+    (gender) => {
+      const next = generateRandomConfig({ gender, circleBg: true });
+      setConfig(enforceCirclePurple(next));
+    },
+    [],
+  );
 
   const handleSave = useCallback(async () => {
     if (saving) return;
@@ -134,6 +142,25 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
 
   return (
     <View style={styles.screen}>
+      <Modal
+        visible={showAiModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowAiModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: colors.surface }]}>
+            <Text style={styles.modalTitle}>Generiši sa AI</Text>
+            <Text style={styles.modalText}>
+              Uskoro stiže generisanje avatara putem AI. Do tada koristi postojeće opcije i sacuvaj izgled.
+            </Text>
+            <TouchableOpacity style={styles.modalClose} onPress={() => setShowAiModal(false)} activeOpacity={0.9}>
+              <Text style={styles.modalCloseText}>Zatvori</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <View style={[styles.selectorBar, { backgroundColor: colors.transparent, borderColor: colors.border }]}>
         <ScrollView
           horizontal
@@ -205,19 +232,63 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
               variant="avatar-xxl"
               zoomModal={false}
             />
+            <TouchableOpacity
+              style={[styles.genderBadge, styles.genderBadgeLeft]}
+              activeOpacity={0.85}
+              onPress={() => handleRandomGender('male')}
+            >
+              <Ionicons name="male" size={18} color="#fff" />
+              <Ionicons name="shuffle-outline" size={16} color="#fff" style={{ marginLeft: 4 }} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.genderBadge, styles.genderBadgeRight]}
+              activeOpacity={0.85}
+              onPress={() => handleRandomGender('female')}
+            >
+              <Ionicons name="female" size={18} color="#fff" />
+              <Ionicons name="shuffle-outline" size={16} color="#fff" style={{ marginLeft: 4 }} />
+            </TouchableOpacity>
           </View>
         </View>
 
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      <BottomCTA
-        label="Sačuvaj avatar"
-        iconName="person-circle-outline"
-        onPress={handleSave}
-        fixed
-        style={{ paddingHorizontal: 16, paddingBottom: 50 }}
-      />
+      <View style={styles.bottomBar}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          style={styles.aiButton}
+          onPress={() => setShowAiModal(true)}
+        >
+          <LinearGradient
+            colors={['#4f9bfd', '#b794f4', '#34d399']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.aiButtonGradient}
+          >
+            <View style={styles.aiButtonInner}>
+              <Ionicons name="sparkles-outline" size={18} color="#fff" />
+              <Text style={[styles.aiButtonText, { color: '#fff' }]}>Generisi sa AI</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.9}
+          style={[styles.saveCta, { backgroundColor: colors.primary }, saving && styles.saveButtonDisabled]}
+          onPress={handleSave}
+          disabled={saving}
+        >
+          {saving ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Ionicons name="person-circle-outline" size={18} color="#fff" style={styles.saveCtaIcon} />
+              <Text style={styles.saveCtaText}>Sacuvaj avatar</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -266,6 +337,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: 20,
+      position: 'relative',
     },
     selectorBar: {
       paddingTop: 0,
@@ -360,5 +432,109 @@ const createStyles = (colors) =>
       color: colors.text_primary,
       fontWeight: '500',
       fontSize: 16,
+    },
+    bottomBar: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      paddingBottom: 32,
+      paddingTop: 12,
+      backgroundColor: colors.background,
+      gap: 12,
+    },
+    aiButton: {
+      flex: 1,
+    },
+    aiButtonGradient: {
+      padding: 1,
+      borderRadius: 14,
+    },
+    aiButtonInner: {
+      borderRadius: 13,
+      paddingVertical: 12,
+      paddingHorizontal: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      backgroundColor: 'transparent',
+    },
+    aiButtonText: {
+      fontWeight: '700',
+      fontSize: 15,
+    },
+    saveCta: {
+      flex: 1,
+      borderRadius: 14,
+      paddingVertical: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    },
+    saveCtaText: {
+      color: '#fff',
+      fontWeight: '800',
+      fontSize: 15,
+    },
+    saveCtaIcon: {
+      marginRight: 4,
+    },
+    genderBadge: {
+      position: 'absolute',
+      bottom: 12,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      elevation: 4,
+    },
+    genderBadgeLeft: {
+      left: 12,
+      backgroundColor: '#3b82f6',
+    },
+    genderBadgeRight: {
+      right: 12,
+      backgroundColor: '#ec4899',
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+    },
+    modalCard: {
+      width: '100%',
+      borderRadius: 16,
+      padding: 20,
+      gap: 10,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: colors.text_primary,
+    },
+    modalText: {
+      fontSize: 15,
+      color: colors.text_secondary,
+      lineHeight: 20,
+    },
+    modalClose: {
+      alignSelf: 'flex-end',
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 10,
+      backgroundColor: colors.primary,
+    },
+    modalCloseText: {
+      color: '#fff',
+      fontWeight: '700',
+      fontSize: 14,
     },
   });
