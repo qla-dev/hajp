@@ -127,6 +127,27 @@ export default function Avatar({
     }
     return base;
   }, [bgMode, colors.profilePurple, parsedConfig, resolvedName, uri]);
+  useEffect(() => {
+    if (enforcedConfig) {
+      console.log('[Avatar] build config', {
+        bgColor: enforcedConfig.backgroundColor,
+        bgMode,
+        hasUri: !!uri,
+        name: resolvedName,
+      });
+    }
+  }, [bgMode, enforcedConfig, resolvedName, uri]);
+
+  useEffect(() => {
+    console.log('[Avatar] resolved sources', {
+      hasConfig: !!parsedConfig,
+      hasPhoto: !!resolvedProfilePhoto,
+      hasUri: !!effectiveUri,
+      bgMode,
+      mode: contentMode,
+      bgColor: enforcedConfig?.backgroundColor,
+    });
+  }, [contentMode, effectiveUri, enforcedConfig?.backgroundColor, parsedConfig, resolvedProfilePhoto, bgMode]);
   const builtFromConfig = useMemo(() => (enforcedConfig ? buildAvatarSvg(enforcedConfig) : null), [enforcedConfig]);
   const resolvedProfilePhoto = useMemo(
     () =>
