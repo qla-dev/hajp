@@ -107,6 +107,8 @@ export default function Avatar({
   user,
   profilePhoto,
   zoomModal = true,
+  border = 0,
+  flip = false,
   onPress,
 }) {
   const { colors } = useTheme();
@@ -115,6 +117,7 @@ export default function Avatar({
   const [svgMarkup, setSvgMarkup] = useState(null);
   const zoomAnim = useRef(new Animated.Value(0)).current;
   const [showZoom, setShowZoom] = useState(false);
+  const [assetReady, setAssetReady] = useState(false);
 
   const resolvedName = name || user?.name || user?.username || '';
   const configSource = avatarConfig ?? user?.avatar;
@@ -208,10 +211,12 @@ export default function Avatar({
   const contentDimensionStyle = { width: resolvedSize, height: resolvedSize, borderRadius: resolvedSize / 2 };
   const zoomSize = Math.max(resolvedSize * 1.8, resolvedSize + 120);
   const zoomFont = Math.max(Math.round(zoomSize * 0.26), resolvedFont);
+  const borderStyle = border ? { borderWidth: border, borderColor: colors.border } : null;
 
   useEffect(() => {
     setImageError(false);
     setSvgError(false);
+    setAssetReady(false);
   }, [effectiveUri]);
 
   useEffect(() => {
@@ -224,6 +229,7 @@ export default function Avatar({
       const embedded = extractSvgFromDataUri(effectiveUri);
       if (embedded) {
         setSvgMarkup(applyPaletteOverride(embedded, colors.secondary));
+        setAssetReady(true);
         return;
       }
       try {
@@ -231,8 +237,10 @@ export default function Avatar({
         const text = await res.text();
         if (cancelled) return;
         setSvgMarkup(applyPaletteOverride(text, colors.secondary));
+        setAssetReady(true);
       } catch (error) {
         if (!cancelled) {
+          setAssetReady(false);
           setSvgMarkup(null);
         }
       }
@@ -244,44 +252,60 @@ export default function Avatar({
   }, [colors.secondary, effectiveUri, isSvg]);
 
   const renderContent = (dimensionStyle = contentDimensionStyle, fontSize = resolvedFont, sizeForElement = resolvedSize) => {
+    const assetStyle = [styles.base, dimensionStyle, flip ? styles.flip : null, assetReady ? null : styles.hidden];
+    const fallbackBg = contentMode === 'avatar' ? 'transparent' : colors.profilePurple;
+    const fallbackNode = (
+      <View style={[styles.fallback, dimensionStyle, { backgroundColor: fallbackBg }]}>
+        <Text style={[styles.initials, { color: colors.textLight, fontSize }]}>{initials}</Text>
+      </View>
+    );
+
     if (effectiveUri && isSvg && !svgError) {
-      if (svgMarkup) {
-        return (
-          <SvgXml
-            xml={svgMarkup}
-            width={sizeForElement}
-            height={sizeForElement}
-            style={[styles.base, dimensionStyle]}
-          />
-        );
-      }
-      return (
+      const node = svgMarkup ? (
+        <SvgXml
+          xml={svgMarkup}
+          width={sizeForElement}
+          height={sizeForElement}
+          style={assetStyle}
+        />
+      ) : (
         <SvgUri
           uri={effectiveUri}
           width={sizeForElement}
           height={sizeForElement}
-          style={[styles.base, dimensionStyle]}
+          style={assetStyle}
+          onLoad={() => setAssetReady(true)}
           onError={() => setSvgError(true)}
         />
+      );
+      return (
+        <View style={[styles.stack, dimensionStyle, borderStyle]}>
+          {fallbackNode}
+          <View style={[styles.absoluteFill, { borderRadius: dimensionStyle.borderRadius }]}>{node}</View>
+        </View>
       );
     }
 
     if (effectiveUri && !initialsOnly && !imageError) {
-      return (
+      const node = (
         <Image
           source={{ uri: effectiveUri }}
-          style={[styles.base, dimensionStyle]}
+          style={assetStyle}
+          onLoad={() => setAssetReady(true)}
+          onLoadEnd={() => setAssetReady(true)}
           onError={() => setImageError(true)}
           resizeMode="cover"
         />
       );
+      return (
+        <View style={[styles.stack, dimensionStyle, borderStyle]}>
+          {fallbackNode}
+          <View style={[styles.absoluteFill, { borderRadius: dimensionStyle.borderRadius }]}>{node}</View>
+        </View>
+      );
     }
 
-    return (
-      <View style={[styles.fallback, dimensionStyle, { backgroundColor: colors.profilePurple }]}>
-        <Text style={[styles.initials, { color: colors.textLight, fontSize }]}>{initials}</Text>
-      </View>
-    );
+    return <View style={[styles.stack, dimensionStyle, borderStyle]}>{fallbackNode}</View>;
   };
 
   const canZoom = zoomModal && !!effectiveUri && !imageError && !svgError;
@@ -365,9 +389,22 @@ const styles = StyleSheet.create({
   fallback: {
     alignItems: 'center',
     justifyContent: 'center',
+    },
+    initials: {
+      fontWeight: '800',
+    },
+  stack: {
+    position: 'relative',
+    overflow: 'hidden',
   },
-  initials: {
-    fontWeight: '800',
+  absoluteFill: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  hidden: {
+    opacity: 0,
+  },
+  flip: {
+    transform: [{ scaleX: -1 }],
   },
   avatarOverlay: {
     flex: 1,
