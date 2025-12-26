@@ -71,14 +71,16 @@ const orderedOptionGroups = tabOrder
   })
   .filter(Boolean);
 
+const enforceCirclePurple = (cfg = {}) => ({
+  ...cfg,
+  showBackground: true,
+  backgroundShape: 'circle',
+  backgroundColor: '#b794f4',
+});
+
 export default function AvatarGeneratorScreen({ navigation, route }) {
   const seedConfig = route?.params?.seedConfig;
-  const [config, setConfig] = useState(() => ({
-    ...defaultConfig,
-    ...(seedConfig || {}),
-    showBackground: true,
-    backgroundShape: 'circle',
-  }));
+  const [config, setConfig] = useState(() => enforceCirclePurple({ ...defaultConfig, ...(seedConfig || {}) }));
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState(orderedOptionGroups[0]?.key || optionGroups[0].key);
   const { colors } = useTheme();
@@ -87,14 +89,14 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   const avatarSvgUrl = useMemo(() => buildAvatarSvg(config), [config]);
 
   const handleSelect = useCallback((key, value) => {
-    setConfig((prev) => ({ ...prev, [key]: value }));
+    setConfig((prev) => enforceCirclePurple({ ...prev, [key]: value }));
   }, []);
 
   const handleSave = useCallback(async () => {
     if (saving) return;
     setSaving(true);
     try {
-      const payload = { ...config, showBackground: true, backgroundShape: 'circle' };
+      const payload = enforceCirclePurple(config);
       const { data } = await updateCurrentUser({ avatar: JSON.stringify(payload) });
       emitProfileUpdated(data);
       Alert.alert('Avatar sačuvan', 'Tvoj novi avatar je postavljen na profil.');
@@ -124,12 +126,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
 
   useEffect(() => {
     if (route?.params?.preset) {
-      setConfig((prev) => ({
-        ...prev,
-        ...route.params.preset,
-        showBackground: true,
-        backgroundShape: 'circle',
-      }));
+      setConfig((prev) => enforceCirclePurple({ ...prev, ...route.params.preset }));
     }
   }, [route?.params?.preset]);
 

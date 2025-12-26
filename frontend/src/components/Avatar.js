@@ -32,17 +32,6 @@ const isSvgUri = (uri) => {
   return lowered.includes('avataaars.io') || lowered.startsWith('data:image/svg') || lowered.includes('.svg');
 };
 
-const applyPaletteOverride = (svgMarkup, color) => {
-  if (!svgMarkup || !color) return svgMarkup;
-  const paletteId = 'Color/Palette/Blue-01';
-  const regex = new RegExp(`(<g[^>]*id="${paletteId}"[^>]*)(>)`);
-  if (regex.test(svgMarkup)) {
-    return svgMarkup.replace(regex, `$1 fill="${color}"$2`);
-  }
-  // Fallback: replace the default blue hex value used by that palette
-  return svgMarkup.replace(/#65C9FF/gi, color);
-};
-
 const extractSvgFromDataUri = (uri) => {
   if (!uri || typeof uri !== 'string') return null;
   const match = uri.match(/^data:image\/svg\+xml;utf8,(.*)$/i);
@@ -129,13 +118,12 @@ export default function Avatar({
   const enforcedConfig = useMemo(() => {
     if (!parsedConfig) return null;
     const base = { ...parsedConfig, showBackground: true, backgroundShape: 'circle' };
-    if (bgMode === 'auto') {
+    base.backgroundColor = '#b794f4';
+    if (bgMode === 'random') {
       const seed = resolvedName || uri || JSON.stringify(parsedConfig) || Math.random().toString();
       const palette = ['#FF9E80', '#FFD180', '#FFFF8D', '#CCFF90', '#A7FFEB', '#80D8FF', '#82B1FF', '#B388FF', '#F8BBD0', '#b794f4'];
       const hash = seed.split('').reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % palette.length, 0);
       base.backgroundColor = palette[hash] || palette[0];
-    } else {
-      base.backgroundColor = parsedConfig.backgroundColor || '#b794f4';
     }
     return base;
   }, [bgMode, colors.profilePurple, parsedConfig, resolvedName, uri]);
@@ -220,6 +208,7 @@ export default function Avatar({
 
   const initialsOnly = isInitialsPlaceholderUri(effectiveUri);
   const isSvg = !initialsOnly && isSvgUri(effectiveUri);
+  const paletteColor = bgMode === 'random' ? colors.secondary : '#b794f4';
 
   const slotDimensionStyle = { width: slotSize, height: slotSize, borderRadius: slotSize / 2 };
   const contentDimensionStyle = { width: resolvedSize, height: resolvedSize, borderRadius: resolvedSize / 2 };
@@ -242,7 +231,7 @@ export default function Avatar({
     const loadSvg = async () => {
       const embedded = extractSvgFromDataUri(effectiveUri);
       if (embedded) {
-        setSvgMarkup(applyPaletteOverride(embedded, colors.secondary));
+        setSvgMarkup(embedded);
         setAssetReady(true);
         return;
       }
@@ -250,7 +239,7 @@ export default function Avatar({
         const res = await fetch(effectiveUri);
         const text = await res.text();
         if (cancelled) return;
-        setSvgMarkup(applyPaletteOverride(text, colors.secondary));
+        setSvgMarkup(text);
         setAssetReady(true);
       } catch (error) {
         if (!cancelled) {
@@ -263,7 +252,7 @@ export default function Avatar({
     return () => {
       cancelled = true;
     };
-  }, [colors.secondary, effectiveUri, isSvg]);
+  }, [colors.secondary, effectiveUri, isSvg, paletteColor]);
 
   const renderContent = (dimensionStyle = contentDimensionStyle, fontSize = resolvedFont, sizeForElement = resolvedSize) => {
     const assetStyle = [styles.base, dimensionStyle, flip ? styles.flip : null, assetReady ? null : styles.hidden];
