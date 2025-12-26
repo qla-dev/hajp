@@ -267,15 +267,23 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
             end={{ x: 1, y: 1 }}
             style={styles.aiBorder}
           >
-            <View style={[styles.aiButtonInner, { backgroundColor: 'transparent' }]}>
-              <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
-              <MaskedView maskElement={<Text style={[styles.aiButtonText, styles.aiButtonTextMask]}>Generisi sa AI</Text>}>
+            <View style={styles.aiButtonInner}>
+              <MaskedView maskElement={<Ionicons name="sparkles-outline" size={18} color="#000" />}>
                 <LinearGradient
                   colors={['#4f9bfd', '#b794f4', '#34d399']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
-                  <Text style={[styles.aiButtonText, styles.aiButtonTextFill]}>Generisi sa AI</Text>
+                  <Ionicons name="sparkles-outline" size={18} color="transparent" />
+                </LinearGradient>
+              </MaskedView>
+              <MaskedView maskElement={<Text style={[styles.aiButtonText, styles.aiButtonTextMask]}>Generiši sa AI</Text>}>
+                <LinearGradient
+                  colors={['#4f9bfd', '#b794f4', '#34d399']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Text style={[styles.aiButtonText, styles.aiButtonTextFill]}>Generiši sa AI</Text>
                 </LinearGradient>
               </MaskedView>
             </View>
@@ -293,7 +301,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
           ) : (
             <>
               <Ionicons name="person-circle-outline" size={18} color="#fff" style={styles.saveCtaIcon} />
-              <Text style={styles.saveCtaText}>Sacuvaj avatar</Text>
+              <Text style={styles.saveCtaText}>Sačuvaj avatar</Text>
             </>
           )}
         </TouchableOpacity>
@@ -456,24 +464,27 @@ const createStyles = (colors) =>
     },
     aiButton: {
       flex: 1,
+      height: 55,
     },
     aiBorder: {
       padding: 1.5,
-      borderRadius: 14,
+      borderRadius: 20,
+      height: '100%',
     },
     aiButtonInner: {
-      borderRadius: 13,
+      borderRadius: 19,
       paddingVertical: 12,
       paddingHorizontal: 10,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      backgroundColor: 'transparent',
+      backgroundColor: colors.background,
+      height: '100%',
     },
     aiButtonText: {
       fontWeight: '700',
-      fontSize: 15,
+      fontSize: 16,
     },
     aiButtonTextMask: {
       color: '#000',
@@ -483,17 +494,18 @@ const createStyles = (colors) =>
     },
     saveCta: {
       flex: 1,
-      borderRadius: 14,
+      borderRadius: 20,
       paddingVertical: 12,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
+      height: 55,
     },
     saveCtaText: {
       color: '#fff',
-      fontWeight: '800',
-      fontSize: 15,
+      fontWeight: '700',
+      fontSize: 16,
     },
     saveCtaIcon: {
       marginRight: 4,
