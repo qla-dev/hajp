@@ -10,8 +10,8 @@ const COLUMNS = 6;
 const TOTAL_AVATARS = ROW_COUNT * COLUMNS;
 const HERO_SIZE = avatarSizeMap.hero?.size || 140;
 const AVATAR_SIZE = Math.round(HERO_SIZE * 0.40); // use hero token scaled to fit the grid
-const ROW_GAP = 1;
-const EDGE_OVERFLOW = Math.round(AVATAR_SIZE * 0.7);
+const ROW_GAP = 0;
+const EDGE_OVERFLOW = Math.round(AVATAR_SIZE*0.7);
 
 const buildGradientColor = (hex, opacity) => {
   if (!hex || typeof hex !== 'string') {
