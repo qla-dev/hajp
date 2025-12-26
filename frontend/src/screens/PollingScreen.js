@@ -40,8 +40,32 @@ export default function PollingScreen({ route, navigation }) {
   const skipSoundRef = useRef(null);
   const shuffleSoundRef = useRef(null);
   const emojis = useMemo(() => ['🔥', '🚀', '💎', '🏆', '🎉', '✨'], []);
-  const backgrounds = useMemo(() => [colors.secondary, '#7c3aed', '#2563eb', '#0ea5e9', '#22c55e', '#f97316'], [colors.secondary]);
-  const [bgColor, setBgColor] = useState(colors.secondary);
+  const backgrounds = useMemo(
+    () => [
+      colors.primary,
+      '#dc2626',
+      '#2563eb',
+      '#f97316',
+      '#16a34a',
+      '#9333ea',
+      '#d97706',
+      '#059669',
+      '#e11d48',
+      '#0ea5e9',
+      '#6b21a8',
+      '#22c55e',
+      '#f59e0b',
+      '#0284c7',
+      '#ea580c',
+      '#14b8a6',
+      '#b91c1c',
+      '#4f46e5',
+      '#047857',
+      '#c026d3',
+    ],
+    [colors.primary],
+  );
+  const [bgColor, setBgColor] = useState(colors.primary);
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', () => {
       const parent = navigation.getParent();
