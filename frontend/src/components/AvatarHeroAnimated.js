@@ -2,9 +2,8 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Animated, Easing, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Avatar, { sizeMap as avatarSizeMap } from './Avatar';
-import defaultConfig from '../../assets/json/avatar/avatarDefaultConfig.json';
-import optionGroupsData from '../../assets/json/avatar/avatarOptionGroups.json';
 import { useTheme } from '../theme/darkMode';
+import { buildAvatarSvg, generateRandomConfig } from '../utils/bigHeadAvatar';
 
 const ROW_COUNT = 6;
 const COLUMNS = 5;
@@ -12,45 +11,6 @@ const TOTAL_AVATARS = ROW_COUNT * COLUMNS;
 const HERO_SIZE = avatarSizeMap.hero?.size || 140;
 const AVATAR_SIZE = Math.round(HERO_SIZE * 0.32); // use hero token scaled to fit the grid
 const ROW_GAP = 8;
-
-const optionMap = optionGroupsData.reduce((acc, group) => {
-  acc[group.key] = group.options.map((option) => option.value);
-  return acc;
-}, {});
-
-const buildAvatarParams = (config) =>
-  new URLSearchParams({
-    avatarStyle: 'Circle',
-    topType: config.topType,
-    accessoriesType: config.accessoriesType,
-    hairColor: config.hairColor,
-    facialHairType: config.facialHairType,
-    clotheType: config.clotheType,
-    clotheColor: config.clotheColor,
-    eyeType: config.eyeType,
-    eyebrowType: config.eyebrowType,
-    mouthType: config.mouthType,
-    skinColor: config.skinColor,
-  });
-
-const buildAvatarSvgUrl = (config) => `https://avataaars.io/?${buildAvatarParams(config).toString()}`;
-
-const pickRandom = (items = []) => {
-  if (!items.length) return null;
-  const idx = Math.floor(Math.random() * items.length);
-  return items[idx];
-};
-
-const generateRandomConfig = () => {
-  const config = { ...defaultConfig };
-  Object.keys(optionMap).forEach((key) => {
-    const options = optionMap[key];
-    if (options?.length) {
-      config[key] = pickRandom(options) || config[key];
-    }
-  });
-  return config;
-};
 
 const buildGradientColor = (hex, opacity) => {
   if (!hex || typeof hex !== 'string') {
@@ -76,7 +36,7 @@ export default function AvatarHeroAnimated({
   const { colors: themeColors } = useTheme();
   const colors = colorsOverride || themeColors;
   const avatars = useMemo(
-    () => new Array(TOTAL_AVATARS).fill(0).map(() => buildAvatarSvgUrl(generateRandomConfig())),
+    () => new Array(TOTAL_AVATARS).fill(0).map(() => buildAvatarSvg(generateRandomConfig())),
     [],
   );
 

@@ -1,188 +1,340 @@
 [
   {
-    "key": "topType",
-    "label": "Frizura",
+    "key": "skinTone",
+    "label": "Skin tone",
     "options": [
-      { "value": "NoHair", "label": "Bez kose", "emoji": "🧑‍🦲" },
-      { "value": "Eyepatch", "label": "Povez na oku", "emoji": "🏴‍☠️" },
-      { "value": "Hat", "label": "Šešir", "emoji": "🎩" },
-      { "value": "Hijab", "label": "Hidžab", "emoji": "🧕" },
-      { "value": "Turban", "label": "Turban", "emoji": "👳" },
-      { "value": "WinterHat1", "label": "Zimska kapa 1", "emoji": "🧢" },
-      { "value": "WinterHat2", "label": "Zimska kapa 2", "emoji": "🧢" },
-      { "value": "WinterHat3", "label": "Zimska kapa 3", "emoji": "🧢" },
-      { "value": "WinterHat4", "label": "Zimska kapa 4", "emoji": "🧢" },
-      { "value": "LongHairBigHair", "label": "Duga kosa - bujna", "emoji": "💁" },
-      { "value": "LongHairBob", "label": "Duga kosa - bob", "emoji": "💇" },
-      { "value": "LongHairBun", "label": "Duga kosa - punđa", "emoji": "💁‍♀️" },
-      { "value": "LongHairCurly", "label": "Duga kosa - kovrdžava", "emoji": "💁‍♂️" },
-      { "value": "LongHairCurvy", "label": "Duga kosa - talasi", "emoji": "💁" },
-      { "value": "LongHairDreads", "label": "Duga kosa - dredovi", "emoji": "🧑‍🦱" },
-      { "value": "LongHairFrida", "label": "Frida stil", "emoji": "🌺" },
-      { "value": "LongHairFro", "label": "Afro duga", "emoji": "🦱" },
-      { "value": "LongHairFroBand", "label": "Afro s trakom", "emoji": "🎀" },
-      { "value": "LongHairNotTooLong", "label": "Duga kosa - srednja", "emoji": "💇" },
-      { "value": "LongHairShavedSides", "label": "Duga s izbrijanim stranama", "emoji": "✂️" },
-      { "value": "LongHairMiaWallace", "label": "Mia Wallace", "emoji": "💃" },
-      { "value": "LongHairStraight", "label": "Duga kosa - ravna", "emoji": "💇‍♀️" },
-      { "value": "LongHairStraight2", "label": "Duga kosa - ravna 2", "emoji": "💇‍♀️" },
-      { "value": "LongHairStraightStrand", "label": "Duga kosa - pramen", "emoji": "🧵" },
-      { "value": "ShortHairDreads01", "label": "Kratki dredovi 1", "emoji": "🧑‍🦱" },
-      { "value": "ShortHairDreads02", "label": "Kratki dredovi 2", "emoji": "🧑‍🦱" },
-      { "value": "ShortHairFrizzle", "label": "Kovrdžava kratka", "emoji": "🌀" },
-      { "value": "ShortHairShaggyMullet", "label": "Šegi mullet", "emoji": "🦊" },
-      { "value": "ShortHairShortCurly", "label": "Kratka kovrdžava", "emoji": "🌀" },
-      { "value": "ShortHairShortFlat", "label": "Kratka ravna", "emoji": "✂️" },
-      { "value": "ShortHairShortRound", "label": "Kratka zaobljena", "emoji": "⭕️" },
-      { "value": "ShortHairShortWaved", "label": "Kratka valovita", "emoji": "🌊" },
-      { "value": "ShortHairSides", "label": "Kratka sa stranama", "emoji": "📐" },
-      { "value": "ShortHairTheCaesar", "label": "Cezar", "emoji": "🏺" },
-      { "value": "ShortHairTheCaesarSidePart", "label": "Cezar sa razdjeljkom", "emoji": "📏" }
+      { "value": "light", "label": "Light" },
+      { "value": "yellow", "label": "Warm" },
+      { "value": "brown", "label": "Brown" },
+      { "value": "dark", "label": "Dark" },
+      { "value": "red", "label": "Rosy" },
+      { "value": "black", "label": "Deep" }
     ]
   },
   {
-    "key": "accessoriesType",
-    "label": "Dodaci",
+    "key": "hair",
+    "label": "Hair",
     "options": [
-      { "value": "Blank", "label": "Bez dodataka", "emoji": "✨" },
-      { "value": "Kurt", "label": "Kurt naočale", "emoji": "😎" },
-      { "value": "Prescription01", "label": "Naočale 1", "emoji": "👓" },
-      { "value": "Prescription02", "label": "Naočale 2", "emoji": "👓" },
-      { "value": "Round", "label": "Okrugle naočale", "emoji": "🕶️" },
-      { "value": "Sunglasses", "label": "Sunčane naočale", "emoji": "🕶️" },
-      { "value": "Wayfarers", "label": "Wayfarer naočale", "emoji": "🕶️" }
+      { "value": "none", "label": "None" },
+      { "value": "long", "label": "Long" },
+      { "value": "bun", "label": "Bun" },
+      { "value": "short", "label": "Short" },
+      { "value": "pixie", "label": "Pixie" },
+      { "value": "balding", "label": "Balding" },
+      { "value": "buzz", "label": "Buzz" },
+      { "value": "afro", "label": "Afro" },
+      { "value": "bob", "label": "Bob" },
+      { "value": "mohawk", "label": "Mohawk" }
     ]
   },
   {
     "key": "hairColor",
-    "label": "Boja kose",
+    "label": "Hair color",
     "options": [
-      { "value": "Auburn", "label": "Kesten" },
-      { "value": "Black", "label": "Crna" },
-      { "value": "Blue", "label": "Plava" },
-      { "value": "Blonde", "label": "Plava svijetla" },
-      { "value": "BlondeGolden", "label": "Plava zlatna" },
-      { "value": "Brown", "label": "Smeđa" },
-      { "value": "BrownDark", "label": "Tamno smeđa" },
-      { "value": "PastelPink", "label": "Pastelno roza" },
-      { "value": "Platinum", "label": "Platinasta" },
-      { "value": "Red", "label": "Crvena" },
-      { "value": "SilverGray", "label": "Srebrno siva" }
+      { "value": "white", "label": "White" },
+      { "value": "silver", "label": "Silver" },
+      { "value": "blonde", "label": "Blonde" },
+      { "value": "brown", "label": "Brown" },
+      { "value": "black", "label": "Black" },
+      { "value": "red", "label": "Red" },
+      { "value": "lightRed", "label": "Light red" },
+      { "value": "orange", "label": "Orange" },
+      { "value": "lightOrange", "label": "Light orange" },
+      { "value": "green", "label": "Green" },
+      { "value": "lightGreen", "label": "Light green" },
+      { "value": "turqoise", "label": "Turquoise" },
+      { "value": "lightTurqoise", "label": "Light turquoise" },
+      { "value": "blue", "label": "Blue" },
+      { "value": "lightBlue", "label": "Light blue" },
+      { "value": "pink", "label": "Pink" },
+      { "value": "lightPink", "label": "Light pink" },
+      { "value": "purple", "label": "Purple" },
+      { "value": "lightPurple", "label": "Light purple" }
     ]
   },
   {
-    "key": "facialHairType",
-    "label": "Brada i brkovi",
+    "key": "eyes",
+    "label": "Eyes",
     "options": [
-      { "value": "Blank", "label": "Bez brade", "emoji": "🙂" },
-      { "value": "BeardMedium", "label": "Brada srednja", "emoji": "🧔" },
-      { "value": "BeardLight", "label": "Brada svijetla", "emoji": "🧔‍♂️" },
-      { "value": "BeardMajestic", "label": "Impozantna brada", "emoji": "🧔‍♀️" },
-      { "value": "MoustacheFancy", "label": "Ufrizirani brkovi", "emoji": "👨" },
-      { "value": "MoustacheMagnum", "label": "Magnum brkovi", "emoji": "👨‍🦰" }
+      { "value": "normal", "label": "Normal" },
+      { "value": "leftTwitch", "label": "Left twitch" },
+      { "value": "happy", "label": "Happy" },
+      { "value": "content", "label": "Content" },
+      { "value": "squint", "label": "Squint" },
+      { "value": "simple", "label": "Simple" },
+      { "value": "dizzy", "label": "Dizzy" },
+      { "value": "wink", "label": "Wink" },
+      { "value": "heart", "label": "Hearts" },
+      { "value": "crazy", "label": "Crazy" },
+      { "value": "cute", "label": "Cute" },
+      { "value": "dollars", "label": "Dollars" },
+      { "value": "stars", "label": "Stars" },
+      { "value": "cyborg", "label": "Cyborg" },
+      { "value": "simplePatch", "label": "Eye patch" },
+      { "value": "piratePatch", "label": "Pirate patch" }
     ]
   },
   {
-    "key": "clotheType",
-    "label": "Odjeća",
+    "key": "eyebrows",
+    "label": "Brows",
     "options": [
-      { "value": "BlazerShirt", "label": "Sako + košulja", "emoji": "🧥" },
-      { "value": "BlazerSweater", "label": "Sako + džemper", "emoji": "🧥" },
-      { "value": "CollarSweater", "label": "Džemper s kragnom", "emoji": "🧶" },
-      { "value": "GraphicShirt", "label": "Majica s printom", "emoji": "👕" },
-      { "value": "Hoodie", "label": "Dukserica", "emoji": "🧥" },
-      { "value": "Overall", "label": "Tregerice", "emoji": "👖" },
-      { "value": "ShirtCrewNeck", "label": "Majica (okrugli izrez)", "emoji": "👕" },
-      { "value": "ShirtScoopNeck", "label": "Majica (široki izrez)", "emoji": "👚" },
-      { "value": "ShirtVNeck", "label": "Majica (V-izrez)", "emoji": "👕" }
+      { "value": "raised", "label": "Raised" },
+      { "value": "leftLowered", "label": "Left lowered" },
+      { "value": "serious", "label": "Serious" },
+      { "value": "angry", "label": "Angry" },
+      { "value": "concerned", "label": "Concerned" },
+      { "value": "none", "label": "None" }
     ]
   },
   {
-    "key": "clotheColor",
-    "label": "Boja odjeće",
+    "key": "lashes",
+    "label": "Lashes",
     "options": [
-      { "value": "Black", "label": "Crna" },
-      { "value": "Blue01", "label": "Plava 01" },
-      { "value": "Blue02", "label": "Plava 02" },
-      { "value": "Blue03", "label": "Plava 03" },
-      { "value": "Gray01", "label": "Siva 01" },
-      { "value": "Gray02", "label": "Siva 02" },
-      { "value": "Heather", "label": "Melirano" },
-      { "value": "PastelBlue", "label": "Pastel plava" },
-      { "value": "PastelGreen", "label": "Pastel zelena" },
-      { "value": "PastelOrange", "label": "Pastel narandžasta" },
-      { "value": "PastelRed", "label": "Pastel crvena" },
-      { "value": "PastelYellow", "label": "Pastel žuta" },
-      { "value": "Pink", "label": "Roza" },
-      { "value": "Red", "label": "Crvena" },
-      { "value": "White", "label": "Bijela" }
+      { "value": true, "label": "On" },
+      { "value": false, "label": "Off" }
     ]
   },
   {
-    "key": "eyeType",
-    "label": "Oči",
+    "key": "mouth",
+    "label": "Mouth",
     "options": [
-      { "value": "Close", "label": "Zatvorene", "emoji": "😌" },
-      { "value": "Cry", "label": "Plačne", "emoji": "😭" },
-      { "value": "Default", "label": "Standard", "emoji": "👀" },
-      { "value": "Dizzy", "label": "Zbunjene", "emoji": "😵" },
-      { "value": "EyeRoll", "label": "Prevrtanje", "emoji": "🙄" },
-      { "value": "Happy", "label": "Sretne", "emoji": "😊" },
-      { "value": "Hearts", "label": "Srca", "emoji": "😍" },
-      { "value": "Side", "label": "Na stranu", "emoji": "👁️" },
-      { "value": "Squint", "label": "Poluzatvorene", "emoji": "😑" },
-      { "value": "Surprised", "label": "Iznenađene", "emoji": "😮" },
-      { "value": "Wink", "label": "Namig", "emoji": "😉" },
-      { "value": "WinkWacky", "label": "Namig (šaljivo)", "emoji": "😜" }
+      { "value": "grin", "label": "Grin" },
+      { "value": "sad", "label": "Sad" },
+      { "value": "openSmile", "label": "Open smile" },
+      { "value": "lips", "label": "Lips" },
+      { "value": "open", "label": "Open" },
+      { "value": "serious", "label": "Serious" },
+      { "value": "tongue", "label": "Tongue" },
+      { "value": "piercedTongue", "label": "Pierced tongue" },
+      { "value": "vomitingRainbow", "label": "Rainbow" }
     ]
   },
   {
-    "key": "eyebrowType",
-    "label": "Obrve",
+    "key": "lipColor",
+    "label": "Lip color",
     "options": [
-      { "value": "Angry", "label": "Ljute", "emoji": "😠" },
-      { "value": "AngryNatural", "label": "Ljute prirodne", "emoji": "😡" },
-      { "value": "Default", "label": "Standard", "emoji": "🙂" },
-      { "value": "DefaultNatural", "label": "Standard prirodne", "emoji": "😊" },
-      { "value": "FlatNatural", "label": "Ravne", "emoji": "😐" },
-      { "value": "RaisedExcited", "label": "Podignute", "emoji": "😲" },
-      { "value": "RaisedExcitedNatural", "label": "Podignute prirodne", "emoji": "🤨" },
-      { "value": "SadConcerned", "label": "Zabrinute", "emoji": "😟" },
-      { "value": "SadConcernedNatural", "label": "Zabrinute prirodne", "emoji": "😔" },
-      { "value": "UnibrowNatural", "label": "Spajene obrve", "emoji": "🤨" },
-      { "value": "UpDown", "label": "Gore-dolje", "emoji": "😯" },
-      { "value": "UpDownNatural", "label": "Gore-dolje prirodne", "emoji": "😯" }
+      { "value": "red", "label": "Red" },
+      { "value": "lightRed", "label": "Light red" },
+      { "value": "green", "label": "Green" },
+      { "value": "lightGreen", "label": "Light green" },
+      { "value": "turqoise", "label": "Turquoise" },
+      { "value": "lightTurqoise", "label": "Light turquoise" },
+      { "value": "blue", "label": "Blue" },
+      { "value": "lightBlue", "label": "Light blue" },
+      { "value": "pink", "label": "Pink" },
+      { "value": "lightPink", "label": "Light pink" },
+      { "value": "purple", "label": "Purple" },
+      { "value": "lightPurple", "label": "Light purple" }
     ]
   },
   {
-    "key": "mouthType",
-    "label": "Usta",
+    "key": "facialHair",
+    "label": "Facial hair",
     "options": [
-      { "value": "Concerned", "label": "Zabrinuta", "emoji": "😟" },
-      { "value": "Default", "label": "Neutralna", "emoji": "😐" },
-      { "value": "Disbelief", "label": "Nevjerica", "emoji": "😲" },
-      { "value": "Eating", "label": "Jede", "emoji": "😋" },
-      { "value": "Grimace", "label": "Grimas", "emoji": "😬" },
-      { "value": "Sad", "label": "Tužna", "emoji": "😢" },
-      { "value": "ScreamOpen", "label": "Vrisak", "emoji": "😱" },
-      { "value": "Serious", "label": "Ozbiljna", "emoji": "😑" },
-      { "value": "Smile", "label": "Osmijeh", "emoji": "😄" },
-      { "value": "Tongue", "label": "Jezik", "emoji": "😛" },
-      { "value": "Twinkle", "label": "Iskra", "emoji": "🤩" },
-      { "value": "Vomit", "label": "Povraća", "emoji": "🤮" }
+      { "value": "none", "label": "None" },
+      { "value": "stubble", "label": "Stubble" },
+      { "value": "mediumBeard", "label": "Medium beard" },
+      { "value": "goatee", "label": "Goatee" }
     ]
   },
   {
-    "key": "skinColor",
-    "label": "Koža",
+    "key": "facialHairColor",
+    "label": "Facial hair color",
     "options": [
-      { "value": "Tanned", "label": "Preplanula" },
-      { "value": "Yellow", "label": "Žuta" },
-      { "value": "Pale", "label": "Svijetla" },
-      { "value": "Light", "label": "Blijeda" },
-      { "value": "Brown", "label": "Smeđa" },
-      { "value": "DarkBrown", "label": "Tamno smeđa" },
-      { "value": "Black", "label": "Crna" }
+      { "value": "white", "label": "White" },
+      { "value": "silver", "label": "Silver" },
+      { "value": "blonde", "label": "Blonde" },
+      { "value": "brown", "label": "Brown" },
+      { "value": "black", "label": "Black" },
+      { "value": "red", "label": "Red" },
+      { "value": "lightRed", "label": "Light red" },
+      { "value": "orange", "label": "Orange" },
+      { "value": "lightOrange", "label": "Light orange" },
+      { "value": "green", "label": "Green" },
+      { "value": "lightGreen", "label": "Light green" },
+      { "value": "turqoise", "label": "Turquoise" },
+      { "value": "lightTurqoise", "label": "Light turquoise" },
+      { "value": "blue", "label": "Blue" },
+      { "value": "lightBlue", "label": "Light blue" },
+      { "value": "pink", "label": "Pink" },
+      { "value": "lightPink", "label": "Light pink" },
+      { "value": "purple", "label": "Purple" },
+      { "value": "lightPurple", "label": "Light purple" }
+    ]
+  },
+  {
+    "key": "accessory",
+    "label": "Accessory",
+    "options": [
+      { "value": "none", "label": "None" },
+      { "value": "roundGlasses", "label": "Round glasses" },
+      { "value": "tinyGlasses", "label": "Tiny glasses" },
+      { "value": "shades", "label": "Shades" },
+      { "value": "hoopEarrings", "label": "Hoop earrings" }
+    ]
+  },
+  {
+    "key": "hat",
+    "label": "Headwear",
+    "options": [
+      { "value": "none", "label": "None" },
+      { "value": "beanie", "label": "Beanie" },
+      { "value": "turban", "label": "Turban" },
+      { "value": "party", "label": "Party hat" },
+      { "value": "hijab", "label": "Hijab" }
+    ]
+  },
+  {
+    "key": "hatColor",
+    "label": "Headwear color",
+    "options": [
+      { "value": "white", "label": "White" },
+      { "value": "gray", "label": "Gray" },
+      { "value": "black", "label": "Black" },
+      { "value": "red", "label": "Red" },
+      { "value": "lightRed", "label": "Light red" },
+      { "value": "orange", "label": "Orange" },
+      { "value": "lightOrange", "label": "Light orange" },
+      { "value": "yellow", "label": "Yellow" },
+      { "value": "lightYellow", "label": "Light yellow" },
+      { "value": "green", "label": "Green" },
+      { "value": "lightGreen", "label": "Light green" },
+      { "value": "turqoise", "label": "Turquoise" },
+      { "value": "lightTurqoise", "label": "Light turquoise" },
+      { "value": "blue", "label": "Blue" },
+      { "value": "lightBlue", "label": "Light blue" },
+      { "value": "pink", "label": "Pink" },
+      { "value": "lightPink", "label": "Light pink" },
+      { "value": "purple", "label": "Purple" },
+      { "value": "lightPurple", "label": "Light purple" }
+    ]
+  },
+  {
+    "key": "clothing",
+    "label": "Clothing",
+    "options": [
+      { "value": "naked", "label": "None" },
+      { "value": "shirt", "label": "Shirt" },
+      { "value": "dressShirt", "label": "Dress shirt" },
+      { "value": "vneck", "label": "V-neck" },
+      { "value": "tankTop", "label": "Tank top" },
+      { "value": "dress", "label": "Dress" },
+      { "value": "denimJacket", "label": "Denim jacket" },
+      { "value": "hoodie", "label": "Hoodie" },
+      { "value": "chequeredShirt", "label": "Check shirt" },
+      { "value": "chequeredShirtDark", "label": "Check shirt dark" }
+    ]
+  },
+  {
+    "key": "clothingColor",
+    "label": "Clothing color",
+    "options": [
+      { "value": "white", "label": "White" },
+      { "value": "gray", "label": "Gray" },
+      { "value": "black", "label": "Black" },
+      { "value": "red", "label": "Red" },
+      { "value": "lightRed", "label": "Light red" },
+      { "value": "orange", "label": "Orange" },
+      { "value": "lightOrange", "label": "Light orange" },
+      { "value": "yellow", "label": "Yellow" },
+      { "value": "lightYellow", "label": "Light yellow" },
+      { "value": "green", "label": "Green" },
+      { "value": "lightGreen", "label": "Light green" },
+      { "value": "turqoise", "label": "Turquoise" },
+      { "value": "lightTurqoise", "label": "Light turquoise" },
+      { "value": "blue", "label": "Blue" },
+      { "value": "lightBlue", "label": "Light blue" },
+      { "value": "pink", "label": "Pink" },
+      { "value": "lightPink", "label": "Light pink" },
+      { "value": "purple", "label": "Purple" },
+      { "value": "lightPurple", "label": "Light purple" }
+    ]
+  },
+  {
+    "key": "graphic",
+    "label": "Graphic",
+    "options": [
+      { "value": "none", "label": "None" },
+      { "value": "redwood", "label": "Redwood" },
+      { "value": "gatsby", "label": "Gatsby" },
+      { "value": "vue", "label": "Vue" },
+      { "value": "react", "label": "React" },
+      { "value": "graphQL", "label": "GraphQL" },
+      { "value": "donut", "label": "Donut" },
+      { "value": "rainbow", "label": "Rainbow" }
+    ]
+  },
+  {
+    "key": "body",
+    "label": "Body",
+    "options": [
+      { "value": "chest", "label": "Chest" },
+      { "value": "breasts", "label": "Breasts" }
+    ]
+  },
+  {
+    "key": "showBackground",
+    "label": "Background",
+    "options": [
+      { "value": true, "label": "Visible" },
+      { "value": false, "label": "Hidden" }
+    ]
+  },
+  {
+    "key": "backgroundColor",
+    "label": "Background color",
+    "options": [
+      { "value": "red", "label": "Red" },
+      { "value": "orange", "label": "Orange" },
+      { "value": "yellow", "label": "Yellow" },
+      { "value": "green", "label": "Green" },
+      { "value": "turqoise", "label": "Turquoise" },
+      { "value": "blue", "label": "Blue" },
+      { "value": "pink", "label": "Pink" },
+      { "value": "purple", "label": "Purple" },
+      { "value": "none", "label": "Transparent" }
+    ]
+  },
+  {
+    "key": "backgroundShape",
+    "label": "Background shape",
+    "options": [
+      { "value": "circle", "label": "Circle" },
+      { "value": "square", "label": "Square" },
+      { "value": "squircle", "label": "Squircle" }
+    ]
+  },
+  {
+    "key": "faceMask",
+    "label": "Face mask",
+    "options": [
+      { "value": true, "label": "On" },
+      { "value": false, "label": "Off" }
+    ]
+  },
+  {
+    "key": "faceMaskColor",
+    "label": "Mask color",
+    "options": [
+      { "value": "white", "label": "White" },
+      { "value": "gray", "label": "Gray" },
+      { "value": "black", "label": "Black" },
+      { "value": "red", "label": "Red" },
+      { "value": "lightRed", "label": "Light red" },
+      { "value": "orange", "label": "Orange" },
+      { "value": "lightOrange", "label": "Light orange" },
+      { "value": "yellow", "label": "Yellow" },
+      { "value": "lightYellow", "label": "Light yellow" },
+      { "value": "green", "label": "Green" },
+      { "value": "lightGreen", "label": "Light green" },
+      { "value": "turqoise", "label": "Turquoise" },
+      { "value": "lightTurqoise", "label": "Light turquoise" },
+      { "value": "blue", "label": "Blue" },
+      { "value": "lightBlue", "label": "Light blue" },
+      { "value": "pink", "label": "Pink" },
+      { "value": "lightPink", "label": "Light pink" },
+      { "value": "purple", "label": "Purple" },
+      { "value": "lightPurple", "label": "Light purple" }
     ]
   }
 ]

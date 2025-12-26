@@ -41,6 +41,17 @@ const applyPaletteOverride = (svgMarkup, color) => {
   return svgMarkup.replace(/#65C9FF/gi, color);
 };
 
+const extractSvgFromDataUri = (uri) => {
+  if (!uri || typeof uri !== 'string') return null;
+  const match = uri.match(/^data:image\/svg\+xml;utf8,(.*)$/i);
+  if (!match || !match[1]) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+};
+
 export default function Avatar({ uri, name = '', size, variant = 'avatar-m', style }) {
   const { colors } = useTheme();
   const [imageError, setImageError] = useState(false);
@@ -70,6 +81,11 @@ export default function Avatar({ uri, name = '', size, variant = 'avatar-m', sty
     }
     let cancelled = false;
     const loadSvg = async () => {
+      const embedded = extractSvgFromDataUri(uri);
+      if (embedded) {
+        setSvgMarkup(applyPaletteOverride(embedded, colors.secondary));
+        return;
+      }
       try {
         const res = await fetch(uri);
         const text = await res.text();

@@ -11,34 +11,45 @@ import defaultConfig from '../../assets/json/avatar/avatarDefaultConfig.json';
 import colorsData from '../../assets/json/avatar/avatarColors.json';
 import optionGroupsData from '../../assets/json/avatar/avatarOptionGroups.json';
 import tabsData from '../../assets/json/avatar/avatarTabs.json';
+import { buildAvatarSvg, generateRandomConfig } from '../utils/bigHeadAvatar';
 
 const sampleHeroUri =
   'https://cdn.dribbble.com/userupload/30645890/file/original-500c027610acebba14fe69de5572dcdd.png?resize=752x&vertical=center';
 
-const { hairColors, hairColorGradients, clotheColors, skinColors } = colorsData;
+const {
+  hairColors,
+  hairColorGradients,
+  clothingColors,
+  hatColors,
+  lipColors,
+  backgroundColors,
+  skinColors,
+} = colorsData;
 const { tabOrder = [], tabLabels = {} } = tabsData;
 
+const colorSwatchMap = {
+  hairColor: { map: hairColors, gradient: hairColorGradients },
+  facialHairColor: { map: hairColors, gradient: hairColorGradients },
+  clothingColor: { map: clothingColors },
+  hatColor: { map: hatColors || clothingColors },
+  lipColor: { map: lipColors },
+  backgroundColor: { map: backgroundColors },
+  faceMaskColor: { map: clothingColors },
+};
+
 const optionGroups = optionGroupsData.map((group) => {
-  if (group.key === 'hairColor') {
+  const colorInfo = colorSwatchMap[group.key];
+  if (colorInfo?.map) {
     return {
       ...group,
       options: group.options.map((option) => ({
         ...option,
-        swatch: hairColors[option.value],
-        swatchGradient: hairColorGradients[option.value],
+        swatch: colorInfo.map[option.value],
+        swatchGradient: colorInfo.gradient?.[option.value],
       })),
     };
   }
-  if (group.key === 'clotheColor') {
-    return {
-      ...group,
-      options: group.options.map((option) => ({
-        ...option,
-        swatch: clotheColors[option.value],
-      })),
-    };
-  }
-  if (group.key === 'skinColor') {
+  if (group.key === 'skinTone') {
     return {
       ...group,
       options: group.options.map((option) => ({
@@ -58,23 +69,6 @@ const orderedOptionGroups = tabOrder
   })
   .filter(Boolean);
 
-const buildAvatarParams = (config) =>
-  new URLSearchParams({
-    avatarStyle: 'Circle',
-    topType: config.topType,
-    accessoriesType: config.accessoriesType,
-    hairColor: config.hairColor,
-    facialHairType: config.facialHairType,
-    clotheType: config.clotheType,
-    clotheColor: config.clotheColor,
-    eyeType: config.eyeType,
-    eyebrowType: config.eyebrowType,
-    mouthType: config.mouthType,
-    skinColor: config.skinColor,
-  });
-
-const buildAvatarSvgUrl = (config) => `https://avataaars.io/?${buildAvatarParams(config).toString()}`;
-
 export default function AvatarGeneratorScreen({ navigation, route }) {
   const seedConfig = route?.params?.seedConfig;
   const [config, setConfig] = useState(() => ({ ...defaultConfig, ...(seedConfig || {}) }));
@@ -83,7 +77,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
-  const avatarSvgUrl = useMemo(() => buildAvatarSvgUrl(config), [config]);
+  const avatarSvgUrl = useMemo(() => buildAvatarSvg(config), [config]);
 
   const handleSelect = useCallback((key, value) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
