@@ -2,6 +2,7 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert, Image, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { updateCurrentUser } from '../api';
 import { emitProfileUpdated } from '../utils/profileEvents';
@@ -264,11 +265,19 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
             colors={['#4f9bfd', '#b794f4', '#34d399']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.aiButtonGradient}
+            style={styles.aiBorder}
           >
-            <View style={styles.aiButtonInner}>
-              <Ionicons name="sparkles-outline" size={18} color="#fff" />
-              <Text style={[styles.aiButtonText, { color: '#fff' }]}>Generisi sa AI</Text>
+            <View style={[styles.aiButtonInner, { backgroundColor: 'transparent' }]}>
+              <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
+              <MaskedView maskElement={<Text style={[styles.aiButtonText, styles.aiButtonTextMask]}>Generisi sa AI</Text>}>
+                <LinearGradient
+                  colors={['#4f9bfd', '#b794f4', '#34d399']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Text style={[styles.aiButtonText, styles.aiButtonTextFill]}>Generisi sa AI</Text>
+                </LinearGradient>
+              </MaskedView>
             </View>
           </LinearGradient>
         </TouchableOpacity>
@@ -448,8 +457,8 @@ const createStyles = (colors) =>
     aiButton: {
       flex: 1,
     },
-    aiButtonGradient: {
-      padding: 1,
+    aiBorder: {
+      padding: 1.5,
       borderRadius: 14,
     },
     aiButtonInner: {
@@ -465,6 +474,12 @@ const createStyles = (colors) =>
     aiButtonText: {
       fontWeight: '700',
       fontSize: 15,
+    },
+    aiButtonTextMask: {
+      color: '#000',
+    },
+    aiButtonTextFill: {
+      color: 'transparent',
     },
     saveCta: {
       flex: 1,
