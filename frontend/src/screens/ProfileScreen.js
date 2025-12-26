@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  Pressable,
   StyleSheet,
   ScrollView,
   RefreshControl,
@@ -11,10 +10,8 @@ import {
   ActivityIndicator,
   PanResponder,
   Alert,
-  Modal,
   Easing,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri, SvgXml } from 'react-native-svg';
@@ -28,7 +25,6 @@ import Avatar from '../components/Avatar';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import NoteBottomSheet from '../components/NoteBottomSheet';
-import { buildAvatarSvg } from '../utils/bigHeadAvatar';
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 const NOTE_MARQUEE_WIDTH = 220;
 
@@ -51,8 +47,6 @@ export default function ProfileScreen({ navigation, route }) {
   const [connecting, setConnecting] = useState(false);
   const [connectIconXml, setConnectIconXml] = useState(null);
   const glowAnim = useRef(new Animated.Value(0)).current;
-  const avatarZoomAnim = useRef(new Animated.Value(0)).current;
-  const [showAvatarZoom, setShowAvatarZoom] = useState(false);
   const [noteDraft, setNoteDraft] = useState('');
   const [savingNote, setSavingNote] = useState(false);
   const noteSheetRef = useRef(null);
@@ -277,7 +271,6 @@ export default function ProfileScreen({ navigation, route }) {
   const noteText = (user?.note || '').trim();
   const showNoteBubble = isMine || !!noteText;
   const noteDisplay = isMine ? noteText || 'Dodaj misao' : noteText;
-  const avatarTextColor = encodeURIComponent(colors.textLight.replace('#', ''));
   const glowScale = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.25] });
   const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
@@ -470,61 +463,6 @@ export default function ProfileScreen({ navigation, route }) {
     ).start();
   }, [glowAnim]);
 
-  const resolveAvatar = (photo) => {
-    if (!photo) return null;
-    if (/^https?:\/\//i.test(photo)) return photo;
-    const cleanBase = (baseURL || '').replace(/\/+$/, '');
-    const cleanPath = photo.replace(/^\/+/, '');
-    return `${cleanBase}/${cleanPath}`;
-  };
-  const parseAvatarConfig = (value) => {
-    if (!value) return null;
-    if (typeof value === 'object') return value;
-    if (typeof value === 'string') {
-      try {
-        return JSON.parse(value);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  };
-  const userAvatarConfig = parseAvatarConfig(user?.avatar);
-  const avatarConfigUri = useMemo(() => (userAvatarConfig ? buildAvatarSvg(userAvatarConfig) : null), [userAvatarConfig]);
-  const avatarPhotoUri = resolveAvatar(user?.profile_photo, user?.name);
-  const hasAvatarImage = Boolean(avatarPhotoUri);
-  const isAvatarSvg = Boolean(avatarConfigUri);
-  const avatarUri =
-    avatarConfigUri ||
-    avatarPhotoUri ||
-    (typeof user?.avatar === 'string' ? user.avatar : null) ||
-    'https://ui-avatars.com/api/?name=' +
-      (user?.name || 'Korisnik') +
-      '&size=200&background=' +
-      encodeURIComponent(colors.profilePurple.replace('#', '')) +
-      '&color=' +
-      encodeURIComponent(colors.textLight.replace('#', ''));
-
-  const openAvatarZoom = useCallback(() => {
-    if (!hasAvatarImage) return;
-    setShowAvatarZoom(true);
-    avatarZoomAnim.setValue(0);
-    Animated.spring(avatarZoomAnim, {
-      toValue: 1,
-      friction: 7,
-      tension: 80,
-      useNativeDriver: true,
-    }).start();
-  }, [avatarZoomAnim, hasAvatarImage]);
-
-  const closeAvatarZoom = useCallback(() => {
-    Animated.timing(avatarZoomAnim, {
-      toValue: 0,
-      duration: 180,
-      useNativeDriver: true,
-    }).start(() => setShowAvatarZoom(false));
-  }, [avatarZoomAnim]);
-
   return (
     <View style={styles.screen} {...panResponder.panHandlers}>
       <ScrollView
@@ -563,25 +501,16 @@ export default function ProfileScreen({ navigation, route }) {
         <View style={styles.profileSection}>
           <View style={styles.profileRow}>
             <View style={styles.avatarWrapper}>
-              {hasAvatarImage ? (
-                <TouchableOpacity onPress={openAvatarZoom} activeOpacity={0.9}>
-                  <Avatar
-                    uri={avatarUri}
-                    name={user?.name || 'Korisnik'}
-                    variant="avatar-l"
-                    style={styles.profileImage}
-                    mode={isAvatarSvg ? 'avatar' : 'photo'}
-                  />
-                </TouchableOpacity>
-              ) : (
-                <Avatar
-                  uri={avatarUri}
-                  name={user?.name || 'Korisnik'}
-                  variant="avatar-l"
-                  style={styles.profileImage}
-                  mode={isAvatarSvg ? 'avatar' : 'photo'}
-                />
-              )}
+              <Avatar
+                user={user}
+                profilePhoto={user?.profile_photo}
+                avatarConfig={user?.avatar}
+                name={user?.name || 'Korisnik'}
+                variant="avatar-l"
+                style={styles.profileImage}
+                mode="auto"
+                zoomModal
+              />
 
               {showNoteBubble && (
                 <TouchableOpacity
@@ -780,26 +709,6 @@ export default function ProfileScreen({ navigation, route }) {
         )}
 
       </ScrollView>
-
-      {showAvatarZoom && (
-        <Modal transparent visible animationType="fade">
-          <Pressable style={styles.avatarOverlay} onPress={closeAvatarZoom}>
-            <BlurView intensity={35} tint={colors.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <Animated.View
-              style={{
-                opacity: avatarZoomAnim,
-                transform: [
-                  {
-                    scale: avatarZoomAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1.02] }),
-                  },
-                ],
-              }}
-            >
-              <Avatar uri={avatarUri} name={user?.name || 'Korisnik'} size={320} style={styles.avatarZoomImage} />
-            </Animated.View>
-            </Pressable>
-          </Modal>
-        )}
 
       <NoteBottomSheet
         ref={noteSheetRef}
@@ -1218,17 +1127,6 @@ const createStyles = (colors) =>
     emptyHype: {
       fontSize: 14,
       color: colors.text_secondary,
-    },
-    avatarOverlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.82)',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 24,
-    },
-    avatarZoomImage: {
-      width: '100%',
-      height: '100%',
     },
     noteModalCard: {
       width: '100%',

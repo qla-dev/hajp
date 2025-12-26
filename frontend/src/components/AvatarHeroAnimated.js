@@ -163,7 +163,7 @@ export default function AvatarHeroAnimated({
                   { width: AVATAR_SIZE, marginTop: rowIdx === 0 ? 0 : ROW_GAP },
                 ]}
               >
-                <Avatar uri={uri} size={AVATAR_SIZE} />
+                <Avatar uri={uri} size={AVATAR_SIZE} zoomModal={false} />
               </View>
             ))}
           </Animated.View>

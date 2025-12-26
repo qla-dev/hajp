@@ -649,12 +649,13 @@ function MainTabsContent() {
           tabBarIcon: ({ focused: isFocused, color, size }) => {
             if (route.name === 'Profile') {
               const borderColor = isFocused ? colors.primary : colors.border;
-              return (
+                return (
                 <Avatar
                   uri={profileAvatarUri}
                   name={profileInitials}
                   variant="avatar-xs"
                   size={PROFILE_ICON_SIZE}
+                  zoomModal={false}
                   style={[
                     tabStyles.profileIconContainer,
                     { borderColor, backgroundColor: profileAvatarUri ? 'transparent' : colors.secondary },

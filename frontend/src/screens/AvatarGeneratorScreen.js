@@ -187,7 +187,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
           <Text style={styles.title}>Avatar generator</Text>
           <Text style={styles.subtitle}>Centriraj izgled, podesi ton, kosu i detalje.</Text>
           <View style={styles.previewCircle}>
-            <Avatar uri={avatarSvgUrl} name="Avatar" variant="avatar-xxl" />
+            <Avatar uri={avatarSvgUrl} name="Avatar" variant="avatar-xxl" zoomModal={false} />
           </View>
         </View>
 

@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, Image, StyleSheet, Animated, Pressable, Modal } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { SvgUri, SvgXml } from 'react-native-svg';
 import { useTheme } from '../theme/darkMode';
 import { buildAvatarSvg } from '../utils/bigHeadAvatar';
+import { baseURL } from '../api';
 
 export const sizeMap = {
   xs: { photoSize: 64, avatarSize: 84, slotSize: 64, font: 22 },
@@ -65,6 +67,34 @@ const parseAvatarConfig = (value) => {
   return null;
 };
 
+const resolveAvatarUri = (value) => {
+  if (!value) return null;
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith('data:image/svg+xml')) return trimmed;
+  if (trimmed.startsWith('<svg')) {
+    try {
+      return `data:image/svg+xml;utf8,${encodeURIComponent(trimmed)}`;
+    } catch {
+      return trimmed;
+    }
+  }
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  const cleanBase = (baseURL || '').replace(/\/+$/, '');
+  if (!cleanBase) return trimmed;
+  const cleanPath = trimmed.replace(/^\/+/, '');
+  return `${cleanBase}/${cleanPath}`;
+};
+
+const pickFirstUri = (...candidates) => {
+  for (const candidate of candidates) {
+    const resolved = resolveAvatarUri(candidate);
+    if (resolved) return resolved;
+  }
+  return null;
+};
+
 export default function Avatar({
   uri,
   name = '',
@@ -73,23 +103,52 @@ export default function Avatar({
   style,
   fallbackAvatar = true,
   avatarConfig,
-  mode = 'avatar', // 'avatar' | 'photo'
+  mode = 'auto', // 'avatar' | 'photo' | 'auto'
+  user,
+  profilePhoto,
+  zoomModal = true,
+  onPress,
 }) {
   const { colors } = useTheme();
   const [imageError, setImageError] = useState(false);
   const [svgError, setSvgError] = useState(false);
   const [svgMarkup, setSvgMarkup] = useState(null);
-  const parsedConfig = useMemo(() => parseAvatarConfig(avatarConfig) || parseAvatarConfig(uri), [avatarConfig, uri]);
+  const zoomAnim = useRef(new Animated.Value(0)).current;
+  const [showZoom, setShowZoom] = useState(false);
+
+  const resolvedName = name || user?.name || user?.username || '';
+  const configSource = avatarConfig ?? user?.avatar;
+  const parsedConfig = useMemo(
+    () => parseAvatarConfig(configSource) || parseAvatarConfig(uri),
+    [configSource, uri],
+  );
   const builtFromConfig = useMemo(() => (parsedConfig ? buildAvatarSvg(parsedConfig) : null), [parsedConfig]);
-  const baseUri = builtFromConfig || uri;
+  const resolvedProfilePhoto = useMemo(
+    () => pickFirstUri(profilePhoto, user?.profile_photo, user?.photo),
+    [profilePhoto, user?.photo, user?.profile_photo],
+  );
+  const resolvedPrimaryUri = useMemo(
+    () =>
+      pickFirstUri(
+        uri,
+        user?.avatar_url,
+        user?.avatarUri,
+        user?.avatar_svg_url,
+        user?.avatarSvgUrl,
+        configSource,
+      ),
+    [configSource, uri, user?.avatarUri, user?.avatarSvgUrl, user?.avatar_url, user?.avatar_svg_url],
+  );
+  const baseUri = builtFromConfig || resolvedPrimaryUri || resolvedProfilePhoto;
   const effectiveUri = fallbackAvatar ? baseUri : null;
 
   const variantKey = normalizeVariant(variant) || 'm';
   const sizeEntry = sizeMap[variantKey] || sizeMap.m;
+  const contentMode = mode === 'auto' ? (isSvgUri(effectiveUri) ? 'avatar' : 'photo') : mode;
   const slotSize = size || sizeEntry.slotSize || sizeEntry.photoSize || sizeEntry.avatarSize;
   const contentSize =
     size ||
-    (mode === 'photo'
+    (contentMode === 'photo'
       ? sizeEntry.photoSize || sizeEntry.slotSize || sizeEntry.avatarSize
       : sizeEntry.avatarSize || sizeEntry.slotSize || sizeEntry.photoSize);
   const resolvedSize = contentSize || slotSize || sizeMap.m.avatarSize;
@@ -98,17 +157,19 @@ export default function Avatar({
     : sizeEntry?.font || Math.max(Math.round(resolvedSize * 0.26), 12);
   const resolvedFont = baseFont || Math.max(Math.round(resolvedSize * 0.26), 16);
   const initials = useMemo(() => {
-    if (!name) return '??';
-    const parts = name.trim().split(/\s+/);
+    if (!resolvedName) return '??';
+    const parts = resolvedName.trim().split(/\s+/);
     const letters = parts.slice(0, 2).map((p) => p[0]?.toUpperCase() || '');
     return letters.join('') || '??';
-  }, [name]);
+  }, [resolvedName]);
 
   const initialsOnly = isInitialsPlaceholderUri(effectiveUri);
   const isSvg = !initialsOnly && isSvgUri(effectiveUri);
 
   const slotDimensionStyle = { width: slotSize, height: slotSize, borderRadius: slotSize / 2 };
   const contentDimensionStyle = { width: resolvedSize, height: resolvedSize, borderRadius: resolvedSize / 2 };
+  const zoomSize = Math.max(resolvedSize * 1.8, resolvedSize + 120);
+  const zoomFont = Math.max(Math.round(zoomSize * 0.26), resolvedFont);
 
   useEffect(() => {
     setImageError(false);
@@ -144,17 +205,24 @@ export default function Avatar({
     };
   }, [colors.secondary, effectiveUri, isSvg]);
 
-  const renderContent = () => {
+  const renderContent = (dimensionStyle = contentDimensionStyle, fontSize = resolvedFont, sizeForElement = resolvedSize) => {
     if (effectiveUri && isSvg && !svgError) {
       if (svgMarkup) {
-        return <SvgXml xml={svgMarkup} width={resolvedSize} height={resolvedSize} style={[styles.base, contentDimensionStyle]} />;
+        return (
+          <SvgXml
+            xml={svgMarkup}
+            width={sizeForElement}
+            height={sizeForElement}
+            style={[styles.base, dimensionStyle]}
+          />
+        );
       }
       return (
         <SvgUri
           uri={effectiveUri}
-          width={resolvedSize}
-          height={resolvedSize}
-          style={[styles.base, contentDimensionStyle]}
+          width={sizeForElement}
+          height={sizeForElement}
+          style={[styles.base, dimensionStyle]}
           onError={() => setSvgError(true)}
         />
       );
@@ -164,7 +232,7 @@ export default function Avatar({
       return (
         <Image
           source={{ uri: effectiveUri }}
-          style={[styles.base, contentDimensionStyle]}
+          style={[styles.base, dimensionStyle]}
           onError={() => setImageError(true)}
           resizeMode="cover"
         />
@@ -172,16 +240,69 @@ export default function Avatar({
     }
 
     return (
-      <View style={[styles.fallback, contentDimensionStyle, { backgroundColor: colors.profilePurple }]}>
-        <Text style={[styles.initials, { color: colors.textLight, fontSize: resolvedFont }]}>{initials}</Text>
+      <View style={[styles.fallback, dimensionStyle, { backgroundColor: colors.profilePurple }]}>
+        <Text style={[styles.initials, { color: colors.textLight, fontSize }]}>{initials}</Text>
       </View>
     );
   };
 
+  const canZoom = zoomModal && !!effectiveUri && !imageError && !svgError;
+  const handlePress = useCallback(() => {
+    onPress?.();
+    if (!canZoom) return;
+    setShowZoom(true);
+    zoomAnim.setValue(0);
+    Animated.spring(zoomAnim, {
+      toValue: 1,
+      friction: 7,
+      tension: 80,
+      useNativeDriver: true,
+    }).start();
+  }, [canZoom, onPress, zoomAnim]);
+
+  const handleCloseZoom = useCallback(() => {
+    Animated.timing(zoomAnim, {
+      toValue: 0,
+      duration: 180,
+      useNativeDriver: true,
+    }).start(() => setShowZoom(false));
+  }, [zoomAnim]);
+
+  const Wrapper = canZoom || onPress ? Pressable : View;
+  const zoomDimensionStyle = useMemo(
+    () => ({ width: zoomSize, height: zoomSize, borderRadius: zoomSize / 2 }),
+    [zoomSize],
+  );
+
   return (
-    <View style={[styles.slotWrapper, slotDimensionStyle, style]}>
-      <View style={[styles.contentOverlay, contentDimensionStyle]}>{renderContent()}</View>
-    </View>
+    <>
+      <Wrapper
+        onPress={canZoom || onPress ? handlePress : undefined}
+        style={[styles.slotWrapper, slotDimensionStyle, style]}
+      >
+        <View style={[styles.contentOverlay, contentDimensionStyle]}>{renderContent()}</View>
+      </Wrapper>
+
+      {showZoom && canZoom && (
+        <Modal transparent visible animationType="fade" onRequestClose={handleCloseZoom}>
+          <Pressable style={styles.avatarOverlay} onPress={handleCloseZoom}>
+            <BlurView intensity={35} tint={colors.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+            <Animated.View
+              style={{
+                opacity: zoomAnim,
+                transform: [
+                  {
+                    scale: zoomAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1.02] }),
+                  },
+                ],
+              }}
+            >
+              {renderContent(zoomDimensionStyle, zoomFont, zoomSize)}
+            </Animated.View>
+          </Pressable>
+        </Modal>
+      )}
+    </>
   );
 }
 
@@ -209,5 +330,12 @@ const styles = StyleSheet.create({
   },
   initials: {
     fontWeight: '800',
+  },
+  avatarOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.82)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
   },
 });

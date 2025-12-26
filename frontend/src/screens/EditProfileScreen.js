@@ -246,19 +246,20 @@ export default function EditProfileScreen({ navigation, route }) {
               activeOpacity={hasProfilePhoto ? 1 : 0.9}
               onPress={!hasProfilePhoto ? onPickPhoto : undefined}
               disabled={uploadingPhoto}
-            >
-              <Avatar
-                uri={
-                  resolveAvatar(form.profile_photo, form.name) ||
-                  profileFallback
-                }
-                name={form.name || 'Korisnik'}
-                variant="avatar-m"
-                mode="photo"
-                size={PROFILE_SIZE}
-                style={[styles.avatar, styles.avatarAbsolute]}
-              />
-            </TouchableOpacity>
+              >
+                <Avatar
+                  uri={
+                    resolveAvatar(form.profile_photo, form.name) ||
+                    profileFallback
+                  }
+                  name={form.name || 'Korisnik'}
+                  variant="avatar-m"
+                  mode="photo"
+                  size={PROFILE_SIZE}
+                  zoomModal={false}
+                  style={[styles.avatar, styles.avatarAbsolute]}
+                />
+              </TouchableOpacity>
             <TouchableOpacity style={styles.cameraBadge} onPress={onPickPhoto} activeOpacity={0.9} disabled={uploadingPhoto}>
               {uploadingPhoto ? (
                 <ActivityIndicator size="small" color={colors.primary} />
@@ -289,6 +290,7 @@ export default function EditProfileScreen({ navigation, route }) {
                   name={form.name || 'Avatar'}
                   variant="avatar-m"
                   size={AVATAR_SIZE}
+                  zoomModal={false}
                   style={[styles.avatar, styles.avatarAbsolute]}
                 />
               </View>

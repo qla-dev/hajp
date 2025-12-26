@@ -363,6 +363,7 @@ export default function PollingScreen({ route, navigation }) {
               uri={option.avatarUri}
               name={option.label}
               size={36}
+              zoomModal={false}
               style={[
                 styles.optionAvatar,
                 idx === 0 && styles.avatarTopLeft,
@@ -398,11 +399,11 @@ export default function PollingScreen({ route, navigation }) {
                 ],
               },
             ]}
-          >
-            <Avatar uri={zoomAvatar?.uri} name={zoomAvatar?.name} size={300} />
-          </Animated.View>
-        </Pressable>
-      )}
+            >
+            <Avatar uri={zoomAvatar?.uri} name={zoomAvatar?.name} size={300} zoomModal={false} />
+            </Animated.View>
+          </Pressable>
+        )}
 
       <View style={styles.bottomActions}>
         <TouchableOpacity onPress={handleShuffle} style={styles.actionButton} disabled={refreshingQuestion || interactionLocked}>
