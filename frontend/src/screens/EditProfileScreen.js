@@ -227,17 +227,19 @@ export default function EditProfileScreen({ navigation, route }) {
     <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
       <View style={styles.avatarWrapper}>
         <View style={styles.avatarRow}>
-          <View style={[styles.avatarContainer, styles.avatarContainerProfile]}>
-            <Avatar
-              uri={
-                resolveAvatar(form.profile_photo, form.name) ||
-                profileFallback
-              }
-              name={form.name || 'Korisnik'}
-              variant="avatar-m"
-              size={PROFILE_SIZE}
-              style={styles.avatar}
-            />
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatarGraphicSlot}>
+              <Avatar
+                uri={
+                  resolveAvatar(form.profile_photo, form.name) ||
+                  profileFallback
+                }
+                name={form.name || 'Korisnik'}
+                variant="avatar-m"
+                size={PROFILE_SIZE}
+                style={[styles.avatar, styles.avatarAbsolute]}
+              />
+            </View>
             <TouchableOpacity style={styles.cameraBadge} onPress={onPickPhoto} activeOpacity={0.9} disabled={uploadingPhoto}>
               {uploadingPhoto ? (
                 <ActivityIndicator size="small" color={colors.primary} />
@@ -251,20 +253,26 @@ export default function EditProfileScreen({ navigation, route }) {
           </View>
 
           <TouchableOpacity
-            style={[
-              styles.avatarContainer,
-              styles.avatarGenerator,
-              form.avatar ? styles.avatarContainerAvatar : styles.avatarContainerPlaceholder,
-            ]}
+            style={[styles.avatarContainer, styles.avatarGenerator]}
             onPress={onOpenAvatarGenerator}
             activeOpacity={0.9}
             disabled={uploadingPhoto}
           >
             {form.avatar ? (
-              <Avatar uri={form.avatar} name={form.name || 'Avatar'} variant="avatar-m" size={AVATAR_SIZE} style={styles.avatar} />
+              <View style={styles.avatarGraphicSlot}>
+                <Avatar
+                  uri={form.avatar}
+                  name={form.name || 'Avatar'}
+                  variant="avatar-m"
+                  size={AVATAR_SIZE}
+                  style={[styles.avatar, styles.avatarAbsolute]}
+                />
+              </View>
             ) : (
-              <View style={[styles.avatarGeneratorIcon, styles.avatarPlaceholder]}>
-                <Ionicons name="happy-outline" size={48} color={colors.primary} />
+              <View style={styles.avatarGraphicSlot}>
+                <View style={[styles.avatarGeneratorIcon, styles.avatarPlaceholder, styles.avatarFallback, styles.avatarAbsolute]}>
+                  <Ionicons name="happy-outline" size={48} color={colors.primary} />
+                </View>
               </View>
             )}
             <Text style={styles.avatarGeneratorText}>{form.avatar ? 'Izmijeni avatar' : 'Kreiraj avatar'}</Text>
@@ -375,7 +383,6 @@ const createStyles = (colors) =>
     avatarWrapper: {
       alignItems: 'center',
       paddingVertical: 0,
-      marginTop: -30,
       backgroundColor: colors.transparent,
       borderBottomWidth: 0,
       borderColor: colors.border,
@@ -394,9 +401,18 @@ const createStyles = (colors) =>
       justifyContent: 'flex-end',
       gap: 8,
     },
-    avatarContainerProfile: {},
-    avatarContainerPlaceholder: {},
-    avatarContainerAvatar: {},
+    avatarGraphicSlot: {
+      position: 'relative',
+      width: '100%',
+      height: AVATAR_SIZE,
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+    },
+    avatarAbsolute: {
+      position: 'absolute',
+      bottom: 0,
+      alignSelf: 'center',
+    },
     avatar: {
       backgroundColor: colors.surface,
     },
