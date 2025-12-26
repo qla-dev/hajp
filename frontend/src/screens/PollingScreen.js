@@ -362,7 +362,8 @@ export default function PollingScreen({ route, navigation }) {
             <Avatar
               uri={option.avatarUri}
               name={option.label}
-              size={36}
+              variant="avatar-s"
+              border={2}
               zoomModal={false}
               style={[
                 styles.optionAvatar,
@@ -456,12 +457,12 @@ const createStyles = (colors, isDark) =>
       backgroundColor: '#ffffff',
       height: 72,
       paddingHorizontal: 16,
-      borderRadius: 12,
       margin: 6,
       width: (width - 64) / 2,
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
+      borderRadius: 10,
       borderColor: '#ffffff',
       position: 'relative',
       overflow: 'visible',
@@ -477,8 +478,6 @@ const createStyles = (colors, isDark) =>
       position: 'absolute',
       width: 36,
       height: 36,
-      borderWidth: 2,
-      borderColor: '#ffffff',
     },
     avatarTopLeft: {
       top: -18,
