@@ -1,340 +1,340 @@
 [
   {
     "key": "skinTone",
-    "label": "Skin tone",
+    "label": "Ton kože",
     "options": [
-      { "value": "light", "label": "Light" },
-      { "value": "yellow", "label": "Warm" },
-      { "value": "brown", "label": "Brown" },
-      { "value": "dark", "label": "Dark" },
-      { "value": "red", "label": "Rosy" },
-      { "value": "black", "label": "Deep" }
+      { "value": "light", "label": "Svijetla", "emoji": "🌞" },
+      { "value": "yellow", "label": "Topla", "emoji": "🌻" },
+      { "value": "brown", "label": "Smeđa", "emoji": "🥥" },
+      { "value": "dark", "label": "Tamna", "emoji": "🌑" },
+      { "value": "red", "label": "Rumena", "emoji": "🌹" },
+      { "value": "black", "label": "Vrlo tamna", "emoji": "🖤" }
     ]
   },
   {
     "key": "hair",
-    "label": "Hair",
+    "label": "Kosa",
     "options": [
-      { "value": "none", "label": "None" },
-      { "value": "long", "label": "Long" },
-      { "value": "bun", "label": "Bun" },
-      { "value": "short", "label": "Short" },
-      { "value": "pixie", "label": "Pixie" },
-      { "value": "balding", "label": "Balding" },
-      { "value": "buzz", "label": "Buzz" },
-      { "value": "afro", "label": "Afro" },
-      { "value": "bob", "label": "Bob" },
-      { "value": "mohawk", "label": "Mohawk" }
+      { "value": "none", "label": "Bez kose", "emoji": "🧑‍🦲" },
+      { "value": "long", "label": "Duga", "emoji": "💇‍♀️" },
+      { "value": "bun", "label": "Punđa", "emoji": "🌀" },
+      { "value": "short", "label": "Kratka", "emoji": "💇‍♂️" },
+      { "value": "pixie", "label": "Piksi", "emoji": "✨" },
+      { "value": "balding", "label": "Proćelav", "emoji": "🪒" },
+      { "value": "buzz", "label": "Buzz", "emoji": "🪴" },
+      { "value": "afro", "label": "Afro", "emoji": "🦱" },
+      { "value": "bob", "label": "Bob", "emoji": "🎀" },
+      { "value": "mohawk", "label": "Irokeza", "emoji": "🪶" }
     ]
   },
   {
     "key": "hairColor",
-    "label": "Hair color",
+    "label": "Boja kose",
     "options": [
-      { "value": "white", "label": "White" },
-      { "value": "silver", "label": "Silver" },
-      { "value": "blonde", "label": "Blonde" },
-      { "value": "brown", "label": "Brown" },
-      { "value": "black", "label": "Black" },
-      { "value": "red", "label": "Red" },
-      { "value": "lightRed", "label": "Light red" },
-      { "value": "orange", "label": "Orange" },
-      { "value": "lightOrange", "label": "Light orange" },
-      { "value": "green", "label": "Green" },
-      { "value": "lightGreen", "label": "Light green" },
-      { "value": "turqoise", "label": "Turquoise" },
-      { "value": "lightTurqoise", "label": "Light turquoise" },
-      { "value": "blue", "label": "Blue" },
-      { "value": "lightBlue", "label": "Light blue" },
-      { "value": "pink", "label": "Pink" },
-      { "value": "lightPink", "label": "Light pink" },
-      { "value": "purple", "label": "Purple" },
-      { "value": "lightPurple", "label": "Light purple" }
+      { "value": "white", "label": "Bijela", "emoji": "⚪" },
+      { "value": "silver", "label": "Srebrna", "emoji": "🩶" },
+      { "value": "blonde", "label": "Plava", "emoji": "🟨" },
+      { "value": "brown", "label": "Smeđa", "emoji": "🟫" },
+      { "value": "black", "label": "Crna", "emoji": "⚫" },
+      { "value": "red", "label": "Crvena", "emoji": "🟥" },
+      { "value": "lightRed", "label": "Svijetlo crvena", "emoji": "❤️" },
+      { "value": "orange", "label": "Narandžasta", "emoji": "🟧" },
+      { "value": "lightOrange", "label": "Svijetlo narandžasta", "emoji": "🍊" },
+      { "value": "green", "label": "Zelena", "emoji": "🟩" },
+      { "value": "lightGreen", "label": "Svijetlo zelena", "emoji": "🍃" },
+      { "value": "turqoise", "label": "Tirkizna", "emoji": "💠" },
+      { "value": "lightTurqoise", "label": "Svijetlo tirkizna", "emoji": "🧿" },
+      { "value": "blue", "label": "Plava", "emoji": "🟦" },
+      { "value": "lightBlue", "label": "Svijetlo plava", "emoji": "💧" },
+      { "value": "pink", "label": "Roza", "emoji": "🌸" },
+      { "value": "lightPink", "label": "Svijetlo roza", "emoji": "🩷" },
+      { "value": "purple", "label": "Ljubičasta", "emoji": "🟪" },
+      { "value": "lightPurple", "label": "Svijetlo ljubičasta", "emoji": "💜" }
     ]
   },
   {
     "key": "eyes",
-    "label": "Eyes",
+    "label": "Oči",
     "options": [
-      { "value": "normal", "label": "Normal" },
-      { "value": "leftTwitch", "label": "Left twitch" },
-      { "value": "happy", "label": "Happy" },
-      { "value": "content", "label": "Content" },
-      { "value": "squint", "label": "Squint" },
-      { "value": "simple", "label": "Simple" },
-      { "value": "dizzy", "label": "Dizzy" },
-      { "value": "wink", "label": "Wink" },
-      { "value": "heart", "label": "Hearts" },
-      { "value": "crazy", "label": "Crazy" },
-      { "value": "cute", "label": "Cute" },
-      { "value": "dollars", "label": "Dollars" },
-      { "value": "stars", "label": "Stars" },
-      { "value": "cyborg", "label": "Cyborg" },
-      { "value": "simplePatch", "label": "Eye patch" },
-      { "value": "piratePatch", "label": "Pirate patch" }
+      { "value": "normal", "label": "Normalne", "emoji": "👀" },
+      { "value": "leftTwitch", "label": "Trepće lijevo", "emoji": "😉" },
+      { "value": "happy", "label": "Sretne", "emoji": "😊" },
+      { "value": "content", "label": "Zadovoljne", "emoji": "☺️" },
+      { "value": "squint", "label": "Poluzatvorene", "emoji": "😑" },
+      { "value": "simple", "label": "Jednostavne", "emoji": "🙂" },
+      { "value": "dizzy", "label": "Zbunjene", "emoji": "😵" },
+      { "value": "wink", "label": "Namig", "emoji": "😉" },
+      { "value": "heart", "label": "Srca", "emoji": "😍" },
+      { "value": "crazy", "label": "Lude", "emoji": "🤪" },
+      { "value": "cute", "label": "Slatke", "emoji": "🥰" },
+      { "value": "dollars", "label": "Dolari", "emoji": "🤑" },
+      { "value": "stars", "label": "Zvjezdice", "emoji": "🤩" },
+      { "value": "cyborg", "label": "Cyborg", "emoji": "🤖" },
+      { "value": "simplePatch", "label": "Povez", "emoji": "🏴‍☠️" },
+      { "value": "piratePatch", "label": "Pirat povez", "emoji": "☠️" }
     ]
   },
   {
     "key": "eyebrows",
-    "label": "Brows",
+    "label": "Obrve",
     "options": [
-      { "value": "raised", "label": "Raised" },
-      { "value": "leftLowered", "label": "Left lowered" },
-      { "value": "serious", "label": "Serious" },
-      { "value": "angry", "label": "Angry" },
-      { "value": "concerned", "label": "Concerned" },
-      { "value": "none", "label": "None" }
+      { "value": "raised", "label": "Podignute", "emoji": "🤨" },
+      { "value": "leftLowered", "label": "Lijeva spuštena", "emoji": "😏" },
+      { "value": "serious", "label": "Ozbiljne", "emoji": "😐" },
+      { "value": "angry", "label": "Ljute", "emoji": "😠" },
+      { "value": "concerned", "label": "Zabrinute", "emoji": "😟" },
+      { "value": "none", "label": "Bez", "emoji": "➖" }
     ]
   },
   {
     "key": "lashes",
-    "label": "Lashes",
+    "label": "Trepuše",
     "options": [
-      { "value": true, "label": "On" },
-      { "value": false, "label": "Off" }
+      { "value": true, "label": "Uključene", "emoji": "👁️‍🗨️" },
+      { "value": false, "label": "Isključene", "emoji": "🚫" }
     ]
   },
   {
     "key": "mouth",
-    "label": "Mouth",
+    "label": "Usta",
     "options": [
-      { "value": "grin", "label": "Grin" },
-      { "value": "sad", "label": "Sad" },
-      { "value": "openSmile", "label": "Open smile" },
-      { "value": "lips", "label": "Lips" },
-      { "value": "open", "label": "Open" },
-      { "value": "serious", "label": "Serious" },
-      { "value": "tongue", "label": "Tongue" },
-      { "value": "piercedTongue", "label": "Pierced tongue" },
-      { "value": "vomitingRainbow", "label": "Rainbow" }
+      { "value": "grin", "label": "Široki osmijeh", "emoji": "😁" },
+      { "value": "sad", "label": "Tužna", "emoji": "😢" },
+      { "value": "openSmile", "label": "Otvoren osmijeh", "emoji": "😃" },
+      { "value": "lips", "label": "Usne", "emoji": "💋" },
+      { "value": "open", "label": "Otvorena", "emoji": "😮" },
+      { "value": "serious", "label": "Ozbiljna", "emoji": "😐" },
+      { "value": "tongue", "label": "Jezik", "emoji": "😛" },
+      { "value": "piercedTongue", "label": "Piercing jezik", "emoji": "😜" },
+      { "value": "vomitingRainbow", "label": "Povraća duginu", "emoji": "🤮" }
     ]
   },
   {
     "key": "lipColor",
-    "label": "Lip color",
+    "label": "Boja usana",
     "options": [
-      { "value": "red", "label": "Red" },
-      { "value": "lightRed", "label": "Light red" },
-      { "value": "green", "label": "Green" },
-      { "value": "lightGreen", "label": "Light green" },
-      { "value": "turqoise", "label": "Turquoise" },
-      { "value": "lightTurqoise", "label": "Light turquoise" },
-      { "value": "blue", "label": "Blue" },
-      { "value": "lightBlue", "label": "Light blue" },
-      { "value": "pink", "label": "Pink" },
-      { "value": "lightPink", "label": "Light pink" },
-      { "value": "purple", "label": "Purple" },
-      { "value": "lightPurple", "label": "Light purple" }
+      { "value": "red", "label": "Crvena", "emoji": "💄" },
+      { "value": "lightRed", "label": "Svijetlo crvena", "emoji": "❤️" },
+      { "value": "green", "label": "Zelena", "emoji": "💚" },
+      { "value": "lightGreen", "label": "Svijetlo zelena", "emoji": "🍃" },
+      { "value": "turqoise", "label": "Tirkizna", "emoji": "💠" },
+      { "value": "lightTurqoise", "label": "Svijetlo tirkizna", "emoji": "🧿" },
+      { "value": "blue", "label": "Plava", "emoji": "💙" },
+      { "value": "lightBlue", "label": "Svijetlo plava", "emoji": "💧" },
+      { "value": "pink", "label": "Roza", "emoji": "💋" },
+      { "value": "lightPink", "label": "Svijetlo roza", "emoji": "🩷" },
+      { "value": "purple", "label": "Ljubičasta", "emoji": "💜" },
+      { "value": "lightPurple", "label": "Svijetlo ljubičasta", "emoji": "🪻" }
     ]
   },
   {
     "key": "facialHair",
-    "label": "Facial hair",
+    "label": "Brada",
     "options": [
-      { "value": "none", "label": "None" },
-      { "value": "stubble", "label": "Stubble" },
-      { "value": "mediumBeard", "label": "Medium beard" },
-      { "value": "goatee", "label": "Goatee" }
+      { "value": "none", "label": "Bez brade", "emoji": "🙂" },
+      { "value": "stubble", "label": "Povrh brijana", "emoji": "🧔‍♂️" },
+      { "value": "mediumBeard", "label": "Srednja brada", "emoji": "🧔" },
+      { "value": "goatee", "label": "Bradica", "emoji": "🧔‍♀️" }
     ]
   },
   {
     "key": "facialHairColor",
-    "label": "Facial hair color",
+    "label": "Boja brade",
     "options": [
-      { "value": "white", "label": "White" },
-      { "value": "silver", "label": "Silver" },
-      { "value": "blonde", "label": "Blonde" },
-      { "value": "brown", "label": "Brown" },
-      { "value": "black", "label": "Black" },
-      { "value": "red", "label": "Red" },
-      { "value": "lightRed", "label": "Light red" },
-      { "value": "orange", "label": "Orange" },
-      { "value": "lightOrange", "label": "Light orange" },
-      { "value": "green", "label": "Green" },
-      { "value": "lightGreen", "label": "Light green" },
-      { "value": "turqoise", "label": "Turquoise" },
-      { "value": "lightTurqoise", "label": "Light turquoise" },
-      { "value": "blue", "label": "Blue" },
-      { "value": "lightBlue", "label": "Light blue" },
-      { "value": "pink", "label": "Pink" },
-      { "value": "lightPink", "label": "Light pink" },
-      { "value": "purple", "label": "Purple" },
-      { "value": "lightPurple", "label": "Light purple" }
+      { "value": "white", "label": "Bijela", "emoji": "⚪" },
+      { "value": "silver", "label": "Srebrna", "emoji": "🩶" },
+      { "value": "blonde", "label": "Plava", "emoji": "🟨" },
+      { "value": "brown", "label": "Smeđa", "emoji": "🟫" },
+      { "value": "black", "label": "Crna", "emoji": "⚫" },
+      { "value": "red", "label": "Crvena", "emoji": "🟥" },
+      { "value": "lightRed", "label": "Svijetlo crvena", "emoji": "❤️" },
+      { "value": "orange", "label": "Narandžasta", "emoji": "🟧" },
+      { "value": "lightOrange", "label": "Svijetlo narandžasta", "emoji": "🍊" },
+      { "value": "green", "label": "Zelena", "emoji": "🟩" },
+      { "value": "lightGreen", "label": "Svijetlo zelena", "emoji": "🍃" },
+      { "value": "turqoise", "label": "Tirkizna", "emoji": "💠" },
+      { "value": "lightTurqoise", "label": "Svijetlo tirkizna", "emoji": "🧿" },
+      { "value": "blue", "label": "Plava", "emoji": "🟦" },
+      { "value": "lightBlue", "label": "Svijetlo plava", "emoji": "💧" },
+      { "value": "pink", "label": "Roza", "emoji": "🌸" },
+      { "value": "lightPink", "label": "Svijetlo roza", "emoji": "🩷" },
+      { "value": "purple", "label": "Ljubičasta", "emoji": "🟪" },
+      { "value": "lightPurple", "label": "Svijetlo ljubičasta", "emoji": "💜" }
     ]
   },
   {
     "key": "accessory",
-    "label": "Accessory",
+    "label": "Dodaci",
     "options": [
-      { "value": "none", "label": "None" },
-      { "value": "roundGlasses", "label": "Round glasses" },
-      { "value": "tinyGlasses", "label": "Tiny glasses" },
-      { "value": "shades", "label": "Shades" },
-      { "value": "hoopEarrings", "label": "Hoop earrings" }
+      { "value": "none", "label": "Bez dodataka", "emoji": "✨" },
+      { "value": "roundGlasses", "label": "Okrugle naočale", "emoji": "👓" },
+      { "value": "tinyGlasses", "label": "Male naočale", "emoji": "🔍" },
+      { "value": "shades", "label": "Sunčane naočale", "emoji": "🕶️" },
+      { "value": "hoopEarrings", "label": "Kružne naušnice", "emoji": "🪬" }
     ]
   },
   {
     "key": "hat",
-    "label": "Headwear",
+    "label": "Pokrivka",
     "options": [
-      { "value": "none", "label": "None" },
-      { "value": "beanie", "label": "Beanie" },
-      { "value": "turban", "label": "Turban" },
-      { "value": "party", "label": "Party hat" },
-      { "value": "hijab", "label": "Hijab" }
+      { "value": "none", "label": "Bez pokrivke", "emoji": "🚫" },
+      { "value": "beanie", "label": "Kapa", "emoji": "🧢" },
+      { "value": "turban", "label": "Turban", "emoji": "👳" },
+      { "value": "party", "label": "Party kapa", "emoji": "🥳" },
+      { "value": "hijab", "label": "Hidžab", "emoji": "🧕" }
     ]
   },
   {
     "key": "hatColor",
-    "label": "Headwear color",
+    "label": "Boja pokrivke",
     "options": [
-      { "value": "white", "label": "White" },
-      { "value": "gray", "label": "Gray" },
-      { "value": "black", "label": "Black" },
-      { "value": "red", "label": "Red" },
-      { "value": "lightRed", "label": "Light red" },
-      { "value": "orange", "label": "Orange" },
-      { "value": "lightOrange", "label": "Light orange" },
-      { "value": "yellow", "label": "Yellow" },
-      { "value": "lightYellow", "label": "Light yellow" },
-      { "value": "green", "label": "Green" },
-      { "value": "lightGreen", "label": "Light green" },
-      { "value": "turqoise", "label": "Turquoise" },
-      { "value": "lightTurqoise", "label": "Light turquoise" },
-      { "value": "blue", "label": "Blue" },
-      { "value": "lightBlue", "label": "Light blue" },
-      { "value": "pink", "label": "Pink" },
-      { "value": "lightPink", "label": "Light pink" },
-      { "value": "purple", "label": "Purple" },
-      { "value": "lightPurple", "label": "Light purple" }
+      { "value": "white", "label": "Bijela", "emoji": "⚪" },
+      { "value": "gray", "label": "Siva", "emoji": "🩶" },
+      { "value": "black", "label": "Crna", "emoji": "⚫" },
+      { "value": "red", "label": "Crvena", "emoji": "🟥" },
+      { "value": "lightRed", "label": "Svijetlo crvena", "emoji": "❤️" },
+      { "value": "orange", "label": "Narandžasta", "emoji": "🟧" },
+      { "value": "lightOrange", "label": "Svijetlo narandžasta", "emoji": "🍊" },
+      { "value": "yellow", "label": "Žuta", "emoji": "🟨" },
+      { "value": "lightYellow", "label": "Svijetlo žuta", "emoji": "🌼" },
+      { "value": "green", "label": "Zelena", "emoji": "🟩" },
+      { "value": "lightGreen", "label": "Svijetlo zelena", "emoji": "🍃" },
+      { "value": "turqoise", "label": "Tirkizna", "emoji": "💠" },
+      { "value": "lightTurqoise", "label": "Svijetlo tirkizna", "emoji": "🧿" },
+      { "value": "blue", "label": "Plava", "emoji": "🟦" },
+      { "value": "lightBlue", "label": "Svijetlo plava", "emoji": "💧" },
+      { "value": "pink", "label": "Roza", "emoji": "🌸" },
+      { "value": "lightPink", "label": "Svijetlo roza", "emoji": "🩷" },
+      { "value": "purple", "label": "Ljubičasta", "emoji": "🟪" },
+      { "value": "lightPurple", "label": "Svijetlo ljubičasta", "emoji": "💜" }
     ]
   },
   {
     "key": "clothing",
-    "label": "Clothing",
+    "label": "Odjeća",
     "options": [
-      { "value": "naked", "label": "None" },
-      { "value": "shirt", "label": "Shirt" },
-      { "value": "dressShirt", "label": "Dress shirt" },
-      { "value": "vneck", "label": "V-neck" },
-      { "value": "tankTop", "label": "Tank top" },
-      { "value": "dress", "label": "Dress" },
-      { "value": "denimJacket", "label": "Denim jacket" },
-      { "value": "hoodie", "label": "Hoodie" },
-      { "value": "chequeredShirt", "label": "Check shirt" },
-      { "value": "chequeredShirtDark", "label": "Check shirt dark" }
+      { "value": "naked", "label": "Bez odjeće", "emoji": "🚫" },
+      { "value": "shirt", "label": "Majica", "emoji": "👕" },
+      { "value": "dressShirt", "label": "Košulja", "emoji": "👔" },
+      { "value": "vneck", "label": "V-izrez", "emoji": "🔻" },
+      { "value": "tankTop", "label": "Bez rukava", "emoji": "🩳" },
+      { "value": "dress", "label": "Haljina", "emoji": "👗" },
+      { "value": "denimJacket", "label": "Traper jakna", "emoji": "🧥" },
+      { "value": "hoodie", "label": "Dukserica", "emoji": "🧥" },
+      { "value": "chequeredShirt", "label": "Karo košulja", "emoji": "🧶" },
+      { "value": "chequeredShirtDark", "label": "Karo košulja tamna", "emoji": "🧵" }
     ]
   },
   {
     "key": "clothingColor",
-    "label": "Clothing color",
+    "label": "Boja odjeće",
     "options": [
-      { "value": "white", "label": "White" },
-      { "value": "gray", "label": "Gray" },
-      { "value": "black", "label": "Black" },
-      { "value": "red", "label": "Red" },
-      { "value": "lightRed", "label": "Light red" },
-      { "value": "orange", "label": "Orange" },
-      { "value": "lightOrange", "label": "Light orange" },
-      { "value": "yellow", "label": "Yellow" },
-      { "value": "lightYellow", "label": "Light yellow" },
-      { "value": "green", "label": "Green" },
-      { "value": "lightGreen", "label": "Light green" },
-      { "value": "turqoise", "label": "Turquoise" },
-      { "value": "lightTurqoise", "label": "Light turquoise" },
-      { "value": "blue", "label": "Blue" },
-      { "value": "lightBlue", "label": "Light blue" },
-      { "value": "pink", "label": "Pink" },
-      { "value": "lightPink", "label": "Light pink" },
-      { "value": "purple", "label": "Purple" },
-      { "value": "lightPurple", "label": "Light purple" }
+      { "value": "white", "label": "Bijela", "emoji": "⚪" },
+      { "value": "gray", "label": "Siva", "emoji": "🩶" },
+      { "value": "black", "label": "Crna", "emoji": "⚫" },
+      { "value": "red", "label": "Crvena", "emoji": "🟥" },
+      { "value": "lightRed", "label": "Svijetlo crvena", "emoji": "❤️" },
+      { "value": "orange", "label": "Narandžasta", "emoji": "🟧" },
+      { "value": "lightOrange", "label": "Svijetlo narandžasta", "emoji": "🍊" },
+      { "value": "yellow", "label": "Žuta", "emoji": "🟨" },
+      { "value": "lightYellow", "label": "Svijetlo žuta", "emoji": "🌼" },
+      { "value": "green", "label": "Zelena", "emoji": "🟩" },
+      { "value": "lightGreen", "label": "Svijetlo zelena", "emoji": "🍃" },
+      { "value": "turqoise", "label": "Tirkizna", "emoji": "💠" },
+      { "value": "lightTurqoise", "label": "Svijetlo tirkizna", "emoji": "🧿" },
+      { "value": "blue", "label": "Plava", "emoji": "🟦" },
+      { "value": "lightBlue", "label": "Svijetlo plava", "emoji": "💧" },
+      { "value": "pink", "label": "Roza", "emoji": "🌸" },
+      { "value": "lightPink", "label": "Svijetlo roza", "emoji": "🩷" },
+      { "value": "purple", "label": "Ljubičasta", "emoji": "🟪" },
+      { "value": "lightPurple", "label": "Svijetlo ljubičasta", "emoji": "💜" }
     ]
   },
   {
     "key": "graphic",
-    "label": "Graphic",
+    "label": "Grafika",
     "options": [
-      { "value": "none", "label": "None" },
-      { "value": "redwood", "label": "Redwood" },
-      { "value": "gatsby", "label": "Gatsby" },
-      { "value": "vue", "label": "Vue" },
-      { "value": "react", "label": "React" },
-      { "value": "graphQL", "label": "GraphQL" },
-      { "value": "donut", "label": "Donut" },
-      { "value": "rainbow", "label": "Rainbow" }
+      { "value": "none", "label": "Nema", "emoji": "🚫" },
+      { "value": "redwood", "label": "Redwood", "emoji": "🌲" },
+      { "value": "gatsby", "label": "Gatsby", "emoji": "🎩" },
+      { "value": "vue", "label": "Vue", "emoji": "🟢" },
+      { "value": "react", "label": "React", "emoji": "⚛️" },
+      { "value": "graphQL", "label": "GraphQL", "emoji": "🧬" },
+      { "value": "donut", "label": "Krofna", "emoji": "🍩" },
+      { "value": "rainbow", "label": "Duga", "emoji": "🌈" }
     ]
   },
   {
     "key": "body",
-    "label": "Body",
+    "label": "Tijelo",
     "options": [
-      { "value": "chest", "label": "Chest" },
-      { "value": "breasts", "label": "Breasts" }
+      { "value": "chest", "label": "Prsa", "emoji": "🧍" },
+      { "value": "breasts", "label": "Grudi", "emoji": "🧍‍♀️" }
     ]
   },
   {
     "key": "showBackground",
-    "label": "Background",
+    "label": "Pozadina",
     "options": [
-      { "value": true, "label": "Visible" },
-      { "value": false, "label": "Hidden" }
+      { "value": true, "label": "Vidljivo", "emoji": "🌈" },
+      { "value": false, "label": "Sakriveno", "emoji": "🚫" }
     ]
   },
   {
     "key": "backgroundColor",
-    "label": "Background color",
+    "label": "Boja pozadine",
     "options": [
-      { "value": "red", "label": "Red" },
-      { "value": "orange", "label": "Orange" },
-      { "value": "yellow", "label": "Yellow" },
-      { "value": "green", "label": "Green" },
-      { "value": "turqoise", "label": "Turquoise" },
-      { "value": "blue", "label": "Blue" },
-      { "value": "pink", "label": "Pink" },
-      { "value": "purple", "label": "Purple" },
-      { "value": "none", "label": "Transparent" }
+      { "value": "red", "label": "Crvena", "emoji": "🟥" },
+      { "value": "orange", "label": "Narandžasta", "emoji": "🟧" },
+      { "value": "yellow", "label": "Žuta", "emoji": "🟨" },
+      { "value": "green", "label": "Zelena", "emoji": "🟩" },
+      { "value": "turqoise", "label": "Tirkizna", "emoji": "💠" },
+      { "value": "blue", "label": "Plava", "emoji": "🟦" },
+      { "value": "pink", "label": "Roza", "emoji": "🌸" },
+      { "value": "purple", "label": "Ljubičasta", "emoji": "🟪" },
+      { "value": "none", "label": "Providno", "emoji": "⬜" }
     ]
   },
   {
     "key": "backgroundShape",
-    "label": "Background shape",
+    "label": "Oblik pozadine",
     "options": [
-      { "value": "circle", "label": "Circle" },
-      { "value": "square", "label": "Square" },
-      { "value": "squircle", "label": "Squircle" }
+      { "value": "circle", "label": "Krug", "emoji": "⚪" },
+      { "value": "square", "label": "Kvadrat", "emoji": "⬜" },
+      { "value": "squircle", "label": "Zaobljeni kvadrat", "emoji": "💮" }
     ]
   },
   {
     "key": "faceMask",
-    "label": "Face mask",
+    "label": "Maska",
     "options": [
-      { "value": true, "label": "On" },
-      { "value": false, "label": "Off" }
+      { "value": true, "label": "Uključena", "emoji": "😷" },
+      { "value": false, "label": "Isključena", "emoji": "🙂" }
     ]
   },
   {
     "key": "faceMaskColor",
-    "label": "Mask color",
+    "label": "Boja maske",
     "options": [
-      { "value": "white", "label": "White" },
-      { "value": "gray", "label": "Gray" },
-      { "value": "black", "label": "Black" },
-      { "value": "red", "label": "Red" },
-      { "value": "lightRed", "label": "Light red" },
-      { "value": "orange", "label": "Orange" },
-      { "value": "lightOrange", "label": "Light orange" },
-      { "value": "yellow", "label": "Yellow" },
-      { "value": "lightYellow", "label": "Light yellow" },
-      { "value": "green", "label": "Green" },
-      { "value": "lightGreen", "label": "Light green" },
-      { "value": "turqoise", "label": "Turquoise" },
-      { "value": "lightTurqoise", "label": "Light turquoise" },
-      { "value": "blue", "label": "Blue" },
-      { "value": "lightBlue", "label": "Light blue" },
-      { "value": "pink", "label": "Pink" },
-      { "value": "lightPink", "label": "Light pink" },
-      { "value": "purple", "label": "Purple" },
-      { "value": "lightPurple", "label": "Light purple" }
+      { "value": "white", "label": "Bijela", "emoji": "⚪" },
+      { "value": "gray", "label": "Siva", "emoji": "🩶" },
+      { "value": "black", "label": "Crna", "emoji": "⚫" },
+      { "value": "red", "label": "Crvena", "emoji": "🟥" },
+      { "value": "lightRed", "label": "Svijetlo crvena", "emoji": "❤️" },
+      { "value": "orange", "label": "Narandžasta", "emoji": "🟧" },
+      { "value": "lightOrange", "label": "Svijetlo narandžasta", "emoji": "🍊" },
+      { "value": "yellow", "label": "Žuta", "emoji": "🟨" },
+      { "value": "lightYellow", "label": "Svijetlo žuta", "emoji": "🌼" },
+      { "value": "green", "label": "Zelena", "emoji": "🟩" },
+      { "value": "lightGreen", "label": "Svijetlo zelena", "emoji": "🍃" },
+      { "value": "turqoise", "label": "Tirkizna", "emoji": "💠" },
+      { "value": "lightTurqoise", "label": "Svijetlo tirkizna", "emoji": "🧿" },
+      { "value": "blue", "label": "Plava", "emoji": "🟦" },
+      { "value": "lightBlue", "label": "Svijetlo plava", "emoji": "💧" },
+      { "value": "pink", "label": "Roza", "emoji": "🌸" },
+      { "value": "lightPink", "label": "Svijetlo roza", "emoji": "🩷" },
+      { "value": "purple", "label": "Ljubičasta", "emoji": "🟪" },
+      { "value": "lightPurple", "label": "Svijetlo ljubičasta", "emoji": "💜" }
     ]
   }
 ]
