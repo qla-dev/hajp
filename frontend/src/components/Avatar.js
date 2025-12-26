@@ -8,7 +8,7 @@ import { baseURL } from '../api';
 
 export const sizeMap = {
   xs: { photoSize: 64, avatarSize: 47, slotSize: 64, font: 12 },
-  s: { photoSize: 36, avatarSize: 20, slotSize: 36, font: 12 },
+  s: { photoSize: 36, avatarSize: 36, slotSize: 36, font: 12 },
   m: { photoSize: 120, avatarSize: 158, slotSize: 120, font: 32 }, // current default
   l: { photoSize: 158, avatarSize: 228, slotSize: 158, font: 40 },
   xl: { photoSize: 190, avatarSize: 250, slotSize: 190, font: 48 },
@@ -254,9 +254,10 @@ export default function Avatar({
   const renderContent = (dimensionStyle = contentDimensionStyle, fontSize = resolvedFont, sizeForElement = resolvedSize) => {
     const assetStyle = [styles.base, dimensionStyle, flip ? styles.flip : null, assetReady ? null : styles.hidden];
     const fallbackBg = contentMode === 'avatar' ? 'transparent' : colors.profilePurple;
+    const fallbackTextColor = fallbackBg === 'transparent' ? colors.text_primary : colors.textLight;
     const fallbackNode = (
-      <View style={[styles.fallback, dimensionStyle, { backgroundColor: fallbackBg }]}>
-        <Text style={[styles.initials, { color: colors.textLight, fontSize }]}>{initials}</Text>
+      <View style={[styles.fallback, dimensionStyle, borderStyle, { backgroundColor: fallbackBg }]}>
+        <Text style={[styles.initials, { color: fallbackTextColor, fontSize }]}>{initials}</Text>
       </View>
     );
 
@@ -266,20 +267,20 @@ export default function Avatar({
           xml={svgMarkup}
           width={sizeForElement}
           height={sizeForElement}
-          style={assetStyle}
+          style={[...assetStyle, borderStyle]}
         />
       ) : (
         <SvgUri
           uri={effectiveUri}
           width={sizeForElement}
           height={sizeForElement}
-          style={assetStyle}
+          style={[...assetStyle, borderStyle]}
           onLoad={() => setAssetReady(true)}
           onError={() => setSvgError(true)}
         />
       );
       return (
-        <View style={[styles.stack, dimensionStyle, borderStyle]}>
+        <View style={[styles.stack, dimensionStyle]}>
           {fallbackNode}
           <View style={[styles.absoluteFill, { borderRadius: dimensionStyle.borderRadius }]}>{node}</View>
         </View>
@@ -290,7 +291,7 @@ export default function Avatar({
       const node = (
         <Image
           source={{ uri: effectiveUri }}
-          style={assetStyle}
+          style={[...assetStyle, borderStyle]}
           onLoad={() => setAssetReady(true)}
           onLoadEnd={() => setAssetReady(true)}
           onError={() => setImageError(true)}
@@ -298,14 +299,14 @@ export default function Avatar({
         />
       );
       return (
-        <View style={[styles.stack, dimensionStyle, borderStyle]}>
+        <View style={[styles.stack, dimensionStyle]}>
           {fallbackNode}
           <View style={[styles.absoluteFill, { borderRadius: dimensionStyle.borderRadius }]}>{node}</View>
         </View>
       );
     }
 
-    return <View style={[styles.stack, dimensionStyle, borderStyle]}>{fallbackNode}</View>;
+    return <View style={[styles.stack, dimensionStyle]}>{fallbackNode}</View>;
   };
 
   const canZoom = zoomModal && !!effectiveUri && !imageError && !svgError;

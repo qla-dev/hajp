@@ -260,46 +260,42 @@ export default function PollingScreen({ route, navigation }) {
   const emoji = question.emoji || emojis[index % emojis.length];
   const options = question.options || [];
 
-  const resolveAvatar = (photo) => {
-    if (!photo) return null;
-    // Raw SVG markup -> convert to data URI so Avatar can render it
-    if (typeof photo === 'string' && photo.includes('<svg')) {
-      const encoded = encodeURIComponent(photo);
-      return `data:image/svg+xml;utf8,${encoded}`;
-    }
-    if (typeof photo === 'string' && /^https?:\/\//i.test(photo)) return photo;
-    const cleanBase = (baseURL || '').replace(/\/+$/, '');
-    const cleanPath = String(photo).replace(/^\/+/, '');
-    if (!cleanBase) return null;
-    return `${cleanBase}/${cleanPath}`;
-  };
-
   const normalizedOptions = options.slice(0, 4).map((option, idx) => {
     if (option && typeof option === 'object') {
       const value = option.user_id ?? option.id;
       const label = option.name ?? String(value ?? '');
-      const rawAvatar =
+      const avatarConfig = option.avatar || option.avatar_config || option.avatarConfig || option.user?.avatar || null;
+      const profilePhoto =
         option.profile_photo ||
+        option.user?.profile_photo ||
+        option.user?.photo ||
+        option.user?.image ||
+        null;
+      const avatarUri =
         option.avatar ||
         option.avatar_url ||
         option.avatarSvg ||
         option.avatar_svg ||
         option.avatar_svg_url ||
         option.avatarSvgUrl ||
+        option.profile_photo ||
         option.photo ||
         option.image ||
         option.picture ||
-        option.user?.profile_photo ||
         option.user?.avatar ||
         option.user?.avatar_url ||
+        option.user?.avatar_svg ||
+        option.user?.avatarSvg ||
+        option.user?.avatar_svg_url ||
+        option.user?.avatarSvgUrl ||
+        option.user?.profile_photo ||
         option.user?.photo ||
         option.user?.image ||
         null;
-      const avatarUri = resolveAvatar(rawAvatar);
-      return { value, label, avatarUri };
+      return { value, label, avatarUri, avatarConfig, profilePhoto, user: option.user };
     }
-    const avatarUri = resolveAvatar(option);
-    return { value: option, label: String(option ?? ''), avatarUri };
+    const avatarUri = option || null;
+    return { value: option, label: String(option ?? ''), avatarUri, avatarConfig: null, profilePhoto: null, user: null };
   });
 
   const handleOptionLongPress = (option) => {
@@ -307,6 +303,9 @@ export default function PollingScreen({ route, navigation }) {
     Haptics?.selectionAsync?.()?.catch(() => {});
     setZoomAvatar({
       uri: option.avatarUri,
+      avatarConfig: option.avatarConfig,
+      profilePhoto: option.profilePhoto,
+      user: option.user,
       name: option.label,
     });
     setZoomVisible(true);
@@ -361,10 +360,14 @@ export default function PollingScreen({ route, navigation }) {
           >
             <Avatar
               uri={option.avatarUri}
+              avatarConfig={option.avatarConfig}
+              profilePhoto={option.profilePhoto}
+              user={option.user}
               name={option.label}
               variant="avatar-s"
               border={2}
-              zoomModal={false}
+              mode="auto"
+              zoomModal={true}
               style={[
                 styles.optionAvatar,
                 idx === 0 && styles.avatarTopLeft,
@@ -401,7 +404,15 @@ export default function PollingScreen({ route, navigation }) {
               },
             ]}
             >
-            <Avatar uri={zoomAvatar?.uri} name={zoomAvatar?.name} size={300} zoomModal={false} />
+            <Avatar
+              uri={zoomAvatar?.uri}
+              avatarConfig={zoomAvatar?.avatarConfig}
+              profilePhoto={zoomAvatar?.profilePhoto}
+              user={zoomAvatar?.user}
+              name={zoomAvatar?.name}
+              size={300}
+              zoomModal={false}
+            />
             </Animated.View>
           </Pressable>
         )}
