@@ -87,8 +87,30 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const aiBgAnim = useRef(new Animated.Value(0)).current;
+  const gradientColors = useMemo(
+    () => [
+      'rgba(52,120,255,0.45)',
+      'rgba(183,148,244,0.55)',
+      'rgba(236,72,153,0.50)',
+      'rgba(52,211,153,0.45)',
+    ],
+    [],
+  );
 
   const avatarSvgUrl = useMemo(() => buildAvatarSvg(config), [config]);
+  const animatedGradientStyle = useMemo(
+    () => ({
+      transform: [
+        {
+          translateX: aiBgAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [-360, 360],
+          }),
+        },
+      ],
+    }),
+    [aiBgAnim],
+  );
 
   const handleSelect = useCallback((key, value) => {
     setConfig((prev) => enforceCirclePurple({ ...prev, [key]: value }));
@@ -280,63 +302,27 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
           style={styles.aiButton}
           onPress={() => setShowAiModal(true)}
         >
-          <LinearGradient
-            colors={['#4f9bfd', '#b794f4', '#34d399']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.aiBorder}
-          >
-            <View style={styles.aiButtonInner}>
-              <View style={styles.aiBgLayer} pointerEvents="none">
-                <Animated.View
-                  style={[
-                    styles.aiBgMover,
-                    {
-                      transform: [
-                        {
-                          translateX: aiBgAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [-360, 360],
-                          }),
-                        },
-                        { rotate: '18deg' },
-                      ],
-                    },
-                  ]}
-                >
-                  <LinearGradient
-                    colors={[
-                      'rgba(52,120,255,0.28)',
-                      'rgba(183,148,244,0.30)',
-                      'rgba(236,72,153,0.26)',
-                      'rgba(52,211,153,0.22)',
-                    ]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.aiBgFill}
-                  />
-                </Animated.View>
-              </View>
+          <View style={styles.aiBorder}>
+            <Animated.View style={[styles.aiBorderFill, animatedGradientStyle]}>
+              <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.aiBorderFillInner} />
+            </Animated.View>
+            <View style={[styles.aiButtonInner, { backgroundColor: colors.background }]}>
               <MaskedView maskElement={<Ionicons name="sparkles-outline" size={18} color="#000" />}>
-                <LinearGradient
-                  colors={['#fff', '#fff', '#fff']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="sparkles-outline" size={18} color="transparent" />
-                </LinearGradient>
+                <Animated.View style={animatedGradientStyle}>
+                  <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                    <Ionicons name="sparkles-outline" size={18} color="transparent" />
+                  </LinearGradient>
+                </Animated.View>
               </MaskedView>
               <MaskedView maskElement={<Text style={[styles.aiButtonText, styles.aiButtonTextMask]}>Generiši sa AI</Text>}>
-                <LinearGradient
-                  colors={['#fff', '#fff', '#fff']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Text style={[styles.aiButtonText, styles.aiButtonTextFill]}>Generiši sa AI</Text>
-                </LinearGradient>
+                <Animated.View style={animatedGradientStyle}>
+                  <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                    <Text style={[styles.aiButtonText, styles.aiButtonTextFill]}>Generiši sa AI</Text>
+                  </LinearGradient>
+                </Animated.View>
               </MaskedView>
             </View>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -519,6 +505,15 @@ const createStyles = (colors) =>
       padding: 1.5,
       borderRadius: 20,
       height: '100%',
+      overflow: 'hidden',
+      backgroundColor: colors.background,
+      position: 'relative',
+    },
+    aiBorderFill: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    aiBorderFillInner: {
+      ...StyleSheet.absoluteFillObject,
     },
     aiButtonInner: {
       borderRadius: 19,
