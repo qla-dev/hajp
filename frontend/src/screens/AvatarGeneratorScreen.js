@@ -145,7 +145,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     const loop = Animated.loop(
       Animated.timing(aiBgAnim, {
         toValue: 1,
-        duration: 3600,
+        duration: 1200,
         easing: Easing.linear,
         useNativeDriver: true,
       }),
@@ -296,15 +296,21 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
                         {
                           translateX: aiBgAnim.interpolate({
                             inputRange: [0, 1],
-                            outputRange: [-180, 180],
+                            outputRange: [-360, 360],
                           }),
                         },
+                        { rotate: '18deg' },
                       ],
                     },
                   ]}
                 >
                   <LinearGradient
-                    colors={['rgba(79,155,253,0.10)', 'rgba(183,148,244,0.18)', 'rgba(52,211,153,0.10)']}
+                    colors={[
+                      'rgba(52,120,255,0.28)',
+                      'rgba(183,148,244,0.30)',
+                      'rgba(236,72,153,0.26)',
+                      'rgba(52,211,153,0.22)',
+                    ]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.aiBgFill}
@@ -313,7 +319,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
               </View>
               <MaskedView maskElement={<Ionicons name="sparkles-outline" size={18} color="#000" />}>
                 <LinearGradient
-                  colors={['#4f9bfd', '#b794f4', '#34d399']}
+                  colors={['#fff', '#fff', '#fff']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
@@ -322,7 +328,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
               </MaskedView>
               <MaskedView maskElement={<Text style={[styles.aiButtonText, styles.aiButtonTextMask]}>Generiši sa AI</Text>}>
                 <LinearGradient
-                  colors={['#4f9bfd', '#b794f4', '#34d399']}
+                  colors={['#fff', '#fff', '#fff']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 >
@@ -522,7 +528,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      backgroundColor: colors.background,
+      backgroundColor: 'transparent',
       height: '100%',
       position: 'relative',
       overflow: 'hidden',
@@ -530,13 +536,14 @@ const createStyles = (colors) =>
     aiBgLayer: {
       ...StyleSheet.absoluteFillObject,
       borderRadius: 19,
+      pointerEvents: 'none',
     },
     aiBgMover: {
       position: 'absolute',
-      top: 0,
-      bottom: 0,
-      left: -60,
-      right: -60,
+      top: -160,
+      bottom: -160,
+      left: -360,
+      width: 720,
     },
     aiBgFill: {
       ...StyleSheet.absoluteFillObject,
