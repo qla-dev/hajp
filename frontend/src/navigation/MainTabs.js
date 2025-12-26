@@ -569,7 +569,8 @@ function MainTabsContent() {
         const user = await getCurrentUser();
         if (!isMounted) return;
         setProfileUser(user);
-        setProfileAvatarUri(resolveAvatar(user?.profile_photo));
+        const photoUri = resolveAvatar(user?.profile_photo);
+        setProfileAvatarUri(photoUri || user?.avatar || null);
       } catch {
         if (!isMounted) return;
         setProfileUser(null);
@@ -580,7 +581,8 @@ function MainTabsContent() {
     const unsubscribe = addProfileUpdatedListener((user) => {
       if (!isMounted) return;
       setProfileUser(user);
-      setProfileAvatarUri(resolveAvatar(user?.profile_photo));
+      const photoUri = resolveAvatar(user?.profile_photo);
+      setProfileAvatarUri(photoUri || user?.avatar || null);
     });
     return () => {
       isMounted = false;
@@ -649,17 +651,22 @@ function MainTabsContent() {
           tabBarIcon: ({ focused: isFocused, color, size }) => {
             if (route.name === 'Profile') {
               const borderColor = isFocused ? colors.primary : colors.border;
-                return (
+              return (
                 <Avatar
                   uri={profileAvatarUri}
+                  user={profileUser}
+                  profilePhoto={profileUser?.profile_photo}
+                  avatarConfig={profileUser?.avatar}
                   name={profileInitials}
                   variant="avatar-xs"
-                  size={PROFILE_ICON_SIZE}
                   zoomModal={false}
                   mode="auto"
                   style={[
                     tabStyles.profileIconContainer,
-                    { borderColor, backgroundColor: profileAvatarUri ? 'transparent' : colors.secondary },
+                    {
+                      borderColor,
+                      backgroundColor: profileAvatarUri || profileUser?.avatar ? 'transparent' : colors.secondary,
+                    },
                   ]}
                 />
               );

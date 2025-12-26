@@ -7,7 +7,7 @@ import { buildAvatarSvg } from '../utils/bigHeadAvatar';
 import { baseURL } from '../api';
 
 export const sizeMap = {
-  xs: { photoSize: 64, avatarSize: 84, slotSize: 64, font: 22 },
+  xs: { photoSize: 64, avatarSize: 47, slotSize: 64, font: 12 },
   s: { photoSize: 88, avatarSize: 116, slotSize: 88, font: 26 },
   m: { photoSize: 120, avatarSize: 158, slotSize: 120, font: 32 }, // current default
   l: { photoSize: 158, avatarSize: 228, slotSize: 158, font: 40 },
