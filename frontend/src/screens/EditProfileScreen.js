@@ -53,6 +53,10 @@ export default function EditProfileScreen({ navigation, route }) {
     avatarTextColor;
 
   const isDirty = ['name', 'email', 'sex'].some((key) => form[key] !== initialValues[key]);
+  const hasProfilePhoto = !!form.profile_photo;
+  const profileCtaText = hasProfilePhoto ? 'Izmijeni sliku' : 'Uploadaj sliku';
+  const avatarUsesGallery = !hasProfilePhoto;
+  const avatarCtaText = avatarUsesGallery ? profileCtaText : form.avatar ? 'Izmijeni avatar' : 'Kreiraj avatar';
 
   const applyUser = useCallback((userData, { emit } = { emit: true }) => {
     const normalized = normalizeUser(userData);
@@ -146,6 +150,7 @@ export default function EditProfileScreen({ navigation, route }) {
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
+        cropperCircleOverlay: true,
       });
     } catch (err) {
       console.warn('Image picker error', err);
@@ -232,7 +237,17 @@ export default function EditProfileScreen({ navigation, route }) {
       <View style={styles.avatarWrapper}>
         <View style={styles.avatarRow}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatarGraphicSlot}>
+            {hasProfilePhoto && (
+              <TouchableOpacity style={[styles.removeBadge, styles.removeBadgeLeft]} onPress={onRemovePhoto} activeOpacity={0.9} disabled={uploadingPhoto || saving}>
+                <Ionicons name="close" size={18} color={colors.text_primary} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={styles.avatarGraphicSlot}
+              activeOpacity={hasProfilePhoto ? 1 : 0.9}
+              onPress={!hasProfilePhoto ? onPickPhoto : undefined}
+              disabled={uploadingPhoto}
+            >
               <Avatar
                 uri={
                   resolveAvatar(form.profile_photo, form.name) ||
@@ -243,7 +258,7 @@ export default function EditProfileScreen({ navigation, route }) {
                 size={PROFILE_SIZE}
                 style={[styles.avatar, styles.avatarAbsolute]}
               />
-            </View>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.cameraBadge} onPress={onPickPhoto} activeOpacity={0.9} disabled={uploadingPhoto}>
               {uploadingPhoto ? (
                 <ActivityIndicator size="small" color={colors.primary} />
@@ -252,7 +267,7 @@ export default function EditProfileScreen({ navigation, route }) {
               )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.editPhotoCta} onPress={onPickPhoto} activeOpacity={0.9} disabled={uploadingPhoto}>
-              <Text style={styles.editPhotoText}>Izmijeni sliku</Text>
+              <Text style={styles.editPhotoText}>{profileCtaText}</Text>
             </TouchableOpacity>
           </View>
 
@@ -262,6 +277,11 @@ export default function EditProfileScreen({ navigation, route }) {
             activeOpacity={0.9}
             disabled={uploadingPhoto}
           >
+            {form.avatar && (
+              <TouchableOpacity style={[styles.removeBadge, styles.removeBadgeLeft]} onPress={onRemoveAvatar} activeOpacity={0.9} disabled={uploadingPhoto || saving}>
+                <Ionicons name="close" size={18} color={colors.text_primary} />
+              </TouchableOpacity>
+            )}
             {form.avatar ? (
               <View style={styles.avatarGraphicSlot}>
                 <Avatar
@@ -279,18 +299,10 @@ export default function EditProfileScreen({ navigation, route }) {
                 </View>
               </View>
             )}
-            <Text style={styles.avatarGeneratorText}>{form.avatar ? 'Izmijeni avatar' : 'Kreiraj avatar'}</Text>
+            <Text style={styles.avatarGeneratorText}>{avatarCtaText}</Text>
           </TouchableOpacity>
         </View>
         <Text style={styles.avatarNote}>Dodaj sliku do 3 MB ili kreiraj avatar. Ista će biti javno dostupna.</Text>
-        <View style={styles.removeRow}>
-          <TouchableOpacity style={styles.removePhotoButton} onPress={onRemovePhoto} disabled={uploadingPhoto || saving}>
-            <Text style={styles.removePhotoText}>Ukloni profilnu sliku</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.removePhotoButton} onPress={onRemoveAvatar} disabled={uploadingPhoto || saving}>
-            <Text style={styles.removePhotoText}>Ukloni avatar</Text>
-          </TouchableOpacity>
-        </View>
       </View>
 
       <View style={styles.formSection}>
@@ -451,7 +463,7 @@ const createStyles = (colors) =>
     avatarContainerScroll: {
       width: '100%',
       maxWidth: '100%',
-      marginTop: 0,
+      marginTop: -20,
       alignItems: 'stretch',
     },
     avatarGeneratorIcon: {
@@ -461,6 +473,24 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: colors.surface,
+    },
+    removeBadge: {
+      position: 'absolute',
+      top: 12,
+      left: 12,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: colors.background,
+      elevation: 4,
+      zIndex: 2,
+    },
+    removeBadgeLeft: {
+      alignSelf: 'flex-start',
     },
     avatarPlaceholder: {
       gap: 6,
@@ -480,22 +510,6 @@ const createStyles = (colors) =>
       fontSize: 12,
       color: colors.text_secondary,
       textAlign: 'center',
-    },
-    removePhotoButton: {
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-    },
-    removePhotoText: {
-      color: colors.error,
-      fontWeight: '700',
-      fontSize: 13,
-      textDecorationLine: 'underline',
-    },
-    removeRow: {
-      marginTop: 6,
-      flexDirection: 'row',
-      gap: 12,
-      justifyContent: 'center',
     },
     label: {
       marginBottom: 4,
@@ -668,3 +682,4 @@ const createStyles = (colors) =>
       gap: 8,
     },
   });
+
