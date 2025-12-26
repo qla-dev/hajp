@@ -1,5 +1,5 @@
-﻿import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert, Image, Modal } from 'react-native';
+﻿import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert, Image, Modal, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
@@ -86,6 +86,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   const [showAiModal, setShowAiModal] = useState(false);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const aiBgAnim = useRef(new Animated.Value(0)).current;
 
   const avatarSvgUrl = useMemo(() => buildAvatarSvg(config), [config]);
 
@@ -138,6 +139,24 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
       setConfig((prev) => enforceCirclePurple({ ...prev, ...route.params.preset }));
     }
   }, [route?.params?.preset]);
+
+  useEffect(() => {
+    aiBgAnim.setValue(0);
+    const loop = Animated.loop(
+      Animated.timing(aiBgAnim, {
+        toValue: 1,
+        duration: 3600,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+      { resetBeforeIteration: true },
+    );
+    loop.start();
+    return () => {
+      loop.stop();
+      aiBgAnim.stopAnimation();
+    };
+  }, [aiBgAnim]);
 
   const activeGroup = orderedOptionGroups.find((group) => group.key === activeTab);
 
@@ -268,6 +287,30 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
             style={styles.aiBorder}
           >
             <View style={styles.aiButtonInner}>
+              <View style={styles.aiBgLayer} pointerEvents="none">
+                <Animated.View
+                  style={[
+                    styles.aiBgMover,
+                    {
+                      transform: [
+                        {
+                          translateX: aiBgAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [-180, 180],
+                          }),
+                        },
+                      ],
+                    },
+                  ]}
+                >
+                  <LinearGradient
+                    colors={['rgba(79,155,253,0.10)', 'rgba(183,148,244,0.18)', 'rgba(52,211,153,0.10)']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.aiBgFill}
+                  />
+                </Animated.View>
+              </View>
               <MaskedView maskElement={<Ionicons name="sparkles-outline" size={18} color="#000" />}>
                 <LinearGradient
                   colors={['#4f9bfd', '#b794f4', '#34d399']}
@@ -481,6 +524,22 @@ const createStyles = (colors) =>
       gap: 8,
       backgroundColor: colors.background,
       height: '100%',
+      position: 'relative',
+      overflow: 'hidden',
+    },
+    aiBgLayer: {
+      ...StyleSheet.absoluteFillObject,
+      borderRadius: 19,
+    },
+    aiBgMover: {
+      position: 'absolute',
+      top: 0,
+      bottom: 0,
+      left: -60,
+      right: -60,
+    },
+    aiBgFill: {
+      ...StyleSheet.absoluteFillObject,
     },
     aiButtonText: {
       fontWeight: '700',
