@@ -15,6 +15,10 @@ if (Platform.OS !== 'android') {
   Haptics = require('expo-haptics');
 }
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
+const skipSoundAsset = require('../../assets/sounds/skip.mp3');
+const shuffleSoundAsset = require('../../assets/sounds/shuffle.mp3');
+
+
 
 export default function PollingScreen({ route, navigation }) {
   const { roomId } = route.params || {};
@@ -33,6 +37,8 @@ export default function PollingScreen({ route, navigation }) {
   const [zoomVisible, setZoomVisible] = useState(false);
   const zoomAnim = useRef(new Animated.Value(0)).current;
   const connectSoundRef = useRef(null);
+  const skipSoundRef = useRef(null);
+  const shuffleSoundRef = useRef(null);
   const emojis = useMemo(() => ['🔥', '🚀', '💎', '🏆', '🎉', '✨'], []);
   const backgrounds = useMemo(() => [colors.secondary, '#7c3aed', '#2563eb', '#0ea5e9', '#22c55e', '#f97316'], [colors.secondary]);
   const [bgColor, setBgColor] = useState(colors.secondary);
@@ -51,10 +57,16 @@ export default function PollingScreen({ route, navigation }) {
     (async () => {
       try {
         const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
+        const { sound: skipSound } = await Audio.Sound.createAsync(skipSoundAsset, { shouldPlay: false });
+        const { sound: shuffleSound } = await Audio.Sound.createAsync(shuffleSoundAsset, { shouldPlay: false });
         if (mounted) {
           connectSoundRef.current = sound;
+          skipSoundRef.current = skipSound;
+          shuffleSoundRef.current = shuffleSound;
         } else {
           await sound.unloadAsync();
+          await skipSound.unloadAsync();
+          await shuffleSound.unloadAsync();
         }
       } catch {
         // ignore sound load errors
@@ -63,7 +75,11 @@ export default function PollingScreen({ route, navigation }) {
     return () => {
       mounted = false;
       connectSoundRef.current?.unloadAsync();
+      skipSoundRef.current?.unloadAsync();
+      shuffleSoundRef.current?.unloadAsync();
       connectSoundRef.current = null;
+      skipSoundRef.current = null;
+      shuffleSoundRef.current = null;
     };
   }, []);
 
@@ -145,6 +161,7 @@ export default function PollingScreen({ route, navigation }) {
   const handleShuffle = async () => {
     if (!question) return;
     Haptics?.impactAsync?.(Haptics?.ImpactFeedbackStyle?.Light)?.catch(() => {});
+    shuffleSoundRef.current?.replayAsync().catch(() => {});
     try {
       const { data } = await refreshQuestionOptions(question.id);
       setQuestion({ ...question, ...data });
@@ -162,6 +179,7 @@ export default function PollingScreen({ route, navigation }) {
     if (interactionLocked) return;
     setInteractionLocked(true);
     Haptics?.selectionAsync?.()?.catch(() => {});
+    skipSoundRef.current?.replayAsync().catch(() => {});
     try {
       await skipQuestion(question.id, roomId);
     } catch {}
