@@ -375,6 +375,7 @@ const createStyles = (colors) =>
     avatarWrapper: {
       alignItems: 'center',
       paddingVertical: 0,
+      marginTop: -30,
       backgroundColor: colors.transparent,
       borderBottomWidth: 0,
       borderColor: colors.border,
