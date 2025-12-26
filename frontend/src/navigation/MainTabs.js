@@ -656,6 +656,7 @@ function MainTabsContent() {
                   variant="avatar-xs"
                   size={PROFILE_ICON_SIZE}
                   zoomModal={false}
+                  mode="auto"
                   style={[
                     tabStyles.profileIconContainer,
                     { borderColor, backgroundColor: profileAvatarUri ? 'transparent' : colors.secondary },
