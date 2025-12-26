@@ -96,12 +96,6 @@ class QuestionController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        Log::info('Skip attempt', [
-            'user_id' => $user->id,
-            'question_id' => $question->id,
-            'payload' => $request->all(),
-        ]);
-
         $data = $request->validate([
             'room_id' => 'required|exists:rooms,id',
         ]);
@@ -118,7 +112,7 @@ class QuestionController extends Controller
             'question_id' => $question->id,
             'room_id' => $roomId,
             'user_id' => $user->id,
-            'selected_user_id' => 0,
+            'selected_user_id' => null,
         ]);
 
         return response()->json(['vote' => $vote], 201);
