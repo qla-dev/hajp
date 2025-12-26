@@ -21,6 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 const coinSoundAsset = require('../../assets/sounds/coins.mp3');
+const applauseSoundAsset = require('../../assets/sounds/applause.mp3');
 
 export default function CashOutScreen({ route, navigation }) {
   const { roomId } = route.params || {};
@@ -36,6 +37,8 @@ export default function CashOutScreen({ route, navigation }) {
   const confettiTimer = useRef(null);
   const confettiRef = useRef(null);
   const coinSoundRef = useRef(null);
+  const applauseSoundRef = useRef(null);
+  const handleConfettiComplete = () => setCelebrating(false);
 
   useEffect(() => () => clearTimeout(confettiTimer.current), []);
 
@@ -54,10 +57,17 @@ export default function CashOutScreen({ route, navigation }) {
     (async () => {
       try {
         const { sound } = await Audio.Sound.createAsync(coinSoundAsset, { shouldPlay: false });
+        const { sound: applause } = await Audio.Sound.createAsync(applauseSoundAsset, { shouldPlay: false });
         if (isMounted) {
           coinSoundRef.current = sound;
+          applauseSoundRef.current = applause;
+          // Kick off celebration on load
+          Haptics.selectionAsync().catch(() => {});
+          applause.replayAsync().then(() => fadeOutApplause()).catch(() => {});
+          setCelebrating(true);
         } else {
           await sound.unloadAsync();
+          await applause.unloadAsync();
         }
       } catch (loadError) {
         console.warn('Failed to load coin sound', loadError);
@@ -66,12 +76,37 @@ export default function CashOutScreen({ route, navigation }) {
     return () => {
       isMounted = false;
       coinSoundRef.current?.unloadAsync();
+      applauseSoundRef.current?.unloadAsync();
       coinSoundRef.current = null;
+      applauseSoundRef.current = null;
     };
   }, []);
 
   const playCoinSound = () => {
     coinSoundRef.current?.replayAsync().catch(() => {});
+  };
+
+  const fadeOutApplause = () => {
+    const sound = applauseSoundRef.current;
+    if (!sound) return;
+    // Let it play at full volume for ~5s, then fade over ~1s
+    setTimeout(() => {
+      let volume = 1;
+      const step = 0.12;
+      const interval = setInterval(async () => {
+        volume = Math.max(0, volume - step);
+        try {
+          await sound.setVolumeAsync(volume);
+          if (volume <= 0) {
+            clearInterval(interval);
+            await sound.stopAsync();
+            await sound.setVolumeAsync(1);
+          }
+        } catch {
+          clearInterval(interval);
+        }
+      }, 120);
+    }, 5000);
   };
 
   useEffect(() => {
@@ -207,7 +242,7 @@ export default function CashOutScreen({ route, navigation }) {
               ref={buttonRef}
               style={styles.button}
               onPress={handleCashout}
-              disabled={loading || celebrating}
+              disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
@@ -244,6 +279,7 @@ export default function CashOutScreen({ route, navigation }) {
             autoStart
             fallSpeed={8000}
             ref={confettiRef}
+            onAnimationEnd={handleConfettiComplete}
           />
         </View>
       )}
@@ -257,10 +293,12 @@ const createStyles = (colors) =>
       flex: 1,
       backgroundColor: colors.background,
       position: 'relative',
+      zIndex: 1,
     },
     container: {
       flex: 1,
       backgroundColor: 'transparent',
+      zIndex: 2,
     },
     content: {
       flexGrow: 1,
@@ -331,7 +369,7 @@ const createStyles = (colors) =>
     },
     confettiWrapper: {
       ...StyleSheet.absoluteFillObject,
-      zIndex: 20,
+      zIndex: 0,
     },
     transferCoin: {
       position: 'absolute',
