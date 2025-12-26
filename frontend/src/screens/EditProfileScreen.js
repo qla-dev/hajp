@@ -34,6 +34,19 @@ const resolveAvatar = (photo) => {
   return `${cleanBase}/${cleanPath}`;
 };
 
+const parseAvatarConfig = (value) => {
+  if (!value) return null;
+  if (typeof value === 'object') return value;
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
 export default function EditProfileScreen({ navigation, route }) {
   const passedUser = route.params?.user;
   const [form, setForm] = useState(() => normalizeUser(passedUser));
@@ -200,8 +213,9 @@ export default function EditProfileScreen({ navigation, route }) {
   }, [applyUser]);
 
   const onOpenAvatarGenerator = useCallback(() => {
-    navigation.navigate('AvatarGenerator', { seedConfig: { avatarStyle: 'Circle' } });
-  }, [navigation]);
+    const seedConfig = parseAvatarConfig(form.avatar) || { avatarStyle: 'Circle' };
+    navigation.navigate('AvatarGenerator', { seedConfig });
+  }, [form.avatar, navigation]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
