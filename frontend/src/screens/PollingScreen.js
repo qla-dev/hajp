@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator, Platform, Animated, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL, fetchActiveQuestion, fetchRoomCashoutStatus, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
 import { Audio } from 'expo-av';
@@ -42,30 +43,43 @@ export default function PollingScreen({ route, navigation }) {
   const emojis = useMemo(() => ['🔥', '🚀', '💎', '🏆', '🎉', '✨'], []);
   const backgrounds = useMemo(
     () => [
-      colors.primary,
-      '#dc2626',
-      '#2563eb',
-      '#f97316',
-      '#16a34a',
-      '#9333ea',
-      '#d97706',
-      '#059669',
-      '#e11d48',
-      '#0ea5e9',
-      '#6b21a8',
-      '#22c55e',
-      '#f59e0b',
-      '#0284c7',
-      '#ea580c',
-      '#14b8a6',
-      '#b91c1c',
-      '#4f46e5',
-      '#047857',
-      '#c026d3',
+      { colors: [colors.primary, '#312e81'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
+      { colors: ['#f472b6', '#a855f7', '#6366f1'], start: { x: 0.5, y: 0 }, end: { x: 0.5, y: 1 } },
+      { colors: ['#ec4899', '#f59e0b', '#f97316'], start: { x: 0, y: 1 }, end: { x: 1, y: 0 } },
+      { colors: ['#14b8a6', '#8b5cf6', '#a855f7'], start: { x: 0, y: 0.3 }, end: { x: 1, y: 0.7 } },
+      { colors: ['#8b5cf6', '#6366f1', '#22d3ee'], start: { x: 0, y: 1 }, end: { x: 1, y: 0 } },
+      { colors: ['#f59e0b', '#f97316', '#fb7185'], start: { x: 1, y: 0 }, end: { x: 0, y: 1 } },
+      { colors: ['#10b981', '#22d3ee', '#2563eb'], start: { x: 0.1, y: 0 }, end: { x: 0.9, y: 1 } },
+      { colors: ['#fbbf24', '#fb7185', '#c026d3'], start: { x: 1, y: 1 }, end: { x: 0, y: 0 } },
+      { colors: ['#0ea5e9', '#a855f7', '#c026d3'], start: { x: 0.2, y: 0 }, end: { x: 0.8, y: 1 } },
+      { colors: ['#ef4444', '#f59e0b', '#6366f1'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
+      { colors: ['#22c55e', '#f59e0b', '#fb7185'], start: { x: 0, y: 1 }, end: { x: 1, y: 0 } },
+      { colors: ['#f43f5e', '#6366f1'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
+      { colors: ['#0ea5e9', '#84cc16', '#22c55e'], start: { x: 0, y: 0.5 }, end: { x: 1, y: 0.1 } },
+      { colors: ['#a855f7', '#22d3ee', '#22c55e'], start: { x: 0.8, y: 0 }, end: { x: 0.2, y: 1 } },
+      { colors: ['#dc2626', '#ea580c', '#f59e0b'], start: { x: 1, y: 0 }, end: { x: 0, y: 1 } },
+      { colors: ['#334155', '#1e293b', '#0ea5e9'], start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
+      { colors: ['#06b6d4', '#a855f7'], start: { x: 0, y: 0 }, end: { x: 1, y: 0.8 } },
+      { colors: ['#84cc16', '#fbbf24', '#fb7185'], start: { x: 0, y: 0.2 }, end: { x: 1, y: 0.8 } },
+      { colors: ['#fb7185', '#14b8a6', '#0ea5e9'], start: { x: 0.5, y: 0 }, end: { x: 0.5, y: 1 } },
+      { colors: ['#0891b2', '#0f172a'], start: { x: 0, y: 1 }, end: { x: 1, y: 0 } },
     ],
     [colors.primary],
   );
-  const [bgColor, setBgColor] = useState(colors.primary);
+  const [bgGradient, setBgGradient] = useState(() => backgrounds[0] || null);
+  const gradientProps = useMemo(() => {
+    const fallback = {
+      colors: [colors.primary, colors.primary],
+      start: { x: 0, y: 0 },
+      end: { x: 1, y: 1 },
+    };
+    const selected = bgGradient || backgrounds[0] || fallback;
+    return {
+      colors: selected.colors || fallback.colors,
+      start: selected.start || fallback.start,
+      end: selected.end || fallback.end,
+    };
+  }, [backgrounds, bgGradient, colors.primary]);
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', () => {
       const parent = navigation.getParent();
@@ -148,7 +162,8 @@ export default function PollingScreen({ route, navigation }) {
         setTotal(incomingTotal);
         setIndex(incomingIndex || (incomingTotal ? 1 : 0));
         const idx = Math.max(0, (incomingIndex || 1) - 1);
-        setBgColor(backgrounds[idx % backgrounds.length]);
+        const palette = backgrounds.length ? backgrounds[idx % backgrounds.length] : null;
+        setBgGradient(palette);
       } else {
         await handleNoActivePoll();
         return;
@@ -214,31 +229,31 @@ export default function PollingScreen({ route, navigation }) {
   if (loading && firstLoad) {
     const loadingLabel = firstLoad ? 'Učitavanje ankete' : 'Učitavanje pitanja';
     return (
-      <View style={[styles.container, styles.center, { backgroundColor: bgColor }]}>
+      <LinearGradient colors={gradientProps.colors} start={gradientProps.start} end={gradientProps.end} style={[styles.container, styles.center]}>
         <ActivityIndicator size="large" color={colors.textLight} />
         <Text style={styles.loadingText}>{loadingLabel}</Text>
-      </View>
+      </LinearGradient>
     );
   }
 
   if (finished) {
     return (
-      <View style={[styles.container, styles.center, { backgroundColor: bgColor }]}>
+      <LinearGradient colors={gradientProps.colors} start={gradientProps.start} end={gradientProps.end} style={[styles.container, styles.center]}>
         <Text style={styles.congratsEmoji}>{emojis[0]}</Text>
         <Text style={styles.congratsTitle}>Cestitamo!</Text>
         <Text style={styles.congratsSubtitle}>Zavrsio si ovu anketu.</Text>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Rooms')}>
           <Text style={styles.backButtonText}>Nazad na sobe</Text>
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
     );
   }
 
   if (!question) {
     return (
-      <View style={[styles.container, styles.center, { backgroundColor: bgColor }]}>
+      <LinearGradient colors={gradientProps.colors} start={gradientProps.start} end={gradientProps.end} style={[styles.container, styles.center]}>
         <Text style={styles.loadingText}>Nema aktivnih pitanja</Text>
-      </View>
+      </LinearGradient>
     );
   }
 
@@ -313,7 +328,7 @@ export default function PollingScreen({ route, navigation }) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: bgColor }]}>
+    <LinearGradient colors={gradientProps.colors} start={gradientProps.start} end={gradientProps.end} style={styles.container}>
       <View style={[styles.progressTrack, { top: headerHeight }]}>
         <View style={[styles.progressFill, { width: `${total ? Math.min(Math.max((index || 0) / (total || 1), 0), 1) * 100 : 0}%` }]} />
       </View>
@@ -405,7 +420,7 @@ export default function PollingScreen({ route, navigation }) {
         </TouchableOpacity>
       </View>
 
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -461,6 +476,8 @@ const createStyles = (colors, isDark) =>
       position: 'absolute',
       width: 36,
       height: 36,
+      borderWidth: 2,
+      borderColor: '#ffffff',
     },
     avatarTopLeft: {
       top: -18,
