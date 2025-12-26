@@ -139,7 +139,7 @@ export default function Avatar({
       ),
     [configSource, uri, user?.avatarUri, user?.avatarSvgUrl, user?.avatar_url, user?.avatar_svg_url],
   );
-  const baseUri = builtFromConfig || resolvedPrimaryUri || resolvedProfilePhoto;
+  const baseUri = resolvedProfilePhoto || builtFromConfig || resolvedPrimaryUri;
   const effectiveUri = fallbackAvatar ? baseUri : null;
 
   const variantKey = normalizeVariant(variant) || 'm';
