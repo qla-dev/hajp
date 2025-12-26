@@ -55,8 +55,7 @@ export default function EditProfileScreen({ navigation, route }) {
   const isDirty = ['name', 'email', 'sex'].some((key) => form[key] !== initialValues[key]);
   const hasProfilePhoto = !!form.profile_photo;
   const profileCtaText = hasProfilePhoto ? 'Izmijeni sliku' : 'Uploadaj sliku';
-  const avatarUsesGallery = !hasProfilePhoto;
-  const avatarCtaText = avatarUsesGallery ? profileCtaText : form.avatar ? 'Izmijeni avatar' : 'Kreiraj avatar';
+  const avatarCtaText = form.avatar ? 'Izmijeni avatar' : 'Kreiraj avatar';
 
   const applyUser = useCallback((userData, { emit } = { emit: true }) => {
     const normalized = normalizeUser(userData);
@@ -463,7 +462,7 @@ const createStyles = (colors) =>
     avatarContainerScroll: {
       width: '100%',
       maxWidth: '100%',
-      marginTop: -20,
+      marginTop: -10,
       alignItems: 'stretch',
     },
     avatarGeneratorIcon: {
@@ -652,8 +651,8 @@ const createStyles = (colors) =>
     },
     saveButtonText: {
       color: colors.text_primary,
-      fontWeight: '600',
-      fontSize: 16,
+      fontWeight: '500',
+      fontSize: 17,
     },
     loadingRow: {
       flexDirection: 'row',

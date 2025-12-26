@@ -540,7 +540,7 @@ const createStyles = (colors) =>
     },
     saveButtonText: {
       color: colors.text_primary,
-      fontWeight: '600',
-      fontSize: 16,
+      fontWeight: '500',
+      fontSize: 17,
     },
   });

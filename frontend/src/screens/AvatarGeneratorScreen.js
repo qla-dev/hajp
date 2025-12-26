@@ -341,7 +341,7 @@ const createStyles = (colors) =>
     },
     saveButtonText: {
       color: colors.text_primary,
-      fontWeight: '700',
-      fontSize: 15,
+      fontWeight: '500',
+      fontSize: 16,
     },
   });

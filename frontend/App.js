@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationLightTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -33,6 +33,17 @@ const headerCloseStyles = StyleSheet.create({
   button: {
     paddingHorizontal: 16,
     paddingVertical: 0,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+  },
+  backLabel: {
+    marginLeft: 2,
+    fontSize: 17,
+    fontWeight: '500',
   },
 });
 function AuthStackNavigator() {
@@ -97,9 +108,20 @@ function MainStackNavigator() {
       <MainStack.Screen
         name="EditProfile"
         component={EditProfileScreen}
-        options={{
+        options={({ navigation }) => ({
           title: 'Uredi profil',
-        }}
+          headerLeft: ({ tintColor, canGoBack }) =>
+            canGoBack ? (
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={headerCloseStyles.backButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="chevron-back" size={22} color={tintColor} />
+                <Text style={[headerCloseStyles.backLabel, { color: tintColor }]}>Nazad</Text>
+              </TouchableOpacity>
+            ) : null,
+        })}
       />
       <MainStack.Screen
         name="AvatarGenerator"
