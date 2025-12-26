@@ -5,13 +5,13 @@ import { useTheme } from '../theme/darkMode';
 import { buildAvatarSvg } from '../utils/bigHeadAvatar';
 
 export const sizeMap = {
-  xs: { photoSize: 64, avatarSize: 89, slotSize: 64, font: 22 },
-  s: { photoSize: 88, avatarSize: 122, slotSize: 88, font: 26 },
-  m: { photoSize: 100, avatarSize: 166, slotSize: 120, font: 32 }, // current default
-  l: { photoSize: 158, avatarSize: 208, slotSize: 158, font: 40 },
-  xl: { photoSize: 100, avatarSize: 264, slotSize: 190, font: 48 },
-  hero: { photoSize: 180, avatarSize: 250, slotSize: 180, font: 38 },
-  xxl: { photoSize: 230, avatarSize: 320, slotSize: 230, font: 56 },
+  xs: { photoSize: 64, avatarSize: 84, slotSize: 64, font: 22 },
+  s: { photoSize: 88, avatarSize: 116, slotSize: 88, font: 26 },
+  m: { photoSize: 120, avatarSize: 158, slotSize: 120, font: 32 }, // current default
+  l: { photoSize: 158, avatarSize: 228, slotSize: 158, font: 40 },
+  xl: { photoSize: 190, avatarSize: 250, slotSize: 190, font: 48 },
+  hero: { photoSize: 180, avatarSize: 237, slotSize: 180, font: 38 },
+  xxl: { photoSize: 230, avatarSize: 303, slotSize: 230, font: 56 },
 };
 
 const normalizeVariant = (variant) => {
