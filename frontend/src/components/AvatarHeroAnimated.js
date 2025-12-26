@@ -5,12 +5,13 @@ import Avatar, { sizeMap as avatarSizeMap } from './Avatar';
 import { useTheme } from '../theme/darkMode';
 import { buildAvatarSvg, generateRandomConfig } from '../utils/bigHeadAvatar';
 
-const ROW_COUNT = 6;
-const COLUMNS = 5;
+const ROW_COUNT = 5;
+const COLUMNS = 6;
 const TOTAL_AVATARS = ROW_COUNT * COLUMNS;
 const HERO_SIZE = avatarSizeMap.hero?.size || 140;
-const AVATAR_SIZE = Math.round(HERO_SIZE * 0.32); // use hero token scaled to fit the grid
-const ROW_GAP = 8;
+const AVATAR_SIZE = Math.round(HERO_SIZE * 0.40); // use hero token scaled to fit the grid
+const ROW_GAP = 1;
+const EDGE_OVERFLOW = Math.round(AVATAR_SIZE * 0.7);
 
 const buildGradientColor = (hex, opacity) => {
   if (!hex || typeof hex !== 'string') {
@@ -35,10 +36,50 @@ export default function AvatarHeroAnimated({
 }) {
   const { colors: themeColors } = useTheme();
   const colors = colorsOverride || themeColors;
-  const avatars = useMemo(
-    () => new Array(TOTAL_AVATARS).fill(0).map(() => buildAvatarSvg(generateRandomConfig())),
-    [],
-  );
+  const avatars = useMemo(() => {
+    const pickFrom = (arr) => arr.splice(Math.floor(Math.random() * arr.length), 1)[0];
+
+    // Build a gender sequence that alternates M/F down each column (row major)
+    const genderSequence = new Array(TOTAL_AVATARS).fill(null).map((_, idx) => {
+      // row-major index -> row, col
+      const row = idx % ROW_COUNT;
+      // alternate by row so within a column we get M/F/M/F...
+      return row % 2 === 0 ? 'male' : 'female';
+    });
+
+    const femaleIndices = genderSequence
+      .map((g, idx) => ({ g, idx }))
+      .filter(({ g }) => g === 'female')
+      .map(({ idx }) => idx);
+    const maleIndices = genderSequence
+      .map((g, idx) => ({ g, idx }))
+      .filter(({ g }) => g === 'male')
+      .map(({ idx }) => idx);
+
+    const hijabIndex = pickFrom([...femaleIndices]);
+
+    const remainingPool = Array.from({ length: TOTAL_AVATARS }, (_, i) => i).filter((i) => i !== hijabIndex);
+    const maskIndex = pickFrom(remainingPool);
+    const capIndices = [pickFrom(remainingPool), pickFrom(remainingPool)];
+
+    const items = [];
+    for (let i = 0; i < TOTAL_AVATARS; i += 1) {
+      const gender = genderSequence[i] === 'female' ? 'female' : 'male';
+      const base = generateRandomConfig({ gender, circleBg: true });
+
+      const hat =
+        i === hijabIndex ? 'hijab' : capIndices.includes(i) ? 'beanie' : 'none';
+
+      const finalConfig = {
+        ...base,
+        hat,
+        faceMask: i === maskIndex,
+      };
+
+      items.push(buildAvatarSvg(finalConfig));
+    }
+    return items;
+  }, []);
 
   const columns = useMemo(
     () =>
@@ -91,7 +132,7 @@ export default function AvatarHeroAnimated({
         style,
       ]}
     >
-      <View style={styles.grid}>
+      <View style={[styles.grid, { marginHorizontal: -EDGE_OVERFLOW, paddingHorizontal: 16 + EDGE_OVERFLOW }]}>
         {columns.map((column, colIdx) => (
           <Animated.View
             key={`col-${colIdx}`}
@@ -140,7 +181,9 @@ const styles = StyleSheet.create({
   },
   grid: {
     ...StyleSheet.absoluteFillObject,
-    paddingHorizontal: 16,
+    left: -EDGE_OVERFLOW,
+    right: -EDGE_OVERFLOW,
+    paddingHorizontal: 18 + EDGE_OVERFLOW,
     paddingVertical: 18,
     flexDirection: 'row',
     justifyContent: 'space-between',

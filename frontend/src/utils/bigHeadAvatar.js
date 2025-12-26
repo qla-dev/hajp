@@ -56,14 +56,43 @@ const pickRandom = (items = []) => {
   return items[idx];
 };
 
-export const generateRandomConfig = () => {
+const generateRandomConfigTyped = (options = {}) => {
+  const { gender, circleBg = true } = options;
+  const femaleHair = ['long', 'short', 'bob'];
+  const maleHair = ['buzz', 'afro', 'balding', 'mohawk', 'short', 'pixie', 'bun'];
+  const maleMouths = ['grin', 'openSmile', 'serious', 'tongue', 'piercedTongue', 'vomitingRainbow', 'open', 'sad'];
+
   const config = {};
+
+  if (gender === 'female') {
+    config.body = 'breasts';
+    config.hair = pickRandom(femaleHair);
+    config.mouth = 'lips';
+    config.facialHair = 'none';
+    config.lashes = true;
+  } else if (gender === 'male') {
+    config.body = 'chest';
+    config.hair = pickRandom(maleHair);
+    config.mouth = pickRandom(maleMouths);
+    config.facialHair = pickRandom(['stubble', 'mediumBeard', 'goatee']);
+    config.lashes = false;
+  }
+
+  if (circleBg) {
+    config.showBackground = true;
+    config.backgroundShape = 'circle';
+  }
+
   Object.entries(bigHeadOptions).forEach(([key, values]) => {
-    const choice = pickRandom(values);
-    config[key] = choice;
+    if (config[key] === undefined) {
+      config[key] = pickRandom(values);
+    }
   });
+
   return config;
 };
+
+export const generateRandomConfig = (options = {}) => generateRandomConfigTyped(options);
 
 export const buildAvatarSvg = (config = {}) => {
   const cleaned = sanitizeConfig(config);
