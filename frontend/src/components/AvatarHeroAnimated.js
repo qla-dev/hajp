@@ -38,6 +38,7 @@ export default function AvatarHeroAnimated({
   const colors = colorsOverride || themeColors;
   const avatars = useMemo(() => {
     const pickFrom = (arr) => arr.splice(Math.floor(Math.random() * arr.length), 1)[0];
+    const pickRandom = (arr = []) => (arr.length ? arr[Math.floor(Math.random() * arr.length)] : null);
 
     // Build a gender sequence that alternates M/F down each column (row major)
     const genderSequence = new Array(TOTAL_AVATARS).fill(null).map((_, idx) => {
@@ -56,6 +57,9 @@ export default function AvatarHeroAnimated({
       .filter(({ g }) => g === 'male')
       .map(({ idx }) => idx);
 
+    // Only every 4th avatar may have glasses; precompute allowed indices
+    const glassesAllowed = new Set(new Array(TOTAL_AVATARS).fill(0).map((_, idx) => idx).filter((idx) => idx % 4 === 0));
+
     const hijabIndex = pickFrom([...femaleIndices]);
 
     const remainingPool = Array.from({ length: TOTAL_AVATARS }, (_, i) => i).filter((i) => i !== hijabIndex);
@@ -70,10 +74,20 @@ export default function AvatarHeroAnimated({
       const hat =
         i === hijabIndex ? 'hijab' : capIndices.includes(i) ? 'beanie' : 'none';
 
+      const clothing =
+        i === hijabIndex
+          ? pickRandom(['dressShirt', 'hoodie', 'denimJacket', 'chequeredShirt', 'chequeredShirtDark', 'dress'])
+          : undefined;
+
       const finalConfig = {
         ...base,
         hat,
         faceMask: i === maskIndex,
+        ...(clothing ? { clothing } : null),
+        accessory:
+          glassesAllowed.has(i) && base.accessory && base.accessory !== 'none'
+            ? base.accessory
+            : 'none',
       };
 
       items.push(buildAvatarSvg(finalConfig));

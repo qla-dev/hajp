@@ -59,10 +59,14 @@ const pickRandom = (items = []) => {
 const generateRandomConfigTyped = (options = {}) => {
   const { gender, circleBg = true } = options;
   const femaleHair = ['long', 'short', 'bob'];
-  const maleHair = ['buzz', 'afro', 'balding', 'mohawk', 'short', 'pixie', 'bun'];
+  const maleHair = ['buzz', 'afro', 'balding', 'mohawk', 'short', 'pixie'];
   const maleMouths = ['grin', 'openSmile', 'serious', 'tongue', 'piercedTongue', 'vomitingRainbow', 'open', 'sad'];
+  const skinTonePool = ['light', 'yellow', 'black'];
 
   const config = {};
+
+  // Targeted skin tone distribution ~1/3 each
+  config.skinTone = pickRandom ? pickRandom(skinTonePool) : skinTonePool[Math.floor(Math.random() * skinTonePool.length)];
 
   if (gender === 'female') {
     config.body = 'breasts';
