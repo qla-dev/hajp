@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { TouchableOpacity, View, Text, StyleSheet, findNodeHandle, UIManager, Platform, Dimensions, InteractionManager } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { SvgUri } from 'react-native-svg';
+import { Asset } from 'expo-asset';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchCoinBalance } from '../api';
@@ -16,6 +17,25 @@ export default function CoinHeaderIndicator({ onPress }) {
   const styles = useThemedStyles(createStyles);
   const [coins, setCoins] = useState(getCachedCoinBalance());
   const containerRef = useRef(null);
+  const [coinSvgUri, setCoinSvgUri] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const asset = Asset.fromModule(require('../../assets/svg/coin.svg'));
+        await asset.downloadAsync();
+        if (mounted) {
+          setCoinSvgUri(asset.localUri || asset.uri);
+        }
+      } catch {
+        if (mounted) setCoinSvgUri(null);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -72,9 +92,13 @@ export default function CoinHeaderIndicator({ onPress }) {
       onLayout={measureLayout}
       activeOpacity={0.8}
     >
-      <View style={styles.iconWrapper}>
-        <Ionicons name="logo-bitcoin" size={20} color={colors.primary} />
-      </View>
+      {coinSvgUri ? (
+        <SvgUri width={26} height={26} uri={coinSvgUri} />
+      ) : (
+        <View style={[styles.fallbackIcon, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+          <Text style={{ color: colors.primary, fontWeight: '800' }}>₵</Text>
+        </View>
+      )}
       <Text style={styles.label}>{coins}</Text>
     </TouchableOpacity>
   );
@@ -87,15 +111,12 @@ const createStyles = (colors) =>
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 4,
-
     },
-    iconWrapper: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      backgroundColor: colors.background,
+    fallbackIcon: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
       borderWidth: 1,
-      borderColor: colors.border,
       alignItems: 'center',
       justifyContent: 'center',
     },

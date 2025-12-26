@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ScrollView,
   View,
@@ -17,9 +17,10 @@ import { postRoomCashout, fetchCoinBalance } from '../api';
 import LottieView from 'lottie-react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { updateCoinBalance } from '../utils/coinHeaderTracker';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
+import { SvgUri } from 'react-native-svg';
+import { Asset } from 'expo-asset';
 const coinSoundAsset = require('../../assets/sounds/coins.mp3');
 const applauseSoundAsset = require('../../assets/sounds/applause.mp3');
 
@@ -34,6 +35,7 @@ export default function CashOutScreen({ route, navigation }) {
   const buttonRef = useRef(null);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const [coinSvgUri, setCoinSvgUri] = useState(null);
   const confettiTimer = useRef(null);
   const confettiRef = useRef(null);
   const coinSoundRef = useRef(null);
@@ -58,6 +60,11 @@ export default function CashOutScreen({ route, navigation }) {
       try {
         const { sound } = await Audio.Sound.createAsync(coinSoundAsset, { shouldPlay: false });
         const { sound: applause } = await Audio.Sound.createAsync(applauseSoundAsset, { shouldPlay: false });
+        const coinAsset = Asset.fromModule(require('../../assets/svg/coin.svg'));
+        await coinAsset.downloadAsync();
+        if (isMounted) {
+          setCoinSvgUri(coinAsset.localUri || coinAsset.uri);
+        }
         if (isMounted) {
           coinSoundRef.current = sound;
           applauseSoundRef.current = applause;
@@ -80,6 +87,13 @@ export default function CashOutScreen({ route, navigation }) {
       coinSoundRef.current = null;
       applauseSoundRef.current = null;
     };
+  }, []);
+
+  useEffect(() => {
+    // Ensure header coin indicator shows current balance on entry
+    fetchCoinBalance()
+      .then(({ data }) => updateCoinBalance(data?.coins ?? 0))
+      .catch(() => {});
   }, []);
 
   const playCoinSound = () => {
@@ -266,7 +280,13 @@ export default function CashOutScreen({ route, navigation }) {
             ]}
             pointerEvents="none"
           >
-            <Ionicons name="logo-bitcoin" size={18} color={colors.primary} />
+            {coinSvgUri ? (
+              <SvgUri width={18} height={18} uri={coinSvgUri} />
+            ) : (
+              <View style={{ width: 18, height: 18, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: colors.primary, fontWeight: '800' }}>₵</Text>
+              </View>
+            )}
           </Animated.View>
         ))}
       {celebrating && (

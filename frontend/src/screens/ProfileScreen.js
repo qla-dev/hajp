@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { BlurView } from 'expo-blur';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri, SvgXml } from 'react-native-svg';
+import { Asset } from 'expo-asset';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, removeFriend, recordProfileView, updateCurrentUser } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
@@ -122,6 +123,25 @@ export default function ProfileScreen({ navigation, route }) {
 
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const [coinSvgUri, setCoinSvgUri] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const asset = Asset.fromModule(require('../../assets/svg/coin.svg'));
+        await asset.downloadAsync();
+        if (mounted) {
+          setCoinSvgUri(asset.localUri || asset.uri);
+        }
+      } catch {
+        if (mounted) setCoinSvgUri(null);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const loadVotes = useCallback(async (selectedUserId) => {
     try {
@@ -501,35 +521,20 @@ export default function ProfileScreen({ navigation, route }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
-        {isMine && (
-          <View style={styles.coinRow}>
-            <TouchableOpacity style={styles.coinCard} onPress={() => navigation.navigate('Subscription')}>
+          {isMine && (
+            <View style={styles.coinRow}>
+              <TouchableOpacity style={styles.coinCard} onPress={() => navigation.navigate('Subscription')}>
             <View style={styles.coinStack}>
-              <Animated.View
-                style={[
-                  styles.coinGlow,
-                  styles.coinGlowLarge,
-                  { transform: [...glowBaseTransform, { scale: glowScale }], opacity: glowOpacity },
-                ]}
-              />
-              <View style={[styles.coin, styles.coinBack]} />
-              <View style={[styles.coin, styles.coinMid]} />
-              <View style={[styles.coin, styles.coinFront]}>
-                <Text style={styles.coinSymbol}>Hajp</Text>
+                {coinSvgUri ? (
+                  <SvgUri width={64} height={64} uri={coinSvgUri} />
+                ) : (
+                  <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 22 }}>₵</Text>
+                )}
               </View>
-              <Animated.View
-                style={[
-                  styles.coinGlow,
-                  { transform: [...glowBaseTransform, { scale: glowScale }], opacity: glowOpacity },
-                ]}
-              />
-              <View style={[styles.sparkle, styles.sparkleOne]} />
-              <View style={[styles.sparkle, styles.sparkleTwo]} />
-            </View>
-              <View style={styles.coinTextBlock}>
-                <Text style={styles.coinLabel}>HAJP COIN</Text>
-                <Text style={styles.coinAmount}>{coinBalance}</Text>
-                <Text style={styles.coinSub}>Tapni za shop</Text>
+                <View style={styles.coinTextBlock}>
+                  <Text style={styles.coinLabel}>HAJP COIN</Text>
+                  <Text style={styles.coinAmount}>{coinBalance}</Text>
+                  <Text style={styles.coinSub}>Tapni za shop</Text>
               </View>
               <View style={styles.coinPill}>
                 <Text style={styles.coinPillText}>Shop</Text>
