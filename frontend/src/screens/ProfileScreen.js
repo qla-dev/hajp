@@ -28,6 +28,7 @@ import Avatar from '../components/Avatar';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import NoteBottomSheet from '../components/NoteBottomSheet';
+import { buildAvatarSvg } from '../utils/bigHeadAvatar';
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 const NOTE_MARQUEE_WIDTH = 220;
 
@@ -476,10 +477,27 @@ export default function ProfileScreen({ navigation, route }) {
     const cleanPath = photo.replace(/^\/+/, '');
     return `${cleanBase}/${cleanPath}`;
   };
+  const parseAvatarConfig = (value) => {
+    if (!value) return null;
+    if (typeof value === 'object') return value;
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+  const userAvatarConfig = parseAvatarConfig(user?.avatar);
+  const avatarConfigUri = useMemo(() => (userAvatarConfig ? buildAvatarSvg(userAvatarConfig) : null), [userAvatarConfig]);
   const avatarPhotoUri = resolveAvatar(user?.profile_photo, user?.name);
   const hasAvatarImage = Boolean(avatarPhotoUri);
+  const isAvatarSvg = Boolean(avatarConfigUri);
   const avatarUri =
+    avatarConfigUri ||
     avatarPhotoUri ||
+    (typeof user?.avatar === 'string' ? user.avatar : null) ||
     'https://ui-avatars.com/api/?name=' +
       (user?.name || 'Korisnik') +
       '&size=200&background=' +
@@ -547,10 +565,22 @@ export default function ProfileScreen({ navigation, route }) {
             <View style={styles.avatarWrapper}>
               {hasAvatarImage ? (
                 <TouchableOpacity onPress={openAvatarZoom} activeOpacity={0.9}>
-                  <Avatar uri={avatarUri} name={user?.name || 'Korisnik'} variant="avatar-l" style={styles.profileImage} />
+                  <Avatar
+                    uri={avatarUri}
+                    name={user?.name || 'Korisnik'}
+                    variant="avatar-l"
+                    style={styles.profileImage}
+                    mode={isAvatarSvg ? 'avatar' : 'photo'}
+                  />
                 </TouchableOpacity>
               ) : (
-                <Avatar uri={avatarUri} name={user?.name || 'Korisnik'} variant="avatar-l" style={styles.profileImage} />
+                <Avatar
+                  uri={avatarUri}
+                  name={user?.name || 'Korisnik'}
+                  variant="avatar-l"
+                  style={styles.profileImage}
+                  mode={isAvatarSvg ? 'avatar' : 'photo'}
+                />
               )}
 
               {showNoteBubble && (

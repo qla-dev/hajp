@@ -254,6 +254,7 @@ export default function EditProfileScreen({ navigation, route }) {
                 }
                 name={form.name || 'Korisnik'}
                 variant="avatar-m"
+                mode="photo"
                 size={PROFILE_SIZE}
                 style={[styles.avatar, styles.avatarAbsolute]}
               />

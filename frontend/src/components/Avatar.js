@@ -2,16 +2,16 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { SvgUri, SvgXml } from 'react-native-svg';
 import { useTheme } from '../theme/darkMode';
+import { buildAvatarSvg } from '../utils/bigHeadAvatar';
 
 export const sizeMap = {
-  xs: { size: 64, font: 22 },
-  s: { size: 88, font: 26 },
-  m: { size: 120, font: 32 }, // current default
-  l: { size: 150, font: 40 },
-  xl: { size: 190, font: 48 },
-  hero: { size: 180, font: 38 },
-  xxl: { size: 230, font: 56 },
-
+  xs: { photoSize: 64, avatarSize: 89, slotSize: 64, font: 22 },
+  s: { photoSize: 88, avatarSize: 122, slotSize: 88, font: 26 },
+  m: { photoSize: 100, avatarSize: 166, slotSize: 120, font: 32 }, // current default
+  l: { photoSize: 158, avatarSize: 208, slotSize: 158, font: 40 },
+  xl: { photoSize: 100, avatarSize: 264, slotSize: 190, font: 48 },
+  hero: { photoSize: 180, avatarSize: 250, slotSize: 180, font: 38 },
+  xxl: { photoSize: 230, avatarSize: 320, slotSize: 230, font: 56 },
 };
 
 const normalizeVariant = (variant) => {
@@ -52,15 +52,50 @@ const extractSvgFromDataUri = (uri) => {
   }
 };
 
-export default function Avatar({ uri, name = '', size, variant = 'avatar-m', style }) {
+const parseAvatarConfig = (value) => {
+  if (!value) return null;
+  if (typeof value === 'object') return value;
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
+export default function Avatar({
+  uri,
+  name = '',
+  size,
+  variant = 'avatar-m',
+  style,
+  fallbackAvatar = true,
+  avatarConfig,
+  mode = 'avatar', // 'avatar' | 'photo'
+}) {
   const { colors } = useTheme();
   const [imageError, setImageError] = useState(false);
   const [svgError, setSvgError] = useState(false);
   const [svgMarkup, setSvgMarkup] = useState(null);
+  const parsedConfig = useMemo(() => parseAvatarConfig(avatarConfig) || parseAvatarConfig(uri), [avatarConfig, uri]);
+  const builtFromConfig = useMemo(() => (parsedConfig ? buildAvatarSvg(parsedConfig) : null), [parsedConfig]);
+  const baseUri = builtFromConfig || uri;
+  const effectiveUri = fallbackAvatar ? baseUri : null;
 
   const variantKey = normalizeVariant(variant) || 'm';
-  const resolvedSize = size || sizeMap[variantKey]?.size || sizeMap.m.size;
-  const baseFont = size ? Math.max(Math.round(resolvedSize * 0.26), 12) : sizeMap[variantKey]?.font;
+  const sizeEntry = sizeMap[variantKey] || sizeMap.m;
+  const slotSize = size || sizeEntry.slotSize || sizeEntry.photoSize || sizeEntry.avatarSize;
+  const contentSize =
+    size ||
+    (mode === 'photo'
+      ? sizeEntry.photoSize || sizeEntry.slotSize || sizeEntry.avatarSize
+      : sizeEntry.avatarSize || sizeEntry.slotSize || sizeEntry.photoSize);
+  const resolvedSize = contentSize || slotSize || sizeMap.m.avatarSize;
+  const baseFont = size
+    ? Math.max(Math.round(resolvedSize * 0.26), 12)
+    : sizeEntry?.font || Math.max(Math.round(resolvedSize * 0.26), 12);
   const resolvedFont = baseFont || Math.max(Math.round(resolvedSize * 0.26), 16);
   const initials = useMemo(() => {
     if (!name) return '??';
@@ -69,25 +104,31 @@ export default function Avatar({ uri, name = '', size, variant = 'avatar-m', sty
     return letters.join('') || '??';
   }, [name]);
 
-  const initialsOnly = isInitialsPlaceholderUri(uri);
-  const isSvg = !initialsOnly && isSvgUri(uri);
+  const initialsOnly = isInitialsPlaceholderUri(effectiveUri);
+  const isSvg = !initialsOnly && isSvgUri(effectiveUri);
 
-  const dimensionStyle = { width: resolvedSize, height: resolvedSize, borderRadius: resolvedSize / 2 };
+  const slotDimensionStyle = { width: slotSize, height: slotSize, borderRadius: slotSize / 2 };
+  const contentDimensionStyle = { width: resolvedSize, height: resolvedSize, borderRadius: resolvedSize / 2 };
 
   useEffect(() => {
-    if (!uri || !isSvg) {
+    setImageError(false);
+    setSvgError(false);
+  }, [effectiveUri]);
+
+  useEffect(() => {
+    if (!effectiveUri || !isSvg) {
       setSvgMarkup(null);
       return;
     }
     let cancelled = false;
     const loadSvg = async () => {
-      const embedded = extractSvgFromDataUri(uri);
+      const embedded = extractSvgFromDataUri(effectiveUri);
       if (embedded) {
         setSvgMarkup(applyPaletteOverride(embedded, colors.secondary));
         return;
       }
       try {
-        const res = await fetch(uri);
+        const res = await fetch(effectiveUri);
         const text = await res.text();
         if (cancelled) return;
         setSvgMarkup(applyPaletteOverride(text, colors.secondary));
@@ -101,50 +142,60 @@ export default function Avatar({ uri, name = '', size, variant = 'avatar-m', sty
     return () => {
       cancelled = true;
     };
-  }, [colors.secondary, isSvg, uri]);
+  }, [colors.secondary, effectiveUri, isSvg]);
 
-  if (uri && isSvg && !svgError) {
-    return (
-      <View style={[styles.wrapper, dimensionStyle, style, styles.clearBg]}>
-        {svgMarkup ? (
-          <SvgXml xml={svgMarkup} width={resolvedSize} height={resolvedSize} style={[styles.base, dimensionStyle]} />
-        ) : (
-          <SvgUri
-            uri={uri}
-            width={resolvedSize}
-            height={resolvedSize}
-            style={[styles.base, dimensionStyle]}
-            onError={() => setSvgError(true)}
-          />
-        )}
-      </View>
-    );
-  }
+  const renderContent = () => {
+    if (effectiveUri && isSvg && !svgError) {
+      if (svgMarkup) {
+        return <SvgXml xml={svgMarkup} width={resolvedSize} height={resolvedSize} style={[styles.base, contentDimensionStyle]} />;
+      }
+      return (
+        <SvgUri
+          uri={effectiveUri}
+          width={resolvedSize}
+          height={resolvedSize}
+          style={[styles.base, contentDimensionStyle]}
+          onError={() => setSvgError(true)}
+        />
+      );
+    }
 
-  if (uri && !initialsOnly && !imageError) {
-    return (
-      <View style={[styles.wrapper, dimensionStyle, style, styles.clearBg]}>
+    if (effectiveUri && !initialsOnly && !imageError) {
+      return (
         <Image
-          source={{ uri }}
-          style={[styles.base, dimensionStyle]}
+          source={{ uri: effectiveUri }}
+          style={[styles.base, contentDimensionStyle]}
           onError={() => setImageError(true)}
           resizeMode="cover"
         />
+      );
+    }
+
+    return (
+      <View style={[styles.fallback, contentDimensionStyle, { backgroundColor: colors.profilePurple }]}>
+        <Text style={[styles.initials, { color: colors.textLight, fontSize: resolvedFont }]}>{initials}</Text>
       </View>
     );
-  }
+  };
 
   return (
-    <View style={[styles.fallback, dimensionStyle, style, { backgroundColor: colors.profilePurple }]}>
-      <Text style={[styles.initials, { color: colors.textLight, fontSize: resolvedFont }]}>{initials}</Text>
+    <View style={[styles.slotWrapper, slotDimensionStyle, style]}>
+      <View style={[styles.contentOverlay, contentDimensionStyle]}>{renderContent()}</View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  slotWrapper: {
+    position: 'relative',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
+  },
+  contentOverlay: {
+    position: 'relative',
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   base: {
     backgroundColor: 'transparent',

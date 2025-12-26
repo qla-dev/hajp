@@ -87,7 +87,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     if (saving) return;
     setSaving(true);
     try {
-      const { data } = await updateCurrentUser({ avatar: avatarSvgUrl });
+      const { data } = await updateCurrentUser({ avatar: JSON.stringify(config) });
       emitProfileUpdated(data);
       Alert.alert('Avatar sačuvan', 'Tvoj novi avatar je postavljen na profil.');
       navigation.goBack();
