@@ -109,6 +109,7 @@ export default function Avatar({
   zoomModal = true,
   border = 0,
   flip = false,
+  bgMode = 'default', // 'default' | 'random'
   onPress,
 }) {
   const { colors } = useTheme();
@@ -125,7 +126,20 @@ export default function Avatar({
     () => parseAvatarConfig(configSource) || parseAvatarConfig(uri),
     [configSource, uri],
   );
-  const builtFromConfig = useMemo(() => (parsedConfig ? buildAvatarSvg(parsedConfig) : null), [parsedConfig]);
+  const enforcedConfig = useMemo(() => {
+    if (!parsedConfig) return null;
+    const base = { ...parsedConfig, showBackground: true, backgroundShape: 'circle' };
+    if (bgMode === 'random') {
+      const seed = resolvedName || uri || JSON.stringify(parsedConfig) || Math.random().toString();
+      const palette = ['#FF9E80', '#FFD180', '#FFFF8D', '#CCFF90', '#A7FFEB', '#80D8FF', '#82B1FF', '#B388FF', '#F8BBD0', colors.profilePurple];
+      const hash = seed.split('').reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % palette.length, 0);
+      base.backgroundColor = palette[hash] || palette[0];
+    } else {
+      base.backgroundColor = parsedConfig.backgroundColor || colors.profilePurple;
+    }
+    return base;
+  }, [bgMode, colors.profilePurple, parsedConfig, resolvedName, uri]);
+  const builtFromConfig = useMemo(() => (enforcedConfig ? buildAvatarSvg(enforcedConfig) : null), [enforcedConfig]);
   const resolvedProfilePhoto = useMemo(
     () =>
       pickFirstUri(

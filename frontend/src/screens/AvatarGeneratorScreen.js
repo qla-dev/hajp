@@ -22,10 +22,10 @@ const {
   clothingColors,
   hatColors,
   lipColors,
-  backgroundColors,
   skinColors,
 } = colorsData;
 const { tabOrder = [], tabLabels = {} } = tabsData;
+const BLOCKED_KEYS = new Set(['showBackground', 'backgroundColor', 'backgroundShape']);
 
 const colorSwatchMap = {
   hairColor: { map: hairColors, gradient: hairColorGradients },
@@ -33,16 +33,17 @@ const colorSwatchMap = {
   clothingColor: { map: clothingColors },
   hatColor: { map: hatColors || clothingColors },
   lipColor: { map: lipColors },
-  backgroundColor: { map: backgroundColors },
   faceMaskColor: { map: clothingColors },
 };
 
-const optionGroups = optionGroupsData.map((group) => {
-  const colorInfo = colorSwatchMap[group.key];
-  if (colorInfo?.map) {
-    return {
-      ...group,
-      options: group.options.map((option) => ({
+const optionGroups = optionGroupsData
+  .filter((group) => !BLOCKED_KEYS.has(group.key))
+  .map((group) => {
+    const colorInfo = colorSwatchMap[group.key];
+    if (colorInfo?.map) {
+      return {
+        ...group,
+        options: group.options.map((option) => ({
         ...option,
         swatch: colorInfo.map[option.value],
         swatchGradient: colorInfo.gradient?.[option.value],
@@ -62,6 +63,7 @@ const optionGroups = optionGroupsData.map((group) => {
 });
 
 const orderedOptionGroups = tabOrder
+  .filter((key) => !BLOCKED_KEYS.has(key))
   .map((key) => {
     const group = optionGroups.find((item) => item.key === key);
     if (!group) return null;
@@ -71,7 +73,12 @@ const orderedOptionGroups = tabOrder
 
 export default function AvatarGeneratorScreen({ navigation, route }) {
   const seedConfig = route?.params?.seedConfig;
-  const [config, setConfig] = useState(() => ({ ...defaultConfig, ...(seedConfig || {}) }));
+  const [config, setConfig] = useState(() => ({
+    ...defaultConfig,
+    ...(seedConfig || {}),
+    showBackground: true,
+    backgroundShape: 'circle',
+  }));
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState(orderedOptionGroups[0]?.key || optionGroups[0].key);
   const { colors } = useTheme();
@@ -87,7 +94,8 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     if (saving) return;
     setSaving(true);
     try {
-      const { data } = await updateCurrentUser({ avatar: JSON.stringify(config) });
+      const payload = { ...config, showBackground: true, backgroundShape: 'circle' };
+      const { data } = await updateCurrentUser({ avatar: JSON.stringify(payload) });
       emitProfileUpdated(data);
       Alert.alert('Avatar sačuvan', 'Tvoj novi avatar je postavljen na profil.');
       navigation.goBack();
@@ -116,7 +124,12 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
 
   useEffect(() => {
     if (route?.params?.preset) {
-      setConfig((prev) => ({ ...prev, ...route.params.preset }));
+      setConfig((prev) => ({
+        ...prev,
+        ...route.params.preset,
+        showBackground: true,
+        backgroundShape: 'circle',
+      }));
     }
   }, [route?.params?.preset]);
 
