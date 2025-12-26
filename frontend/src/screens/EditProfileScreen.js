@@ -227,7 +227,7 @@ export default function EditProfileScreen({ navigation, route }) {
     <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
       <View style={styles.avatarWrapper}>
         <View style={styles.avatarRow}>
-          <View style={styles.avatarContainer}>
+          <View style={[styles.avatarContainer, styles.avatarContainerProfile]}>
             <Avatar
               uri={
                 resolveAvatar(form.profile_photo, form.name) ||
@@ -250,7 +250,16 @@ export default function EditProfileScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={[styles.avatarContainer, styles.avatarGenerator]} onPress={onOpenAvatarGenerator} activeOpacity={0.9} disabled={uploadingPhoto}>
+          <TouchableOpacity
+            style={[
+              styles.avatarContainer,
+              styles.avatarGenerator,
+              form.avatar ? styles.avatarContainerAvatar : styles.avatarContainerPlaceholder,
+            ]}
+            onPress={onOpenAvatarGenerator}
+            activeOpacity={0.9}
+            disabled={uploadingPhoto}
+          >
             {form.avatar ? (
               <Avatar uri={form.avatar} name={form.name || 'Avatar'} variant="avatar-m" size={AVATAR_SIZE} style={styles.avatar} />
             ) : (
@@ -365,7 +374,7 @@ const createStyles = (colors) =>
     },
     avatarWrapper: {
       alignItems: 'center',
-      paddingVertical: 16,
+      paddingVertical: 0,
       backgroundColor: colors.transparent,
       borderBottomWidth: 0,
       borderColor: colors.border,
@@ -381,9 +390,12 @@ const createStyles = (colors) =>
       width: '45%',
       maxWidth: 200,
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-end',
       gap: 8,
     },
+    avatarContainerProfile: {},
+    avatarContainerPlaceholder: {},
+    avatarContainerAvatar: {},
     avatar: {
       backgroundColor: colors.surface,
     },
@@ -420,9 +432,9 @@ const createStyles = (colors) =>
       paddingHorizontal: 8,
     },
     avatarGeneratorIcon: {
-      width: 120,
-      height: 120,
-      borderRadius: 60,
+      width: PROFILE_SIZE,
+      height: PROFILE_SIZE,
+      borderRadius: PROFILE_SIZE / 2,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: colors.surface,
