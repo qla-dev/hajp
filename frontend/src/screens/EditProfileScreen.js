@@ -302,7 +302,7 @@ export default function EditProfileScreen({ navigation, route }) {
             <Text style={styles.avatarGeneratorText}>{avatarCtaText}</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.avatarNote}>Dodaj sliku do 3 MB ili kreiraj avatar. Ista će biti javno dostupna.</Text>
+        <Text style={styles.avatarNote}>Dodaj sliku do 3 MB ili kreiraj avatar. Obje opcije će biti javno dostupne. Ako slika nije dodana, prikazivati će se avatar automatski.</Text>
       </View>
 
       <View style={styles.formSection}>
@@ -430,7 +430,7 @@ const createStyles = (colors) =>
       alignSelf: 'center',
     },
     avatar: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.transparent,
     },
     cameraBadge: {
       position: 'absolute',
@@ -463,7 +463,6 @@ const createStyles = (colors) =>
     avatarContainerScroll: {
       width: '100%',
       maxWidth: '100%',
-      marginTop: -10,
       alignItems: 'stretch',
     },
     avatarGeneratorIcon: {
@@ -476,7 +475,7 @@ const createStyles = (colors) =>
     },
     removeBadge: {
       position: 'absolute',
-      top: 12,
+      top: 20,
       left: 12,
       width: 36,
       height: 36,
@@ -507,7 +506,9 @@ const createStyles = (colors) =>
     },
     avatarNote: {
       marginTop: 15,
+      marginBottom: 10,
       fontSize: 12,
+      paddingHorizontal: 5,
       color: colors.text_secondary,
       textAlign: 'center',
     },

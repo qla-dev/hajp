@@ -854,7 +854,7 @@ const createStyles = (colors) =>
       justifyContent: 'center',
     },
     profileImage: {
-      backgroundColor: colors.surface,
+      backgroundColor: 'transparent',
     },
     noteBubble: {
       position: 'absolute',
