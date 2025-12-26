@@ -8,7 +8,7 @@ import { baseURL } from '../api';
 
 export const sizeMap = {
   xs: { photoSize: 64, avatarSize: 47, slotSize: 64, font: 12 },
-  s: { photoSize: 36, avatarSize: 36, slotSize: 36, font: 12 },
+  s: { photoSize: 36, avatarSize: 46, slotSize: 36, font: 12 },
   m: { photoSize: 120, avatarSize: 158, slotSize: 120, font: 32 }, // current default
   l: { photoSize: 158, avatarSize: 228, slotSize: 158, font: 40 },
   xl: { photoSize: 190, avatarSize: 250, slotSize: 190, font: 48 },
@@ -211,7 +211,7 @@ export default function Avatar({
   const contentDimensionStyle = { width: resolvedSize, height: resolvedSize, borderRadius: resolvedSize / 2 };
   const zoomSize = Math.max(resolvedSize * 1.8, resolvedSize + 120);
   const zoomFont = Math.max(Math.round(zoomSize * 0.26), resolvedFont);
-  const borderStyle = border ? { borderWidth: border, borderColor: '#fff' } : null;
+  const borderStyle = border && contentMode !== 'avatar' ? { borderWidth: border, borderColor: '#fff' } : null;
 
   useEffect(() => {
     setImageError(false);
