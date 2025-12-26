@@ -129,13 +129,13 @@ export default function Avatar({
   const enforcedConfig = useMemo(() => {
     if (!parsedConfig) return null;
     const base = { ...parsedConfig, showBackground: true, backgroundShape: 'circle' };
-    if (bgMode === 'random') {
+    if (bgMode === 'auto') {
       const seed = resolvedName || uri || JSON.stringify(parsedConfig) || Math.random().toString();
-      const palette = ['#FF9E80', '#FFD180', '#FFFF8D', '#CCFF90', '#A7FFEB', '#80D8FF', '#82B1FF', '#B388FF', '#F8BBD0', colors.profilePurple];
+      const palette = ['#FF9E80', '#FFD180', '#FFFF8D', '#CCFF90', '#A7FFEB', '#80D8FF', '#82B1FF', '#B388FF', '#F8BBD0', '#b794f4'];
       const hash = seed.split('').reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % palette.length, 0);
       base.backgroundColor = palette[hash] || palette[0];
     } else {
-      base.backgroundColor = parsedConfig.backgroundColor || colors.profilePurple;
+      base.backgroundColor = parsedConfig.backgroundColor || '#b794f4';
     }
     return base;
   }, [bgMode, colors.profilePurple, parsedConfig, resolvedName, uri]);
