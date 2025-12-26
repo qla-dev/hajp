@@ -59,6 +59,7 @@ export default function PollingScreen({ route, navigation }) {
         const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
         const { sound: skipSound } = await Audio.Sound.createAsync(skipSoundAsset, { shouldPlay: false });
         const { sound: shuffleSound } = await Audio.Sound.createAsync(shuffleSoundAsset, { shouldPlay: false });
+        await shuffleSound.setVolumeAsync(0.1);
         if (mounted) {
           connectSoundRef.current = sound;
           skipSoundRef.current = skipSound;
