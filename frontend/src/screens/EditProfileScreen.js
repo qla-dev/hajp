@@ -224,7 +224,11 @@ export default function EditProfileScreen({ navigation, route }) {
   }
 
   return (
-    <ScrollView style={styles.container} contentInsetAdjustmentBehavior="always">
+    <ScrollView
+      style={styles.container}
+      contentInsetAdjustmentBehavior="always"
+      contentContainerStyle={[styles.avatarContainer, styles.avatarContainerScroll]}
+    >
       <View style={styles.avatarWrapper}>
         <View style={styles.avatarRow}>
           <View style={styles.avatarContainer}>
@@ -428,10 +432,6 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       borderWidth: 2,
       borderColor: colors.background,
-      shadowColor: colors.primary,
-      shadowOpacity: 0.2,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 2 },
       elevation: 4,
     },
     editPhotoCta: {
@@ -447,6 +447,12 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       gap: 10,
       paddingHorizontal: 8,
+    },
+    avatarContainerScroll: {
+      width: '100%',
+      maxWidth: '100%',
+      marginTop: 0,
+      alignItems: 'stretch',
     },
     avatarGeneratorIcon: {
       width: PROFILE_SIZE,
