@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator, Platform, Animated, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL, fetchActiveQuestion, fetchRoomCashoutStatus, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
 import { Audio } from 'expo-av';
 import Avatar from '../components/Avatar';
+import { BlurView } from 'expo-blur';
 
 const { width } = Dimensions.get('window');
 let Haptics;
@@ -17,7 +18,7 @@ const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 
 export default function PollingScreen({ route, navigation }) {
   const { roomId } = route.params || {};
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
   const headerHeight = useHeaderHeight();
   const [question, setQuestion] = useState(null);
@@ -28,6 +29,9 @@ export default function PollingScreen({ route, navigation }) {
   const [interactionLocked, setInteractionLocked] = useState(false);
   const [finished, setFinished] = useState(false);
   const [firstLoad, setFirstLoad] = useState(true);
+  const [zoomAvatar, setZoomAvatar] = useState(null);
+  const [zoomVisible, setZoomVisible] = useState(false);
+  const zoomAnim = useRef(new Animated.Value(0)).current;
   const connectSoundRef = useRef(null);
   const emojis = useMemo(() => ['🔥', '🚀', '💎', '🏆', '🎉', '✨'], []);
   const backgrounds = useMemo(() => [colors.secondary, '#7c3aed', '#2563eb', '#0ea5e9', '#22c55e', '#f97316'], [colors.secondary]);
@@ -240,6 +244,31 @@ export default function PollingScreen({ route, navigation }) {
     return { value: option, label: String(option ?? ''), avatarUri };
   });
 
+  const handleOptionLongPress = (option) => {
+    if (!option) return;
+    Haptics?.selectionAsync?.()?.catch(() => {});
+    setZoomAvatar({
+      uri: option.avatarUri,
+      name: option.label,
+    });
+    setZoomVisible(true);
+    zoomAnim.setValue(0);
+    Animated.spring(zoomAnim, {
+      toValue: 1,
+      friction: 7,
+      tension: 80,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeZoom = () => {
+    Animated.timing(zoomAnim, {
+      toValue: 0,
+      duration: 180,
+      useNativeDriver: true,
+    }).start(() => setZoomVisible(false));
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
       <View style={[styles.progressTrack, { top: headerHeight }]}>
@@ -268,6 +297,7 @@ export default function PollingScreen({ route, navigation }) {
           <TouchableOpacity
             key={idx}
             onPress={() => handleVote(option.value)}
+            onLongPress={() => handleOptionLongPress(option)}
             style={styles.optionButton}
             disabled={refreshingQuestion || interactionLocked}
           >
@@ -284,9 +314,37 @@ export default function PollingScreen({ route, navigation }) {
               ]}
             />
             <Text style={styles.optionText}>{option.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+
+      {zoomVisible && (
+        <Pressable style={styles.zoomOverlay} onPress={closeZoom}>
+          <BlurView
+            intensity={35}
+            tint={isDark ? 'dark' : 'light'}
+            style={StyleSheet.absoluteFillObject}
+          />
+          <Animated.View
+            style={[
+              styles.zoomAvatarWrap,
+              {
+                opacity: zoomAnim,
+                transform: [
+                  {
+                    scale: zoomAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.9, 1.02],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <Avatar uri={zoomAvatar?.uri} name={zoomAvatar?.name} size={300} />
+          </Animated.View>
+        </Pressable>
+      )}
 
       <View style={styles.bottomActions}>
         <TouchableOpacity onPress={handleShuffle} style={styles.actionButton} disabled={refreshingQuestion || interactionLocked}>
@@ -376,6 +434,17 @@ const createStyles = (colors, isDark) =>
     avatarBottomRight: {
       bottom: -18,
       right: -18,
+    },
+    zoomOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+      zIndex: 30,
+    },
+    zoomAvatarWrap: {
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     bottomActions: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 40, paddingBottom: 40 },
     actionButton: { alignItems: 'center' },
