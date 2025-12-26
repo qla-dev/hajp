@@ -146,7 +146,7 @@ export default function Avatar({
   const sizeEntry = sizeMap[variantKey] || sizeMap.m;
   const contentMode = mode === 'auto' ? (isSvgUri(effectiveUri) ? 'avatar' : 'photo') : mode;
   const slotSize = size || sizeEntry.slotSize || sizeEntry.photoSize || sizeEntry.avatarSize;
-  const contentSize =
+  const contentSize  =
     size ||
     (contentMode === 'photo'
       ? sizeEntry.photoSize || sizeEntry.slotSize || sizeEntry.avatarSize
