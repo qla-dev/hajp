@@ -124,20 +124,58 @@ export default function Avatar({
   );
   const builtFromConfig = useMemo(() => (parsedConfig ? buildAvatarSvg(parsedConfig) : null), [parsedConfig]);
   const resolvedProfilePhoto = useMemo(
-    () => pickFirstUri(profilePhoto, user?.profile_photo, user?.photo),
-    [profilePhoto, user?.photo, user?.profile_photo],
+    () =>
+      pickFirstUri(
+        profilePhoto,
+        user?.profile_photo,
+        user?.profilePhoto,
+        user?.profile_photo_url,
+        user?.profilePhotoUrl,
+        user?.profile_photo_uri,
+        user?.profilePhotoUri,
+        user?.photo,
+        user?.image,
+        user?.picture,
+      ),
+    [
+      profilePhoto,
+      user?.image,
+      user?.photo,
+      user?.picture,
+      user?.profilePhoto,
+      user?.profilePhotoUri,
+      user?.profilePhotoUrl,
+      user?.profile_photo,
+      user?.profile_photo_uri,
+      user?.profile_photo_url,
+    ],
   );
   const resolvedPrimaryUri = useMemo(
     () =>
       pickFirstUri(
         uri,
         user?.avatar_url,
+        user?.avatarUrl,
         user?.avatarUri,
         user?.avatar_svg_url,
+        user?.avatar_svg,
         user?.avatarSvgUrl,
+        user?.avatarSvg,
+        user?.avatar_uri,
         configSource,
       ),
-    [configSource, uri, user?.avatarUri, user?.avatarSvgUrl, user?.avatar_url, user?.avatar_svg_url],
+    [
+      configSource,
+      uri,
+      user?.avatarUri,
+      user?.avatarSvg,
+      user?.avatarSvgUrl,
+      user?.avatarUrl,
+      user?.avatar_uri,
+      user?.avatar_url,
+      user?.avatar_svg,
+      user?.avatar_svg_url,
+    ],
   );
   const baseUri = resolvedProfilePhoto || builtFromConfig || resolvedPrimaryUri;
   const effectiveUri = fallbackAvatar ? baseUri : null;
