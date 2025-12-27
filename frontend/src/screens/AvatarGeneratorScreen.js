@@ -1,5 +1,17 @@
 ﻿import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert, Image, Modal, Animated, Easing } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  Animated,
+  Easing,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
@@ -7,6 +19,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { updateCurrentUser } from '../api';
 import { emitProfileUpdated } from '../utils/profileEvents';
 import Avatar from '../components/Avatar';
+
 import defaultConfig from '../../assets/json/avatar/avatarDefaultConfig.json';
 import colorsData from '../../assets/json/avatar/avatarColors.json';
 import optionGroupsData from '../../assets/json/avatar/avatarOptionGroups.json';
@@ -24,6 +37,7 @@ const {
   lipColors,
   skinColors,
 } = colorsData;
+
 const { tabOrder = [], tabLabels = {} } = tabsData;
 const BLOCKED_KEYS = new Set(['showBackground', 'backgroundColor', 'backgroundShape']);
 
@@ -40,27 +54,30 @@ const optionGroups = optionGroupsData
   .filter((group) => !BLOCKED_KEYS.has(group.key))
   .map((group) => {
     const colorInfo = colorSwatchMap[group.key];
+
     if (colorInfo?.map) {
       return {
         ...group,
         options: group.options.map((option) => ({
-        ...option,
-        swatch: colorInfo.map[option.value],
-        swatchGradient: colorInfo.gradient?.[option.value],
-      })),
-    };
-  }
-  if (group.key === 'skinTone') {
-    return {
-      ...group,
-      options: group.options.map((option) => ({
-        ...option,
-        swatch: skinColors[option.value],
-      })),
-    };
-  }
-  return group;
-});
+          ...option,
+          swatch: colorInfo.map[option.value],
+          swatchGradient: colorInfo.gradient?.[option.value],
+        })),
+      };
+    }
+
+    if (group.key === 'skinTone') {
+      return {
+        ...group,
+        options: group.options.map((option) => ({
+          ...option,
+          swatch: skinColors[option.value],
+        })),
+      };
+    }
+
+    return group;
+  });
 
 const orderedOptionGroups = tabOrder
   .filter((key) => !BLOCKED_KEYS.has(key))
@@ -80,13 +97,21 @@ const enforceCirclePurple = (cfg = {}) => ({
 
 export default function AvatarGeneratorScreen({ navigation, route }) {
   const seedConfig = route?.params?.seedConfig;
-  const [config, setConfig] = useState(() => enforceCirclePurple({ ...defaultConfig, ...(seedConfig || {}) }));
+
+  const [config, setConfig] = useState(() =>
+    enforceCirclePurple({ ...defaultConfig, ...(seedConfig || {}) }),
+  );
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState(orderedOptionGroups[0]?.key || optionGroups[0].key);
+  const [activeTab, setActiveTab] = useState(
+    orderedOptionGroups[0]?.key || optionGroups[0].key,
+  );
   const [showAiModal, setShowAiModal] = useState(false);
+
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+
   const aiBgAnim = useRef(new Animated.Value(0)).current;
+
   const gradientColors = useMemo(
     () => [
       'rgba(52,120,255,0.45)',
@@ -98,13 +123,14 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   );
 
   const avatarSvgUrl = useMemo(() => buildAvatarSvg(config), [config]);
+
   const animatedGradientStyle = useMemo(
     () => ({
       transform: [
         {
           translateX: aiBgAnim.interpolate({
             inputRange: [0, 1],
-            outputRange: [-360, 360],
+            outputRange: [-220, 220],
           }),
         },
       ],
@@ -116,13 +142,10 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     setConfig((prev) => enforceCirclePurple({ ...prev, [key]: value }));
   }, []);
 
-  const handleRandomGender = useCallback(
-    (gender) => {
-      const next = generateRandomConfig({ gender, circleBg: true });
-      setConfig(enforceCirclePurple(next));
-    },
-    [],
-  );
+  const handleRandomGender = useCallback((gender) => {
+    const next = generateRandomConfig({ gender, circleBg: true });
+    setConfig(enforceCirclePurple(next));
+  }, []);
 
   const handleSave = useCallback(async () => {
     if (saving) return;
@@ -138,7 +161,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     } finally {
       setSaving(false);
     }
-  }, [avatarSvgUrl, navigation, saving]);
+  }, [config, navigation, saving]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -150,7 +173,11 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
           style={[styles.saveButton, saving && styles.saveButtonDisabled]}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          {saving ? <ActivityIndicator size="small" color={colors.primary} /> : <Text style={styles.saveButtonText}>Sačuvaj</Text>}
+          {saving ? (
+            <ActivityIndicator size="small" color={colors.primary} />
+          ) : (
+            <Text style={styles.saveButtonText}>Sačuvaj</Text>
+          )}
         </TouchableOpacity>
       ),
     });
@@ -194,9 +221,13 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
           <View style={[styles.modalCard, { backgroundColor: colors.surface }]}>
             <Text style={styles.modalTitle}>Generiši sa AI</Text>
             <Text style={styles.modalText}>
-              Uskoro stiže generisanje avatara putem AI. Do tada koristi postojeće opcije i sacuvaj izgled.
+              Uskoro stiže generisanje avatara putem AI. Do tada koristi postojeće opcije i sačuvaj izgled.
             </Text>
-            <TouchableOpacity style={styles.modalClose} onPress={() => setShowAiModal(false)} activeOpacity={0.9}>
+            <TouchableOpacity
+              style={styles.modalClose}
+              onPress={() => setShowAiModal(false)}
+              activeOpacity={0.9}
+            >
               <Text style={styles.modalCloseText}>Zatvori</Text>
             </TouchableOpacity>
           </View>
@@ -227,7 +258,11 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
 
         {activeGroup ? (
           <View style={[styles.optionsPanel, { borderColor: colors.border }]}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.optionsRow}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.optionsRow}
+            >
               {activeGroup.options.map((option) => {
                 const active = config[activeGroup.key] === option.value;
                 return (
@@ -247,7 +282,9 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
                     ) : option.swatch ? (
                       <View style={[styles.swatch, { backgroundColor: option.swatch }]} />
                     ) : (
-                      <Text style={[styles.optionEmoji, active && { color: colors.primary }]}>{option.emoji || '??'}</Text>
+                      <Text style={[styles.optionEmoji, active && { color: colors.primary }]}>
+                        {option.emoji || '??'}
+                      </Text>
                     )}
                     <Text style={[styles.optionText, active && styles.optionTextActive]} numberOfLines={1}>
                       {option.label}
@@ -260,11 +297,16 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
         ) : null}
       </View>
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} contentInsetAdjustmentBehavior="always">
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        contentInsetAdjustmentBehavior="always"
+      >
         <View style={styles.hero}>
           <Image source={{ uri: sampleHeroUri }} style={styles.heroImage} resizeMode="contain" />
           <Text style={styles.title}>Avatar generator</Text>
           <Text style={styles.subtitle}>Centriraj izgled, podesi ton, kosu i detalje.</Text>
+
           <View style={styles.previewCircle}>
             <Avatar
               uri={avatarSvgUrl}
@@ -274,6 +316,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
               variant="avatar-xxl"
               zoomModal={false}
             />
+
             <TouchableOpacity
               style={[styles.genderBadge, styles.genderBadgeLeft]}
               activeOpacity={0.85}
@@ -282,6 +325,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
               <Ionicons name="male" size={18} color="#fff" />
               <Ionicons name="shuffle-outline" size={16} color="#fff" style={{ marginLeft: 4 }} />
             </TouchableOpacity>
+
             <TouchableOpacity
               style={[styles.genderBadge, styles.genderBadgeRight]}
               activeOpacity={0.85}
@@ -297,28 +341,41 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
       </ScrollView>
 
       <View style={styles.bottomBar}>
-        <TouchableOpacity
-          activeOpacity={0.9}
-          style={styles.aiButton}
-          onPress={() => setShowAiModal(true)}
-        >
+        {/* AI BUTTON (fixed vertical centering convinced) */}
+        <TouchableOpacity activeOpacity={0.9} style={styles.aiButton} onPress={() => setShowAiModal(true)}>
           <View style={styles.aiBorder}>
+            {/* moving gradient behind border */}
             <Animated.View style={[styles.aiBorderFill, animatedGradientStyle]}>
-              <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.aiBorderFillInner} />
+              <LinearGradient
+                colors={gradientColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFillObject}
+              />
             </Animated.View>
+
             <View style={[styles.aiButtonInner, { backgroundColor: colors.background }]}>
-              <MaskedView maskElement={<Ionicons name="sparkles-outline" size={18} color="#000" />}>
-                <Animated.View style={animatedGradientStyle}>
-                  <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                    <Ionicons name="sparkles-outline" size={18} color="transparent" />
-                  </LinearGradient>
-                </Animated.View>
-              </MaskedView>
-              <MaskedView maskElement={<Text style={[styles.aiButtonText, styles.aiButtonTextMask]}>Generiši sa AI</Text>}>
-                <Animated.View style={animatedGradientStyle}>
-                  <LinearGradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                    <Text style={[styles.aiButtonText, styles.aiButtonTextFill]}>Generiši sa AI</Text>
-                  </LinearGradient>
+              <MaskedView
+                style={styles.aiMask} // explicit height
+                maskElement={
+                  <View style={styles.aiMaskElement}>
+                    <View style={styles.aiMaskRow}>
+                      <Ionicons name="sparkles-outline" size={18} color="#000" style={styles.aiIcon} />
+                      <Text style={styles.aiButtonTextMask} numberOfLines={1}>
+                        Generiši sa AI
+                      </Text>
+                    </View>
+                  </View>
+                }
+              >
+                {/* gradient fill for text */}
+                <Animated.View style={[styles.aiGradientBase, animatedGradientStyle]}>
+                  <LinearGradient
+                    colors={gradientColors}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFillObject}
+                  />
                 </Animated.View>
               </MaskedView>
             </View>
@@ -391,6 +448,7 @@ const createStyles = (colors) =>
       borderRadius: 20,
       position: 'relative',
     },
+
     selectorBar: {
       paddingTop: 0,
       paddingBottom: 12,
@@ -422,6 +480,7 @@ const createStyles = (colors) =>
       fontWeight: '700',
       color: colors.text_secondary,
     },
+
     optionsPanel: {
       marginTop: 0,
       paddingVertical: 8,
@@ -473,6 +532,7 @@ const createStyles = (colors) =>
       borderWidth: 1,
       borderColor: colors.border,
     },
+
     saveButton: {
       paddingHorizontal: 8,
       paddingVertical: 6,
@@ -485,6 +545,7 @@ const createStyles = (colors) =>
       fontWeight: '500',
       fontSize: 16,
     },
+
     bottomBar: {
       position: 'absolute',
       left: 0,
@@ -497,62 +558,81 @@ const createStyles = (colors) =>
       backgroundColor: colors.background,
       gap: 12,
     },
+
     aiButton: {
       flex: 1,
-      height: 55,
+      height: 57,
     },
     aiBorder: {
       padding: 1.5,
       borderRadius: 20,
-      height: '100%',
+      height: 57,
       overflow: 'hidden',
       backgroundColor: colors.background,
       position: 'relative',
     },
+
+    // ✅ was missing in your snippet, but used in JSX
     aiBorderFill: {
-      ...StyleSheet.absoluteFillObject,
+      position: 'absolute',
+      top: -80,
+      left: -320,
+      width: 820,
+      height: 220,
     },
-    aiBorderFillInner: {
-      ...StyleSheet.absoluteFillObject,
-    },
+
     aiButtonInner: {
       borderRadius: 19,
-      paddingVertical: 12,
-      paddingHorizontal: 10,
+      height: 54,
+      overflow: 'hidden',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '99.9%',
+    },
+
+    // ✅ MaskedView MUST have explicit height to align vertically reliably
+    aiMask: {
+      height: 54,
+      width: '100%',
+    },
+
+    // ✅ This controls vertical centering of the mask
+    aiMaskElement: {
+      height: 54,
+      width: '100%',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    aiMaskRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
-      backgroundColor: 'transparent',
-      height: '100%',
-      position: 'relative',
-      overflow: 'hidden',
+      gap: 6,
     },
-    aiBgLayer: {
-      ...StyleSheet.absoluteFillObject,
-      borderRadius: 19,
-      pointerEvents: 'none',
+
+    aiIcon: {
+      marginRight: 6,
     },
-    aiBgMover: {
-      position: 'absolute',
-      top: -160,
-      bottom: -160,
-      left: -360,
-      width: 720,
-    },
-    aiBgFill: {
-      ...StyleSheet.absoluteFillObject,
-    },
-    aiButtonText: {
+
+    aiButtonTextMask: {
       fontWeight: '700',
       fontSize: 16,
-    },
-    aiButtonTextMask: {
       color: '#000',
+      // On Android this can affect perceived vertical centering:
+      includeFontPadding: false,
+      textAlignVertical: 'center',
     },
-    aiButtonTextFill: {
-      color: 'transparent',
+
+    // gradient sheet that moves
+    aiGradientBase: {
+      position: 'absolute',
+      top: -80,
+      left: -320,
+      width: 820,
+      height: 220,
     },
+
     saveCta: {
       flex: 1,
       borderRadius: 20,
@@ -571,6 +651,7 @@ const createStyles = (colors) =>
     saveCtaIcon: {
       marginRight: 4,
     },
+
     genderBadge: {
       position: 'absolute',
       bottom: 12,
@@ -590,6 +671,7 @@ const createStyles = (colors) =>
       right: 12,
       backgroundColor: '#ec4899',
     },
+
     modalOverlay: {
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.35)',
