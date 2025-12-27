@@ -43,7 +43,18 @@ const {
 
 const { tabOrder = [], tabLabels = {} } = tabsData;
 const BLOCKED_KEYS = new Set(['showBackground', 'backgroundColor', 'backgroundShape']);
-
+const HAIR_BLOCKED_WITH_HAT = new Set(['long', 'bob']);
+const HAT_BLOCKING_VALUES = new Set(['beanie', 'turban']);
+const HAIR_FALLBACK = 'pixie';
+const BODY_FEMALE_VALUE = 'breasts';
+const BODY_MALE_VALUE = 'chest';
+const applyBaseDefaults = (cfg = {}, { force } = {}) => {
+  const next = { ...cfg };
+  if (force || !next.clothing) next.clothing = 'shirt';
+  if (force || !next.eyes) next.eyes = 'cute';
+  if (force || next.accessory === undefined || next.accessory === null) next.accessory = 'none';
+  return next;
+};
 const colorSwatchMap = {
   hairColor: { map: hairColors, gradient: hairColorGradients },
   facialHairColor: { map: hairColors, gradient: hairColorGradients },
@@ -56,6 +67,16 @@ const colorSwatchMap = {
 const optionGroups = optionGroupsData
   .filter((group) => !BLOCKED_KEYS.has(group.key))
   .map((group) => {
+    if (group.key === 'body') {
+      return {
+        ...group,
+        label: tabLabels.body || 'Spol',
+        options: group.options.map((option) => ({
+          ...option,
+          emoji: option.value === BODY_FEMALE_VALUE ? '♀' : option.value === BODY_MALE_VALUE ? '♂' : option.emoji,
+        })),
+      };
+    }
     const colorInfo = colorSwatchMap[group.key];
 
     if (colorInfo?.map) {
@@ -98,12 +119,55 @@ const enforceCirclePurple = (cfg = {}) => ({
   backgroundColor: '#b794f4',
 });
 
+const sanitizeHairHatForHat = (cfg = {}) => {
+  if (cfg.hat === 'hijab') {
+    return { ...cfg, hair: HAIR_FALLBACK };
+  }
+  if (HAIR_BLOCKED_WITH_HAT.has(cfg.hair) && HAT_BLOCKING_VALUES.has(cfg.hat)) {
+    return { ...cfg, hair: HAIR_FALLBACK };
+  }
+  return cfg;
+};
+
+const sanitizeHairHatForHair = (cfg = {}) => {
+  if (cfg.hat === 'hijab' && cfg.hair !== HAIR_FALLBACK) {
+    return { ...cfg, hair: HAIR_FALLBACK };
+  }
+  if (HAIR_BLOCKED_WITH_HAT.has(cfg.hair) && HAT_BLOCKING_VALUES.has(cfg.hat)) {
+    return { ...cfg, hat: 'none' };
+  }
+  return cfg;
+};
+
+const applyBodyMouth = (cfg = {}) => {
+  if (cfg.body === BODY_FEMALE_VALUE && cfg.mouth !== 'lips') {
+    return { ...cfg, mouth: 'lips' };
+  }
+  if (cfg.body === BODY_MALE_VALUE && cfg.mouth !== 'openSmile') {
+    return { ...cfg, mouth: 'openSmile' };
+  }
+  return cfg;
+};
+
 export default function AvatarGeneratorScreen({ navigation, route }) {
   const seedConfig = route?.params?.seedConfig;
+  const userSex = route?.params?.userSex;
 
-  const [config, setConfig] = useState(() =>
-    enforceCirclePurple({ ...defaultConfig, ...(seedConfig || {}) }),
-  );
+  const initialConfig = useMemo(() => {
+    const hasSeed = !!seedConfig;
+    const base = hasSeed
+      ? { ...seedConfig }
+      : {
+          ...defaultConfig,
+          body: userSex === 'girl' ? BODY_FEMALE_VALUE : BODY_MALE_VALUE,
+          hair: userSex === 'girl' ? 'long' : defaultConfig.hair,
+        };
+    const withDefaults = applyBaseDefaults(base, { force: !hasSeed });
+    const sanitized = sanitizeHairHatForHat(enforceCirclePurple(withDefaults));
+    return hasSeed ? sanitized : applyBodyMouth(sanitized);
+  }, [seedConfig, userSex]);
+
+  const [config, setConfig] = useState(() => initialConfig);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState(
     orderedOptionGroups[0]?.key || optionGroups[0].key,
@@ -182,14 +246,39 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   );
 
   const handleSelect = useCallback((key, value) => {
-    setConfig((prev) => enforceCirclePurple({ ...prev, [key]: value }));
+    setConfig((prev) => {
+      let next = enforceCirclePurple({ ...prev, [key]: value });
+      if (key === 'body' && value === BODY_FEMALE_VALUE) {
+        next.hair = 'long';
+      } else if (key === 'body' && value === BODY_MALE_VALUE) {
+        next.hair = defaultConfig.hair;
+      }
+      if (key === 'hair') {
+        next = sanitizeHairHatForHair(next);
+      }
+      if (key === 'hat') {
+        next = sanitizeHairHatForHat(next);
+      }
+      if (key === 'body') {
+        next = applyBodyMouth(next);
+        next = sanitizeHairHatForHair(next);
+      }
+      next = applyBodyMouth(next);
+      return next;
+    });
   }, []);
 
   const handleRandomGender = useCallback((gender) => {
     Haptics.selectionAsync().catch(() => {});
     playShuffleSound();
-    const next = generateRandomConfig({ gender, circleBg: true });
-    setConfig(enforceCirclePurple(next));
+    let next = generateRandomConfig({
+      gender,
+      circleBg: true,
+      body: gender === 'female' ? BODY_FEMALE_VALUE : BODY_MALE_VALUE,
+      hair: gender === 'female' ? 'long' : defaultConfig.hair,
+    });
+    next = applyBaseDefaults(next, { force: true });
+    setConfig(applyBodyMouth(sanitizeHairHatForHat(enforceCirclePurple(next))));
   }, [playShuffleSound]);
 
   const handleSave = useCallback(async () => {
@@ -231,7 +320,11 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
 
   useEffect(() => {
     if (route?.params?.preset) {
-      setConfig((prev) => enforceCirclePurple({ ...prev, ...route.params.preset }));
+      setConfig((prev) =>
+        sanitizeHairHatForHat(
+          enforceCirclePurple(applyBaseDefaults({ ...prev, ...route.params.preset })),
+        ),
+      );
     }
   }, [route?.params?.preset]);
 

@@ -1,5 +1,6 @@
 {
   "tabOrder": [
+    "body",
     "skinTone",
     "hair",
     "hairColor",
@@ -16,7 +17,6 @@
     "clothing",
     "clothingColor",
     "graphic",
-    "body",
     "showBackground",
     "backgroundColor",
     "backgroundShape",
@@ -24,6 +24,7 @@
     "faceMaskColor"
   ],
   "tabLabels": {
+    "body": "🧍 Spol",
     "skinTone": "🧴 Koža",
     "hair": "💇 Kosa",
     "hairColor": "🎨 Boja kose",
@@ -40,7 +41,6 @@
     "clothing": "👕 Odjeća",
     "clothingColor": "🎨 Boja odjeće",
     "graphic": "🎯 Grafika",
-    "body": "🧍 Tijelo",
     "showBackground": "🌈 Pozadina",
     "backgroundColor": "🎨 Boja pozadine",
     "backgroundShape": "⬜ Oblik pozadine",

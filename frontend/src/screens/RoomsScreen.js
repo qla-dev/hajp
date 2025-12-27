@@ -214,9 +214,9 @@ const createStyles = (colors) =>
     },
     listContent: {
       paddingHorizontal: 16,
-      paddingTop: 0,
+      paddingTop: 10,
       paddingBottom: 0,
-      gap: 12,
+      gap: 0,
     },
     topSpacer: {
       paddingTop: 40,

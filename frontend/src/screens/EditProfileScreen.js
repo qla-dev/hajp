@@ -214,8 +214,8 @@ export default function EditProfileScreen({ navigation, route }) {
 
   const onOpenAvatarGenerator = useCallback(() => {
     const seedConfig = parseAvatarConfig(form.avatar) || { avatarStyle: 'Circle' };
-    navigation.navigate('AvatarGenerator', { seedConfig });
-  }, [form.avatar, navigation]);
+    navigation.navigate('AvatarGenerator', { seedConfig, userSex: form.sex });
+  }, [form.avatar, form.sex, navigation]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
