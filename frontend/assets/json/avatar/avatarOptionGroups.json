@@ -268,8 +268,8 @@
     "key": "body",
     "label": "Tijelo",
     "options": [
-      { "value": "chest", "label": "Prsa", "emoji": "🧍" },
-      { "value": "breasts", "label": "Grudi", "emoji": "🧍‍♀️" }
+      { "value": "chest", "label": "Muško", "emoji": "🧍" },
+      { "value": "breasts", "label": "Žensko", "emoji": "🧍‍♀️" }
     ]
   },
   {

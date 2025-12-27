@@ -674,7 +674,7 @@ const createStyles = (colors) =>
       backgroundColor: colors.surface,
     },
     tabChipActive: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.surface,
     },
     tabChipText: {
       fontSize: 15,
@@ -710,7 +710,7 @@ const createStyles = (colors) =>
       gap: 10,
     },
     optionCardActive: {
-      backgroundColor: colors.background,
+      backgroundColor: colors.surface,
       elevation: 5,
     },
     optionEmoji: {
