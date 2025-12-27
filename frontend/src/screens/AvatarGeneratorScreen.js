@@ -161,22 +161,31 @@ const applyGenderLashes = (cfg = {}) => {
 
 export default function AvatarGeneratorScreen({ navigation, route }) {
   const seedConfig = route?.params?.seedConfig;
-  const userSex = route?.params?.userSex;
+  const authUserGender = route?.params?.authUserGender || 'female';
 
   const initialConfig = useMemo(() => {
-    const hasSeed = !!seedConfig;
-    const base = hasSeed
-      ? { ...seedConfig }
-      : {
-          ...defaultConfig,
-          body: userSex === 'girl' ? BODY_FEMALE_VALUE : BODY_MALE_VALUE,
-          hair: userSex === 'girl' ? 'long' : defaultConfig.hair,
-        };
-    const withDefaults = applyBaseDefaults(base, { force: !hasSeed });
-    const sanitized = sanitizeHairHatForHat(enforceCirclePurple(withDefaults));
-    if (hasSeed) return sanitized;
-    return applyGenderLashes(applyBodyMouth(sanitized));
-  }, [seedConfig, userSex]);
+    const hasSeedAvatar =
+      !!seedConfig &&
+      Boolean(
+        seedConfig.body ||
+          seedConfig.hair ||
+          seedConfig.mouth ||
+          seedConfig.clothing ||
+          seedConfig.hat ||
+          seedConfig.eyes,
+      );
+
+    if (!hasSeedAvatar) {
+      const body = authUserGender === 'boy' ? BODY_MALE_VALUE : BODY_FEMALE_VALUE;
+      const hair = authUserGender === 'girl' ? 'long' : defaultConfig.hair;
+      const base = applyBaseDefaults({ ...defaultConfig, body, hair }, { force: true });
+      const prepared = applyGenderLashes(applyBodyMouth(base));
+      return enforceCirclePurple(prepared);
+    }
+
+    const base = applyBaseDefaults({ ...defaultConfig, ...seedConfig }, { force: false });
+    return sanitizeHairHatForHat(enforceCirclePurple(base));
+  }, [authUserGender, seedConfig]);
 
   const [config, setConfig] = useState(() => initialConfig);
   const [saving, setSaving] = useState(false);
