@@ -149,6 +149,16 @@ const applyBodyMouth = (cfg = {}) => {
   return cfg;
 };
 
+const applyGenderLashes = (cfg = {}) => {
+  if (cfg.body === BODY_FEMALE_VALUE && cfg.lashes !== true) {
+    return { ...cfg, lashes: true };
+  }
+  if (cfg.body === BODY_MALE_VALUE && cfg.lashes !== false) {
+    return { ...cfg, lashes: false };
+  }
+  return cfg;
+};
+
 export default function AvatarGeneratorScreen({ navigation, route }) {
   const seedConfig = route?.params?.seedConfig;
   const userSex = route?.params?.userSex;
@@ -164,7 +174,8 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
         };
     const withDefaults = applyBaseDefaults(base, { force: !hasSeed });
     const sanitized = sanitizeHairHatForHat(enforceCirclePurple(withDefaults));
-    return hasSeed ? sanitized : applyBodyMouth(sanitized);
+    if (hasSeed) return sanitized;
+    return applyGenderLashes(applyBodyMouth(sanitized));
   }, [seedConfig, userSex]);
 
   const [config, setConfig] = useState(() => initialConfig);
@@ -261,9 +272,10 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
       }
       if (key === 'body') {
         next = applyBodyMouth(next);
+        next = applyGenderLashes(next);
         next = sanitizeHairHatForHair(next);
       }
-      next = applyBodyMouth(next);
+      next = applyGenderLashes(applyBodyMouth(next));
       return next;
     });
   }, []);
@@ -278,7 +290,9 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
       hair: gender === 'female' ? 'long' : defaultConfig.hair,
     });
     next = applyBaseDefaults(next, { force: true });
-    setConfig(applyBodyMouth(sanitizeHairHatForHat(enforceCirclePurple(next))));
+    next = applyBodyMouth(next);
+    next = applyGenderLashes(next);
+    setConfig(sanitizeHairHatForHat(enforceCirclePurple(next)));
   }, [playShuffleSound]);
 
   const handleSave = useCallback(async () => {
