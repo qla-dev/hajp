@@ -15,6 +15,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
+import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { updateCurrentUser } from '../api';
 import { emitProfileUpdated } from '../utils/profileEvents';
@@ -28,6 +30,7 @@ import { buildAvatarSvg, generateRandomConfig } from '../utils/bigHeadAvatar';
 
 const sampleHeroUri =
   'https://cdn.dribbble.com/userupload/30645890/file/original-500c027610acebba14fe69de5572dcdd.png?resize=752x&vertical=center';
+const shuffleSoundAsset = require('../../assets/sounds/shuffle.mp3');
 
 const {
   hairColors,
@@ -106,6 +109,8 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     orderedOptionGroups[0]?.key || optionGroups[0].key,
   );
   const [showAiModal, setShowAiModal] = useState(false);
+  const [aiPressed, setAiPressed] = useState(false);
+  const shuffleSoundRef = useRef(null);
 
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -123,6 +128,44 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   );
 
   const avatarSvgUrl = useMemo(() => buildAvatarSvg(config), [config]);
+  const shuffleIconColor = useMemo(() => {
+    const hex = colors.background || '#ffffff';
+    const match = /^#?([a-f\d]{6})/i.exec(hex);
+    if (match) {
+      const int = parseInt(match[1], 16);
+      const r = (int >> 16) & 255;
+      const g = (int >> 8) & 255;
+      const b = int & 255;
+      const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return brightness > 0.5 ? '#fff' : '#000';
+    }
+    return '#fff';
+  }, [colors.background]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(shuffleSoundAsset, { shouldPlay: false });
+        if (mounted) {
+          shuffleSoundRef.current = sound;
+        } else {
+          await sound.unloadAsync();
+        }
+      } catch {
+        // ignore load errors
+      }
+    })();
+    return () => {
+      mounted = false;
+      shuffleSoundRef.current?.unloadAsync();
+      shuffleSoundRef.current = null;
+    };
+  }, []);
+
+  const playShuffleSound = useCallback(() => {
+    shuffleSoundRef.current?.replayAsync().catch(() => {});
+  }, []);
 
   const animatedGradientStyle = useMemo(
     () => ({
@@ -143,12 +186,15 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   }, []);
 
   const handleRandomGender = useCallback((gender) => {
+    Haptics.selectionAsync().catch(() => {});
+    playShuffleSound();
     const next = generateRandomConfig({ gender, circleBg: true });
     setConfig(enforceCirclePurple(next));
-  }, []);
+  }, [playShuffleSound]);
 
   const handleSave = useCallback(async () => {
     if (saving) return;
+    Haptics.selectionAsync().catch(() => {});
     setSaving(true);
     try {
       const payload = enforceCirclePurple(config);
@@ -206,6 +252,11 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
       aiBgAnim.stopAnimation();
     };
   }, [aiBgAnim]);
+
+  const handleOpenAiModal = useCallback(() => {
+    Haptics.selectionAsync().catch(() => {});
+    setShowAiModal(true);
+  }, []);
 
   const activeGroup = orderedOptionGroups.find((group) => group.key === activeTab);
 
@@ -307,32 +358,47 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
           <Text style={styles.title}>Avatar generator</Text>
           <Text style={styles.subtitle}>Centriraj izgled, podesi ton, kosu i detalje.</Text>
 
-          <View style={styles.previewCircle}>
-            <Avatar
-              uri={avatarSvgUrl}
-              avatarConfig={config}
-              bgMode="default"
-              name="Avatar"
-              variant="avatar-xxl"
-              zoomModal={false}
-            />
+          <View style={styles.previewWrapper}>
+            <View style={styles.previewCircle}>
+              <Avatar
+                uri={avatarSvgUrl}
+                avatarConfig={config}
+                bgMode="default"
+                name="Avatar"
+                variant="avatar-xxl"
+                zoomModal={false}
+              />
+            </View>
 
             <TouchableOpacity
-              style={[styles.genderBadge, styles.genderBadgeLeft]}
+              style={[
+                styles.genderBadge,
+                styles.genderBadgeLeft,
+                styles.genderBadgeBorderLeft,
+              ]}
               activeOpacity={0.85}
               onPress={() => handleRandomGender('male')}
             >
-              <Ionicons name="male" size={18} color="#fff" />
-              <Ionicons name="shuffle-outline" size={16} color="#fff" style={{ marginLeft: 4 }} />
+              <View style={[styles.genderBadgeInner, styles.genderBadgeInnerLeft]} />
+              <Ionicons
+                name="shuffle"
+                size={26}
+                color={shuffleIconColor}
+                style={styles.shuffleIconMirrored}
+              />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.genderBadge, styles.genderBadgeRight]}
+              style={[
+                styles.genderBadge,
+                styles.genderBadgeRight,
+                styles.genderBadgeBorderRight,
+              ]}
               activeOpacity={0.85}
               onPress={() => handleRandomGender('female')}
             >
-              <Ionicons name="female" size={18} color="#fff" />
-              <Ionicons name="shuffle-outline" size={16} color="#fff" style={{ marginLeft: 4 }} />
+              <View style={[styles.genderBadgeInner, styles.genderBadgeInnerRight]} />
+              <Ionicons name="shuffle" size={26} color={shuffleIconColor} />
             </TouchableOpacity>
           </View>
         </View>
@@ -342,8 +408,14 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
 
       <View style={styles.bottomBar}>
         {/* AI BUTTON (fixed vertical centering convinced) */}
-        <TouchableOpacity activeOpacity={0.9} style={styles.aiButton} onPress={() => setShowAiModal(true)}>
-          <View style={styles.aiBorder}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          style={styles.aiButton}
+          onPress={handleOpenAiModal}
+          onPressIn={() => setAiPressed(true)}
+          onPressOut={() => setAiPressed(false)}
+        >
+          <View style={[styles.aiBorder, aiPressed && styles.aiBorderPressed]}>
             {/* moving gradient behind border */}
             <Animated.View style={[styles.aiBorderFill, animatedGradientStyle]}>
               <LinearGradient
@@ -354,7 +426,13 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
               />
             </Animated.View>
 
-            <View style={[styles.aiButtonInner, { backgroundColor: colors.background }]}>
+            <View
+              style={[
+                styles.aiButtonInner,
+                { backgroundColor: colors.background },
+                aiPressed && styles.aiButtonInnerPressed,
+              ]}
+            >
               <MaskedView
                 style={styles.aiMask} // explicit height
                 maskElement={
@@ -421,6 +499,13 @@ const createStyles = (colors) =>
       alignItems: 'center',
       gap: 12,
       paddingVertical: 10,
+    },
+    previewWrapper: {
+      width: '100%',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+      paddingHorizontal: 12,
     },
     heroImage: {
       width: '100%',
@@ -571,6 +656,9 @@ const createStyles = (colors) =>
       backgroundColor: colors.background,
       position: 'relative',
     },
+    aiBorderPressed: {
+      backgroundColor: colors.surface,
+    },
 
     // ✅ was missing in your snippet, but used in JSX
     aiBorderFill: {
@@ -588,6 +676,10 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       width: '99.9%',
+    },
+    aiButtonInnerPressed: {
+      backgroundColor: colors.surface,
+      opacity: 0.95,
     },
 
     // ✅ MaskedView MUST have explicit height to align vertically reliably
@@ -654,22 +746,42 @@ const createStyles = (colors) =>
 
     genderBadge: {
       position: 'absolute',
-      bottom: 12,
-      paddingVertical: 6,
-      paddingHorizontal: 10,
-      borderRadius: 12,
-      flexDirection: 'row',
+      top: '50%',
+      marginTop: -20,
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      borderWidth: 0,
+      backgroundColor: colors.surfaceDark || colors.surface,
       alignItems: 'center',
-      gap: 4,
       elevation: 4,
+      justifyContent: 'center',
+      overflow: 'hidden',
     },
     genderBadgeLeft: {
-      left: 12,
-      backgroundColor: '#3b82f6',
+      left: 5,
     },
     genderBadgeRight: {
-      right: 12,
+      right: 5,
+    },
+    genderBadgeBorderLeft: {
+      borderColor: '#3b82f6',
+    },
+    genderBadgeBorderRight: {
+      borderColor: '#ec4899',
+    },
+    genderBadgeInner: {
+      ...StyleSheet.absoluteFillObject,
+      opacity: 0.28,
+    },
+    genderBadgeInnerLeft: {
+      backgroundColor: '#3b82f6',
+    },
+    genderBadgeInnerRight: {
       backgroundColor: '#ec4899',
+    },
+    shuffleIconMirrored: {
+      transform: [{ rotateY: '180deg' }],
     },
 
     modalOverlay: {
