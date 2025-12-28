@@ -500,6 +500,15 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
 
   const activeGroup = orderedOptionGroups.find((group) => group.key === activeTab);
 
+  useEffect(() => {
+    if (config?.graphic === 'hajp') {
+      console.log('[AvatarGeneratorScreen] Hajp graphic selected', {
+        graphic: config.graphic,
+        avatarSvgUrl,
+      });
+    }
+  }, [config?.graphic, avatarSvgUrl]);
+
   return (
     <View style={styles.screen}>
       <Modal
