@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard, LayoutAnimation, UIManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri } from 'react-native-svg';
+import { Asset } from 'expo-asset';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { login, baseURL } from '../api';
 import FormTextInput from '../components/FormTextInput';
@@ -18,7 +19,7 @@ export default function LoginScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const keyboardOffset = Platform.select({ ios: -20, android: 0 }); // tweak this value to move content when keyboard shows
-  const logoUri = `${baseURL}/img/logo.svg`;
+  const logoUri = Asset.fromModule(require('../../assets/svg/logo.svg')).uri;
 
   useEffect(() => {
     const animate = () =>

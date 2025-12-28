@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SvgUri } from 'react-native-svg';
+import { Asset } from 'expo-asset';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL } from '../api';
 import AvatarHeroAnimated from '../components/AvatarHeroAnimated';
 
-const logoUri = `${baseURL}/img/logo.svg`;
+const logoUri = Asset.fromModule(require('../../assets/svg/logo.svg')).uri;
 const HERO_HEIGHT = 320;
 
 export default function WelcomeScreen({ navigation }) {

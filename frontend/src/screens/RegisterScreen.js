@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Keyboard, LayoutAnimation, UIManager, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri } from 'react-native-svg';
+import { Asset } from 'expo-asset';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { register, baseURL } from '../api';
 import FormTextInput from '../components/FormTextInput';
@@ -31,7 +32,7 @@ export default function RegisterScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const keyboardOffset = Platform.select({ ios: 0, android: 0 }); // keep zero to avoid extra padding when keyboard opens
-  const logoUri = `${baseURL}/img/logo.svg`;
+  const logoUri = Asset.fromModule(require('../../assets/svg/logo.svg')).uri;
 
   useEffect(() => {
     const animate = () =>

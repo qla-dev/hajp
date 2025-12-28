@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import RemixIcon from 'react-native-remix-icon';
 import { SvgUri } from 'react-native-svg';
+import { Asset } from 'expo-asset';
 import { StyleSheet, Pressable, TouchableOpacity, Text, View } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
@@ -29,8 +30,27 @@ import UserRoomsScreen from '../screens/UserRoomsScreen';
 import { MenuRefreshProvider, useMenuRefresh } from '../context/menuRefreshContext';
 import Avatar from '../components/Avatar';
 
-const logoUri = `${baseURL}/img/logo.svg`;
-const NAV_ICON_BASE_URI = `${baseURL}/img/nav-icons`;
+const assetUri = (mod) => Asset.fromModule(mod).uri;
+const logoUri = assetUri(require('../../assets/svg/logo.svg'));
+const logoWhiteUri = assetUri(require('../../assets/svg/logo-white.svg'));
+const customTabIconUriMap = {
+  Hajp: {
+    active: assetUri(require('../../assets/svg/nav-icons/home-active.svg')),
+    inactive: assetUri(require('../../assets/svg/nav-icons/home.svg')),
+  },
+  Friends: {
+    active: assetUri(require('../../assets/svg/nav-icons/users-active.svg')),
+    inactive: assetUri(require('../../assets/svg/nav-icons/users.svg')),
+  },
+  Rank: {
+    active: assetUri(require('../../assets/svg/nav-icons/live-active.svg')),
+    inactive: assetUri(require('../../assets/svg/nav-icons/live.svg')),
+  },
+  Inbox: {
+    active: assetUri(require('../../assets/svg/nav-icons/hajpovi-active.svg')),
+    inactive: assetUri(require('../../assets/svg/nav-icons/hajpovi.svg')),
+  },
+};
 const POLLING_LOGO_STYLE = { width: 70, height: 38 };
 const POLLING_LOGO_CONTAINER_STYLE = {
   alignItems: 'center',
@@ -91,25 +111,6 @@ const profileFriendsListOptions = ({ route }) => {
   };
 };
 
-const customTabIconUriMap = {
-  Hajp: {
-    active: `${NAV_ICON_BASE_URI}/home-active.svg`,
-    inactive: `${NAV_ICON_BASE_URI}/home.svg`,
-  },
-  Friends: {
-    active: `${NAV_ICON_BASE_URI}/users-active.svg`,
-    inactive: `${NAV_ICON_BASE_URI}/users.svg`,
-  },
-  Rank: {
-    active: `${NAV_ICON_BASE_URI}/live-active.svg`,
-    inactive: `${NAV_ICON_BASE_URI}/live.svg`,
-  },
-  Inbox: {
-    active: `${NAV_ICON_BASE_URI}/hajpovi-active.svg`,
-    inactive: `${NAV_ICON_BASE_URI}/hajpovi.svg`,
-  },
-};
-
 const iconTransformMap = {
   Hajp: { transform: [{ scaleY: 1 }] },
 };
@@ -152,7 +153,7 @@ function HajpStackNavigator() {
               <SvgUri
                 width={70}
                 height={38}
-                uri={`${baseURL}/img/logo-white.svg`}
+                uri={logoWhiteUri}
                 preserveAspectRatio="xMidYMid meet"
               />
             </View>
