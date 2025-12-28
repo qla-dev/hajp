@@ -481,6 +481,8 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
           items={orderedOptionGroups.map((group) => ({ key: group.key, label: group.label }))}
           activeKey={activeTab}
           onChange={setActiveTab}
+          color="secondary"
+          variant="menu-tab-s"
           horizontalPadding={10}
           contentContainerStyle={styles.tabRow}
         />
