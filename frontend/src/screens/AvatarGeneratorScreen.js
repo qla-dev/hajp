@@ -214,10 +214,10 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
 
   const gradientColors = useMemo(
     () => [
-      'rgba(52,120,255,0.45)',
-      'rgba(183,148,244,0.55)',
-      'rgba(236,72,153,0.50)',
-      'rgba(52,211,153,0.45)',
+      'rgba(86,124,255,0.62)', // vivid blue
+      'rgba(132,96,255,0.65)', // deep indigo
+      'rgba(178,104,255,0.60)', // bright violet
+      'rgba(118,182,255,0.52)', // light blue accent
     ],
     [],
   );
@@ -707,6 +707,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
               <MaskedView
                 style={styles.aiMask} // explicit height
                 maskElement={
+                  <View style={styles.aiMaskContainer}> 
                   <View style={styles.aiMaskElement}>
                     <View style={styles.aiMaskRow}>
                       <Ionicons name="sparkles-outline" size={18} color="#000" style={styles.aiIcon} />
@@ -714,6 +715,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
                         Generiši sa AI
                       </Text>
                     </View>
+                  </View>
                   </View>
                 }
               >
@@ -955,10 +957,17 @@ const createStyles = (colors) =>
       width: '100%',
     },
 
+    aiMaskContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.secondarySoft2,
+    },
+
     // ✅ This controls vertical centering of the mask
     aiMaskElement: {
       height: 54,
-      width: '100%',
+      width: '90%',
       alignItems: 'center',
       justifyContent: 'center',
     },
