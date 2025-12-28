@@ -35,7 +35,8 @@ const sampleHeroUri =
   'https://cdn.dribbble.com/userupload/30645890/file/original-500c027610acebba14fe69de5572dcdd.png?resize=752x&vertical=center';
 const shuffleSoundAsset = require('../../assets/sounds/shuffle.mp3');
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
-const hajpGraphicPreview = Asset.fromModule(require('../../assets/svg/logo.svg')).uri;
+const hajpLogoAsset = require('../../assets/svg/logo.svg');
+const initialHajpPreviewUri = Asset.fromModule(hajpLogoAsset).uri;
 
 const {
   hairColors,
@@ -71,7 +72,7 @@ const colorSwatchMap = {
   faceMaskColor: { map: clothingColors },
 };
 
-const optionGroups = optionGroupsData
+const baseOptionGroups = optionGroupsData
   .filter((group) => !BLOCKED_KEYS.has(group.key))
   .map((group) => {
     if (group.key === 'body') {
@@ -92,11 +93,7 @@ const optionGroups = optionGroupsData
       ];
       return {
         ...group,
-        options: ordered.map((option) =>
-          option.value === 'hajp'
-            ? { ...option, preview: hajpGraphicPreview }
-            : option,
-        ),
+        options: ordered,
       };
     }
     const colorInfo = colorSwatchMap[group.key];
@@ -124,15 +121,6 @@ const optionGroups = optionGroupsData
 
     return group;
   });
-
-const orderedOptionGroups = tabOrder
-  .filter((key) => !BLOCKED_KEYS.has(key))
-  .map((key) => {
-    const group = optionGroups.find((item) => item.key === key);
-    if (!group) return null;
-    return { ...group, label: tabLabels[key] || group.label };
-  })
-  .filter(Boolean);
 
 const enforceCirclePurple = (cfg = {}) => ({
   ...cfg,
@@ -185,6 +173,35 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   const seedConfig = route?.params?.seedConfig;
   const authUserGender = route?.params?.authUserGender || 'female';
   const isSetup = route?.params?.isSetup ? true : false;
+  const [hajpPreviewUri, setHajpPreviewUri] = useState(initialHajpPreviewUri);
+
+  const optionGroups = useMemo(
+    () =>
+      baseOptionGroups.map((group) =>
+        group.key === 'graphic'
+          ? {
+              ...group,
+              options: group.options.map((option) =>
+                option.value === 'hajp' ? { ...option, preview: hajpPreviewUri } : option,
+              ),
+            }
+          : group,
+      ),
+    [hajpPreviewUri],
+  );
+
+  const orderedOptionGroups = useMemo(
+    () =>
+      tabOrder
+        .filter((key) => !BLOCKED_KEYS.has(key))
+        .map((key) => {
+          const group = optionGroups.find((item) => item.key === key);
+          if (!group) return null;
+          return { ...group, label: tabLabels[key] || group.label };
+        })
+        .filter(Boolean),
+    [optionGroups],
+  );
 
   const initialConfig = useMemo(() => {
     const hasSeedAvatar =
@@ -240,6 +257,23 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     ],
     [],
   );
+
+  useEffect(() => {
+    const asset = Asset.fromModule(hajpLogoAsset);
+    let cancelled = false;
+    (async () => {
+      try {
+        await asset.downloadAsync();
+        const uri = asset.localUri || asset.uri;
+        if (!cancelled) setHajpPreviewUri(uri);
+      } catch {
+        // ignore asset load errors; fallback on initial uri
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const avatarSvgUrl = useMemo(() => buildAvatarSvg(config), [config]);
   const shuffleIconColor = useMemo(() => {
