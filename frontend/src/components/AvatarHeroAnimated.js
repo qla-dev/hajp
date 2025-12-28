@@ -9,9 +9,14 @@ const ROW_COUNT = 5;
 const COLUMNS = 6;
 const TOTAL_AVATARS = ROW_COUNT * COLUMNS;
 const HERO_SIZE = avatarSizeMap.hero?.size || 140;
-const AVATAR_SIZE = Math.round(HERO_SIZE * 0.40); // use hero token scaled to fit the grid
+const AVATAR_SIZE = Math.round(HERO_SIZE * 0.5); // use hero token scaled to fit the grid
 const ROW_GAP = 0;
 const EDGE_OVERFLOW = Math.round(AVATAR_SIZE*0.7);
+const HAIR_BLOCKED_WITH_HAT = new Set(['long', 'bob']);
+const HAT_BLOCKING_VALUES = new Set(['beanie', 'turban']);
+const HAIR_FALLBACK = 'pixie';
+const BODY_FEMALE_VALUE = 'breasts';
+const BODY_MALE_VALUE = 'chest';
 
 const buildGradientColor = (hex, opacity) => {
   if (!hex || typeof hex !== 'string') {
@@ -26,6 +31,49 @@ const buildGradientColor = (hex, opacity) => {
   const b = parseInt(normalized.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };
+
+const sanitizeHairHatForHat = (cfg = {}) => {
+  if (cfg.hat === 'hijab') {
+    return { ...cfg, hair: HAIR_FALLBACK };
+  }
+  if (HAIR_BLOCKED_WITH_HAT.has(cfg.hair) && HAT_BLOCKING_VALUES.has(cfg.hat)) {
+    return { ...cfg, hair: HAIR_FALLBACK };
+  }
+  return cfg;
+};
+
+const sanitizeHairHatForHair = (cfg = {}) => {
+  if (cfg.hat === 'hijab' && cfg.hair !== HAIR_FALLBACK) {
+    return { ...cfg, hair: HAIR_FALLBACK };
+  }
+  if (HAIR_BLOCKED_WITH_HAT.has(cfg.hair) && HAT_BLOCKING_VALUES.has(cfg.hat)) {
+    return { ...cfg, hat: 'none' };
+  }
+  return cfg;
+};
+
+const applyBodyMouth = (cfg = {}) => {
+  if (cfg.body === BODY_FEMALE_VALUE && cfg.mouth !== 'lips') {
+    return { ...cfg, mouth: 'lips' };
+  }
+  if (cfg.body === BODY_MALE_VALUE && cfg.mouth !== 'openSmile') {
+    return { ...cfg, mouth: 'openSmile' };
+  }
+  return cfg;
+};
+
+const applyGenderLashes = (cfg = {}) => {
+  if (cfg.body === BODY_FEMALE_VALUE && cfg.lashes !== true) {
+    return { ...cfg, lashes: true };
+  }
+  if (cfg.body === BODY_MALE_VALUE && cfg.lashes !== false) {
+    return { ...cfg, lashes: false };
+  }
+  return cfg;
+};
+
+const applyAvatarRules = (cfg = {}) =>
+  applyGenderLashes(applyBodyMouth(sanitizeHairHatForHair(sanitizeHairHatForHat(cfg))));
 
 export default function AvatarHeroAnimated({
   children,
@@ -79,7 +127,7 @@ export default function AvatarHeroAnimated({
           ? pickRandom(['dressShirt', 'hoodie', 'denimJacket', 'chequeredShirt', 'chequeredShirtDark', 'dress'])
           : undefined;
 
-      const finalConfig = {
+      const finalConfig = applyAvatarRules({
         ...base,
         hat,
         faceMask: i === maskIndex,
@@ -88,7 +136,7 @@ export default function AvatarHeroAnimated({
           glassesAllowed.has(i) && base.accessory && base.accessory !== 'none'
             ? base.accessory
             : 'none',
-      };
+      });
 
       items.push(buildAvatarSvg(finalConfig));
     }
@@ -173,7 +221,7 @@ export default function AvatarHeroAnimated({
       <LinearGradient
         colors={[
           buildGradientColor(colors.background, 0),
-          buildGradientColor(colors.background, 0.7),
+          buildGradientColor(colors.background, 0.8),
           buildGradientColor(colors.background, 1),
         ]}
         start={{ x: 0, y: 0 }}
