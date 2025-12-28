@@ -541,6 +541,19 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
                 color="primary"
                 gap={10}
                 contentContainerStyle={styles.optionsRow}
+                snapToInterval={152}
+                decelerationRate="fast"
+                snapToAlignment="start"
+                onScrollBeginDrag={() => {
+                  optionDragRef.current = true;
+                }}
+                onMomentumScrollEnd={() => {
+                  if (optionDragRef.current) {
+                    Haptics.selectionAsync().catch(() => {});
+                    playOptionSound();
+                  }
+                  optionDragRef.current = false;
+                }}
                 buttonStyle={[styles.optionCard, { flex: undefined }]}
                 activeButtonStyle={[
                   styles.optionCardActive,

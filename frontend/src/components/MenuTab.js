@@ -23,6 +23,11 @@ export default function MenuTab({
   color = 'primary',
   variant = 'menu-tab-m',
   renderItem,
+  snapToInterval,
+  decelerationRate,
+  snapToAlignment,
+  onScrollBeginDrag,
+  onMomentumScrollEnd,
 }) {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -104,6 +109,11 @@ export default function MenuTab({
         showsHorizontalScrollIndicator={false}
         style={containerStyle}
         contentContainerStyle={[styles.scrollContent, { gap }, contentContainerStyle]}
+        snapToInterval={snapToInterval}
+        decelerationRate={decelerationRate}
+        snapToAlignment={snapToAlignment}
+        onScrollBeginDrag={onScrollBeginDrag}
+        onMomentumScrollEnd={onMomentumScrollEnd}
       >
         {items.map(renderButton)}
       </ScrollView>
