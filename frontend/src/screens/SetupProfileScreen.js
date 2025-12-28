@@ -51,6 +51,14 @@ export default function SetupProfileScreen({ navigation }) {
   };
 
   const nextStep = () => {
+    const isAgeStep = steps[stepIndex]?.key === 'age';
+    if (isAgeStep && !selectedAge) return;
+    try {
+      const Haptics = require('expo-haptics');
+      Haptics.selectionAsync?.().catch(() => {});
+    } catch {
+      // ignore missing haptics
+    }
     if (stepIndex < steps.length - 1) {
       setStepIndex((idx) => idx + 1);
     } else {
@@ -155,6 +163,8 @@ export default function SetupProfileScreen({ navigation }) {
 
   const currentStep = steps[stepIndex] || steps[0];
   const isLast = stepIndex === steps.length - 1;
+  const isAgeStep = currentStep?.key === 'age';
+  const canProceed = !isAgeStep || Boolean(selectedAge);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -174,7 +184,12 @@ export default function SetupProfileScreen({ navigation }) {
     <View style={styles.container}>
       <View style={styles.stepWrapper}>{currentStep?.render()}</View>
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.nextButton} onPress={nextStep} activeOpacity={0.9}>
+        <TouchableOpacity
+          style={[styles.nextButton, !canProceed && styles.nextButtonDisabled]}
+          onPress={nextStep}
+          activeOpacity={0.9}
+          disabled={!canProceed}
+        >
           <Text style={styles.nextButtonText}>{isLast ? 'Završi' : 'Dalje'}</Text>
         </TouchableOpacity>
       </View>
@@ -254,14 +269,17 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    nextButtonDisabled: {
+      opacity: 0.5,
+    },
     nextButtonText: {
       color: colors.textLight,
       fontWeight: '700',
       fontSize: 16,
     },
     skipText: {
-      color: colors.secondary,
-      fontWeight: '700',
-      fontSize: 14,
+      color: colors.text_primary,
+      fontWeight: '500',
+      fontSize: 16,
     },
   });

@@ -52,11 +52,29 @@ function AuthStackNavigator() {
       <AuthStack.Screen name="Welcome" component={WelcomeScreen} />
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
-      <AuthStack.Screen name="AvatarGenerator" component={AvatarGeneratorScreen} />
+      <AuthStack.Screen
+        name="AvatarGenerator"
+        component={AvatarGeneratorScreen}
+        options={{
+          headerShown: true,
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerTitleAlign: 'center',
+          headerBackTitleVisible: false,
+          headerStyle: { backgroundColor: 'transparent' },
+        }}
+      />
       <AuthStack.Screen
         name="SetupProfile"
         component={SetupProfileScreen}
-        options={{ headerShown: true }}
+        options={{
+          headerShown: true,
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerTitleAlign: 'center',
+          headerBackTitleVisible: false,
+          headerStyle: { backgroundColor: 'transparent' },
+        }}
       />
     </AuthStack.Navigator>
   );

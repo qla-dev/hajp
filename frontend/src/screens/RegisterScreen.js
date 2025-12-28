@@ -205,14 +205,19 @@ export default function RegisterScreen({ navigation }) {
           <View style={styles.passwordWrapper}>
             <FormTextInput
               placeholder="Lozinka"
-              value={password}
-              onChangeText={(text) => {
-                clearError('password');
-                setPassword(text);
-              }}
-              secureTextEntry={!showPassword}
-              style={[styles.input, styles.passwordInput]}
-            />
+            value={password}
+            onChangeText={(text) => {
+              clearError('password');
+              setPassword(text);
+            }}
+            secureTextEntry={!showPassword}
+            style={[styles.input, styles.passwordInput]}
+            autoComplete="off"
+            textContentType="oneTimeCode"
+            autoCorrect={false}
+            autoCapitalize="none"
+            importantForAutofill="no"
+          />
             <TouchableOpacity
               onPress={() => setShowPassword((prev) => !prev)}
               style={styles.eyeButton}
@@ -226,14 +231,19 @@ export default function RegisterScreen({ navigation }) {
           <View style={styles.passwordWrapper}>
             <FormTextInput
               placeholder="Ponovi lozinku"
-              value={confirmPassword}
-              onChangeText={(text) => {
-                clearError('password');
-                setConfirmPassword(text);
-              }}
-              secureTextEntry={!showConfirmPassword}
-              style={[styles.input, styles.passwordInput]}
-            />
+            value={confirmPassword}
+            onChangeText={(text) => {
+              clearError('password');
+              setConfirmPassword(text);
+            }}
+            secureTextEntry={!showConfirmPassword}
+            style={[styles.input, styles.passwordInput]}
+            autoComplete="off"
+            textContentType="oneTimeCode"
+            autoCorrect={false}
+            autoCapitalize="none"
+            importantForAutofill="no"
+          />
             <TouchableOpacity
               onPress={() => setShowConfirmPassword((prev) => !prev)}
               style={styles.eyeButton}
