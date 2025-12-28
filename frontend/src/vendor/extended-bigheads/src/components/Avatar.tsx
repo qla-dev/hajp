@@ -83,6 +83,7 @@ import * as Party from "./hats/Party";
 import * as Hijab from "./hats/Hijab";
 import { PiercedTongue } from "./mouths/PiercedTongue";
 import { VomitingRainbow } from "./mouths/VomitingRainbow";
+import { HajpGraphic } from "./clothingGraphic/Hajp";
 
 import { BgCircle } from "./backgrounds/BgCircle";
 import { BgSquare } from "./backgrounds/BgSquare";
@@ -186,7 +187,8 @@ export const graphicsMap = {
   react: ReactGraphic,
   graphQL: GraphQLGraphic,
   donut: Donut,
-  rainbow: Rainbow
+  rainbow: Rainbow,
+  hajp: HajpGraphic
 };
 
 export const hatMap = {

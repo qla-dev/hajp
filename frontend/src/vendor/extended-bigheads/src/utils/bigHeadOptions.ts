@@ -96,7 +96,8 @@ export const bigHeadOptions = {
     "react",
     "graphQL",
     "donut",
-    "rainbow"
+    "rainbow",
+    "hajp"
   ],
   hair: [
     "none",
