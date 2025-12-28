@@ -28,6 +28,7 @@ export default function MenuTab({
   snapToAlignment,
   onScrollBeginDrag,
   onMomentumScrollEnd,
+  scrollRef,
 }) {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -112,6 +113,7 @@ export default function MenuTab({
         snapToInterval={snapToInterval}
         decelerationRate={decelerationRate}
         snapToAlignment={snapToAlignment}
+        ref={scrollRef}
         onScrollBeginDrag={onScrollBeginDrag}
         onMomentumScrollEnd={onMomentumScrollEnd}
       >

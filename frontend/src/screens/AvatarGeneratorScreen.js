@@ -541,6 +541,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
                 color="primary"
                 gap={10}
                 contentContainerStyle={styles.optionsRow}
+                scrollRef={optionsScrollRef}
                 snapToInterval={152}
                 decelerationRate="fast"
                 snapToAlignment="start"
