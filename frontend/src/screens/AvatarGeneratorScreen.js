@@ -548,7 +548,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
                 snapToInterval={152}
                 decelerationRate="fast"
                 snapToAlignment="start"
-                edgePadding={14}
+                edgePadding={10}
                 onScrollBeginDrag={() => {
                   optionDragRef.current = true;
                 }}
@@ -779,7 +779,7 @@ const createStyles = (colors) =>
 
     selectorBar: {
       paddingTop: 0,
-      paddingBottom: 8,
+      paddingBottom: 5,
       borderBottomWidth: 0,
       elevation: 2,
       zIndex: 2,
@@ -812,11 +812,13 @@ const createStyles = (colors) =>
       borderBottomWidth: 1,
       borderLeftWidth: 0,
       borderRightWidth: 0,
+      paddingBottom: 0,
     },
     optionsRow: {
       gap: 12,
       paddingVertical: 6,
       paddingHorizontal: 0,
+      paddingBottom: 5,
     },
     optionCard: {
       width: 140,

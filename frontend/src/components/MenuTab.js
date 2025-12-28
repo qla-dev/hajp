@@ -127,7 +127,7 @@ export default function MenuTab({
         style={containerStyle}
         contentContainerStyle={[
           styles.scrollContent,
-          { gap, paddingHorizontal: edgePadding },
+          { gap, paddingHorizontal: edgePadding, paddingLeft: edgePadding, paddingRight: edgePadding },
           contentContainerStyle,
         ]}
         snapToInterval={snapToInterval}
