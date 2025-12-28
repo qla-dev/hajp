@@ -191,6 +191,8 @@ export default function HajpoviScreen({ navigation }) {
         onChange={setActiveTab}
         topPadding={100}
         horizontalPadding={16}
+        variant="menu-tab-s"
+        color="secondary"
       />
 
       {renderContent()}

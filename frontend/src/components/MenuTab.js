@@ -70,7 +70,11 @@ export default function MenuTab({
     );
   };
 
-  const containerStyle = [styles.container, { paddingTop: topPadding, paddingHorizontal: horizontalPadding }, style];
+  const containerStyle = [
+    styles.container,
+    { paddingTop: topPadding, paddingHorizontal: horizontalPadding, marginBottom: 12 },
+    style,
+  ];
 
   if (scrollable) {
     return (

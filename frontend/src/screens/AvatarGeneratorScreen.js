@@ -760,7 +760,6 @@ const createStyles = (colors) =>
     },
 
     optionsPanel: {
-      marginTop: 10,
       paddingVertical: 8,
       paddingHorizontal: 0,
       borderTopWidth: 1,
