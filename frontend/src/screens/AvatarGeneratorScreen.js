@@ -21,6 +21,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { updateCurrentUser } from '../api';
 import { emitProfileUpdated } from '../utils/profileEvents';
 import Avatar from '../components/Avatar';
+import MenuTab from '../components/MenuTab';
 
 import defaultConfig from '../../assets/json/avatar/avatarDefaultConfig.json';
 import colorsData from '../../assets/json/avatar/avatarColors.json';
@@ -475,26 +476,14 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
       </Modal>
 
       <View style={[styles.selectorBar, { backgroundColor: colors.transparent, borderColor: colors.border }]}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
+        <MenuTab
+          scrollable
+          items={orderedOptionGroups.map((group) => ({ key: group.key, label: group.label }))}
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          horizontalPadding={10}
           contentContainerStyle={styles.tabRow}
-          style={styles.tabs}
-        >
-          {orderedOptionGroups.map((group) => {
-            const active = activeTab === group.key;
-            return (
-              <TouchableOpacity
-                key={group.key}
-                onPress={() => setActiveTab(group.key)}
-                style={[styles.tabChip, active && [styles.tabChipActive, { borderColor: colors.primary }]]}
-                activeOpacity={0.9}
-              >
-                <Text style={[styles.tabChipText, active && { color: colors.primary }]}>{group.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        />
 
         {activeGroup ? (
           <View style={[styles.optionsPanel, { borderColor: colors.border }]}>
@@ -742,14 +731,10 @@ const createStyles = (colors) =>
 
     selectorBar: {
       paddingTop: 0,
-      paddingBottom: 12,
+      paddingBottom: 8,
       borderBottomWidth: 0,
       elevation: 2,
       zIndex: 2,
-    },
-    tabs: {
-      paddingHorizontal: 10,
-      paddingBottom: 8,
     },
     tabRow: {
       gap: 10,
@@ -773,7 +758,7 @@ const createStyles = (colors) =>
     },
 
     optionsPanel: {
-      marginTop: 0,
+      marginTop: 10,
       paddingVertical: 8,
       paddingHorizontal: 0,
       borderTopWidth: 1,

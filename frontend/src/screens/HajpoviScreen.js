@@ -5,6 +5,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchMyVotes, fetchShareMessages, getCurrentUser } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 import BottomCTA from '../components/BottomCTA';
+import MenuTab from '../components/MenuTab';
 
 const TAB_ANKETE = 'ankete';
 const TAB_LINK = 'link';
@@ -181,19 +182,16 @@ export default function HajpoviScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.tabs}>
-        {[TAB_ANKETE, TAB_LINK].map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab === TAB_ANKETE ? 'Ankete' : 'Share link'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <MenuTab
+        items={[
+          { key: TAB_ANKETE, label: 'Ankete' },
+          { key: TAB_LINK, label: 'Share link' },
+        ]}
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        topPadding={100}
+        horizontalPadding={16}
+      />
 
       {renderContent()}
 
@@ -209,33 +207,6 @@ const createStyles = (colors, isDark) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    tabs: {
-      flexDirection: 'row',
-      padding: 16,
-      paddingTop: 100,
-      gap: 10,
-    },
-    tabButton: {
-      flex: 1,
-      backgroundColor: colors.surface,
-      paddingVertical: 10,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.border,
-      alignItems: 'center',
-    },
-    tabButtonActive: {
-      borderColor: colors.primary,
-      backgroundColor: isDark ? 'rgba(255, 107, 53, 0.12)' : '#eef2ff',
-    },
-    tabText: {
-      fontSize: 14,
-      fontWeight: '700',
-      color: colors.text_secondary,
-    },
-    tabTextActive: {
-      color: colors.primary,
     },
     messagesList: {
       paddingHorizontal: 16,
