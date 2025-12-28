@@ -16,7 +16,7 @@ import CreatePollScreen from './src/screens/CreatePollScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
 import AvatarGeneratorScreen from './src/screens/AvatarGeneratorScreen';
-import UserOrientationsScreen from './src/screens/UserOrientationsScreen';
+import SetupProfileScreen from './src/screens/SetupProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import ShareScreen from './src/screens/ShareScreen';
 import SendAnonymousMessageScreen from './src/screens/SendAnonymousMessageScreen';
@@ -53,7 +53,11 @@ function AuthStackNavigator() {
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
       <AuthStack.Screen name="AvatarGenerator" component={AvatarGeneratorScreen} />
-      <AuthStack.Screen name="UserOrientations" component={UserOrientationsScreen} />
+      <AuthStack.Screen
+        name="SetupProfile"
+        component={SetupProfileScreen}
+        options={{ headerShown: true }}
+      />
     </AuthStack.Navigator>
   );
 }

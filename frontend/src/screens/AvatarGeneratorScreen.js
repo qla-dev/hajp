@@ -357,11 +357,20 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     setSaving(true);
     try {
       const payload = enforceCirclePurple(config);
-      const { data } = await updateCurrentUser({ avatar: JSON.stringify(payload) });
+      const sex =
+        payload.body === BODY_FEMALE_VALUE
+          ? 'girl'
+          : payload.body === BODY_MALE_VALUE
+          ? 'boy'
+          : undefined;
+      const { data } = await updateCurrentUser({
+        avatar: JSON.stringify(payload),
+        ...(sex ? { sex } : {}),
+      });
       emitProfileUpdated(data);
       Alert.alert('Avatar sačuvan', 'Tvoj novi avatar je postavljen na profil.');
       if (isSetup) {
-        navigation.reset({ index: 0, routes: [{ name: 'UserOrientations' }] });
+        navigation.reset({ index: 0, routes: [{ name: 'SetupProfile' }] });
       } else {
         navigation.goBack();
       }

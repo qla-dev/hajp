@@ -29,7 +29,7 @@ export default function WelcomeScreen({ navigation }) {
     <View style={styles.container}>
       <AvatarHeroAnimated fixed height={HERO_HEIGHT} colorsOverride={colors}>
         <View style={styles.heroOverlay}>
-          <Text style={styles.welcomeText}>DOBRODOŠLI NA</Text>
+          <Text style={styles.welcomeText}>USKOČI NA</Text>
           <SvgUri
             width={300}
             height={80}

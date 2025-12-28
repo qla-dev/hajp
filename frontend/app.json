@@ -1,11 +1,11 @@
 {
   "expo": {
     "sdkVersion": "54.0.0",
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "HAJP",
+    "slug": "HAJP",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/svg/logo.svg",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash-icon.png",

@@ -94,7 +94,7 @@ export default function LoginScreen({ navigation }) {
         <Text style={styles.title}>Prijava</Text>
 
         <View style={styles.subtitleRow}>
-          <Text style={styles.subtitle}>Dobrodošao nazad na </Text>
+          <Text style={styles.subtitle}>Hej, lijepo je vidjeti da se opet vraćaš na </Text>
           <SvgUri style={styles.logoimg} width={72} height={20} uri={resolvedLogoUri} preserveAspectRatio="xMidYMid meet" />
         </View>
 

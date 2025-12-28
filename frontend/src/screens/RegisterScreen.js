@@ -39,12 +39,6 @@ const triggerHaptic = () => {
   Haptics?.selectionAsync?.().catch(() => {});
 };
 
-const genderOptions = [
-  { key: 'girl', label: 'Žensko', icon: 'female-outline' },
-  { key: 'boy', label: 'Muško', icon: 'male-outline' },
-];
-const years = Array.from({ length: 35 }, (_, i) => 16 + i); // 16 through 50
-
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
@@ -53,11 +47,10 @@ export default function RegisterScreen({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [gender, setGender] = useState('girl');
-  const [year, setYear] = useState(18);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [resolvedLogoUri, setResolvedLogoUri] = useState(logoUri);
+  const defaultAuthUserGender = 'girl';
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const keyboardOffset = Platform.select({ ios: 0, android: 0 }); // keep zero to avoid extra padding when keyboard opens
@@ -106,7 +99,7 @@ export default function RegisterScreen({ navigation }) {
 
   const onRegister = async () => {
     triggerHaptic();
-    if (!name || !username || !email || !password || !confirmPassword || !gender || !year) {
+    if (!name || !username || !email || !password || !confirmPassword) {
       Alert.alert('Greška', 'Popuni sva polja.');
       return;
     }
@@ -128,8 +121,6 @@ export default function RegisterScreen({ navigation }) {
         email,
         password,
         password_confirmation: confirmPassword,
-        sex: gender,
-        year,
       });
       const message = data?.message || 'Uspješna registracija i prijava';
       Alert.alert('Registracija', message, [
@@ -141,7 +132,7 @@ export default function RegisterScreen({ navigation }) {
               routes: [
                 {
                   name: 'AvatarGenerator',
-                  params: { authUserGender: gender, isSetup: 1 },
+                  params: { authUserGender: defaultAuthUserGender, isSetup: 1 },
                 },
               ],
             }),
@@ -167,11 +158,11 @@ export default function RegisterScreen({ navigation }) {
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.content}>
-          <Text style={styles.title}>Kreiraj račun</Text>
+          <Text style={styles.title}>Kreiraj nalog</Text>
           <View style={styles.subtitleRow}>
-            <Text style={styles.subtitle}>Uskoči na </Text>
+            <Text style={styles.subtitle}>Napravi </Text>
             <SvgUri style={styles.logoimg} width={72} height={20} uri={resolvedLogoUri} preserveAspectRatio="xMidYMid meet" />
-            <Text style={styles.subtitle}>i saznaj kome se dopadaš!</Text>
+            <Text style={styles.subtitle}>nalog i saznaj kome se dopadaš!</Text>
           </View>
 
           <FormTextInput
@@ -252,37 +243,6 @@ export default function RegisterScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.genderRow}>
-            {genderOptions.map((item) => {
-              const active = gender === item.key;
-              return (
-                <TouchableOpacity
-                  key={item.key}
-                  onPress={() => setGender(item.key)}
-                  style={[styles.genderButton, active && styles.genderButtonActive]}
-                >
-                  <View style={[styles.genderBadge, active && styles.genderBadgeActive]}>
-                    <Ionicons name={item.icon} size={16} color={active ? colors.textLight : colors.text_primary} />
-                  </View>
-                  <Text style={[styles.genderText, active && styles.genderTextActive]}>{item.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={styles.ageBlock}>
-          <Text style={[styles.label, styles.ageLabel]}>Godine</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.yearScroll} contentContainerStyle={styles.yearRow}>
-            {years.map((y) => {
-              const active = year === y;
-              return (
-                <TouchableOpacity key={y} onPress={() => setYear(y)} style={[styles.yearChip, active && styles.yearChipActive]}>
-                  <Text style={[styles.yearText, active && styles.yearTextActive]}>{y}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
         </View>
 
         <View style={styles.content}>
@@ -393,83 +353,6 @@ const createStyles = (colors) =>
       marginTop: 4,
       color: colors.text_secondary,
       fontWeight: '600',
-    },
-    genderRow: {
-      flexDirection: 'row',
-      gap: 12,
-      marginBottom: 12,
-    },
-    genderButton: {
-      flex: 1,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 14,
-      paddingVertical: 14,
-      paddingHorizontal: 12,
-      backgroundColor: colors.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-      gap: 8,
-    },
-    genderButtonActive: {
-      borderColor: colors.primary,
-      backgroundColor: colors.surface,
-    },
-    genderBadge: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.border,
-    },
-    genderBadgeActive: {
-      backgroundColor: colors.primary,
-    },
-    genderText: {
-      fontWeight: '700',
-      color: colors.text_primary,
-    },
-    genderTextActive: {
-      color: colors.primary,
-    },
-    ageBlock: {
-      width: '100%',
-      paddingHorizontal: 0,
-      marginBottom: 16,
-    },
-    ageLabel: {
-      paddingHorizontal: 24,
-    },
-    yearScroll: {
-      width: '100%',
-    },
-    yearRow: {
-      paddingVertical: 6,
-      paddingLeft: 24,
-      paddingRight: 0,
-      gap: 6,
-    },
-    yearChip: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 12,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      marginRight: 6,
-      backgroundColor: colors.surface,
-    },
-    yearChipActive: {
-      borderColor: colors.primary,
-      backgroundColor: colors.surface,
-    },
-    yearText: {
-      fontWeight: '700',
-      color: colors.text_primary,
-    },
-    yearTextActive: {
-      color: colors.primary,
     },
     registerButton: {
       backgroundColor: colors.primary,
