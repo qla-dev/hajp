@@ -31,6 +31,7 @@ import { buildAvatarSvg, generateRandomConfig } from '../utils/bigHeadAvatar';
 const sampleHeroUri =
   'https://cdn.dribbble.com/userupload/30645890/file/original-500c027610acebba14fe69de5572dcdd.png?resize=752x&vertical=center';
 const shuffleSoundAsset = require('../../assets/sounds/shuffle.mp3');
+const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 
 const {
   hairColors,
@@ -195,6 +196,10 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiPressed, setAiPressed] = useState(false);
   const shuffleSoundRef = useRef(null);
+  const optionSoundRef = useRef(null);
+  const optionsAnim = useRef(new Animated.Value(1)).current;
+  const optionDragRef = useRef(false);
+  const optionsScrollRef = useRef(null);
 
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -247,8 +252,33 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
+        if (mounted) {
+          optionSoundRef.current = sound;
+        } else {
+          await sound.unloadAsync();
+        }
+      } catch {
+        // ignore load errors
+      }
+    })();
+    return () => {
+      mounted = false;
+      optionSoundRef.current?.unloadAsync();
+      optionSoundRef.current = null;
+    };
+  }, []);
+
   const playShuffleSound = useCallback(() => {
     shuffleSoundRef.current?.replayAsync().catch(() => {});
+  }, []);
+
+  const playOptionSound = useCallback(() => {
+    optionSoundRef.current?.replayAsync().catch(() => {});
   }, []);
 
   const animatedGradientStyle = useMemo(
@@ -264,8 +294,24 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     }),
     [aiBgAnim],
   );
+  const optionsAnimatedStyle = useMemo(
+    () => ({
+      opacity: optionsAnim,
+      transform: [
+        {
+          translateY: optionsAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [14, 0],
+          }),
+        },
+      ],
+    }),
+    [optionsAnim],
+  );
 
   const handleSelect = useCallback((key, value) => {
+    Haptics.selectionAsync().catch(() => {});
+    playOptionSound();
     setConfig((prev) => {
       let next = enforceCirclePurple({ ...prev, [key]: value });
       if (key === 'body' && value === BODY_FEMALE_VALUE) {
@@ -374,6 +420,17 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     setShowAiModal(true);
   }, []);
 
+  useEffect(() => {
+    optionsAnim.setValue(0);
+    optionsScrollRef.current?.scrollTo?.({ x: 0, animated: false });
+    Animated.timing(optionsAnim, {
+      toValue: 1,
+      duration: 220,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [activeTab, optionsAnim]);
+
   const activeGroup = orderedOptionGroups.find((group) => group.key === activeTab);
 
   return (
@@ -425,41 +482,58 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
 
         {activeGroup ? (
           <View style={[styles.optionsPanel, { borderColor: colors.border }]}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.optionsRow}
-            >
-              {activeGroup.options.map((option) => {
-                const active = config[activeGroup.key] === option.value;
-                return (
-                  <TouchableOpacity
-                    key={option.value}
-                    onPress={() => handleSelect(activeGroup.key, option.value)}
-                    style={[styles.optionCard, active && [styles.optionCardActive, { borderColor: colors.primary }]]}
-                    activeOpacity={0.9}
-                  >
-                    {option.swatchGradient ? (
-                      <LinearGradient
-                        colors={option.swatchGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={[styles.swatch, { borderColor: colors.border }]}
-                      />
-                    ) : option.swatch ? (
-                      <View style={[styles.swatch, { backgroundColor: option.swatch }]} />
-                    ) : (
-                      <Text style={[styles.optionEmoji, active && { color: colors.primary }]}>
-                        {option.emoji || '??'}
+            <Animated.View style={optionsAnimatedStyle}>
+              <ScrollView
+                key={activeGroup.key}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.optionsRow}
+                snapToInterval={152}
+                decelerationRate="fast"
+                snapToAlignment="start"
+                ref={optionsScrollRef}
+                onScrollBeginDrag={() => {
+                  optionDragRef.current = true;
+                }}
+                onMomentumScrollEnd={() => {
+                  if (optionDragRef.current) {
+                    Haptics.selectionAsync().catch(() => {});
+                    playOptionSound();
+                  }
+                  optionDragRef.current = false;
+                }}
+              >
+                {activeGroup.options.map((option) => {
+                  const active = config[activeGroup.key] === option.value;
+                  return (
+                    <TouchableOpacity
+                      key={option.value}
+                      onPress={() => handleSelect(activeGroup.key, option.value)}
+                      style={[styles.optionCard, active && [styles.optionCardActive, { borderColor: colors.primary }]]}
+                      activeOpacity={0.9}
+                    >
+                      {option.swatchGradient ? (
+                        <LinearGradient
+                          colors={option.swatchGradient}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={[styles.swatch, { borderColor: colors.border }]}
+                        />
+                      ) : option.swatch ? (
+                        <View style={[styles.swatch, { backgroundColor: option.swatch }]} />
+                      ) : (
+                        <Text style={[styles.optionEmoji, active && { color: colors.primary }]}>
+                          {option.emoji || '??'}
+                        </Text>
+                      )}
+                      <Text style={[styles.optionText, active && styles.optionTextActive]} numberOfLines={1}>
+                        {option.label}
                       </Text>
-                    )}
-                    <Text style={[styles.optionText, active && styles.optionTextActive]} numberOfLines={1}>
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </Animated.View>
           </View>
         ) : null}
       </View>
