@@ -30,6 +30,7 @@ export default function MenuTab({
   onMomentumScrollEnd,
   scrollRef,
   edgePadding = 0,
+  dynamicSnap = false,
 }) {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -45,6 +46,28 @@ export default function MenuTab({
   };
   const size = sizeStyles[variant] || sizeStyles['menu-tab-m'];
 
+  const itemLayouts = React.useRef({});
+  const [snapOffsets, setSnapOffsets] = React.useState([]);
+
+  React.useEffect(() => {
+    itemLayouts.current = {};
+    setSnapOffsets([]);
+  }, [items.length]);
+
+  const updateSnapOffsets = React.useCallback(() => {
+    if (!dynamicSnap) return;
+    if (!items.length) return;
+    if (Object.keys(itemLayouts.current).length !== items.length) return;
+    const orderedLayouts = items.map((item, index) => {
+      const keyVal = item?.key ?? item?.value ?? item?.label ?? String(index);
+      return itemLayouts.current[keyVal];
+    });
+    if (orderedLayouts.some((layout) => !layout)) return;
+    const firstX = orderedLayouts[0].x;
+    const offsets = orderedLayouts.map((layout) => Math.max(0, layout.x - firstX));
+    setSnapOffsets(offsets);
+  }, [dynamicSnap, items]);
+
   React.useEffect(() => {
     if (!scrollable || !scrollRef?.current) return;
     const idx = items.findIndex((item, i) => {
@@ -52,13 +75,18 @@ export default function MenuTab({
       return keyVal === activeKey;
     });
     if (idx < 0) return;
+    if (dynamicSnap && snapOffsets.length) {
+      const offset = snapOffsets[idx] ?? 0;
+      scrollRef.current?.scrollTo?.({ x: offset, animated: true });
+      return;
+    }
     const gapVal = gap || 0;
     const baseWidth = size?.minWidth || snapToInterval || 0;
     const interval = snapToInterval || (baseWidth ? baseWidth + gapVal : undefined);
     if (!interval) return;
     const offset = Math.max(0, idx * interval);
     scrollRef.current?.scrollTo?.({ x: offset, animated: true });
-  }, [activeKey, gap, items, scrollRef, scrollable, size?.minWidth, snapToInterval]);
+  }, [activeKey, dynamicSnap, gap, items, scrollRef, scrollable, size?.minWidth, snapOffsets, snapToInterval]);
 
   const renderButton = (item, index) => {
     const keyVal = item?.key ?? item?.value ?? item?.label ?? String(index);
@@ -80,6 +108,13 @@ export default function MenuTab({
         ]}
         onPress={() => onChange?.(keyVal)}
         activeOpacity={0.85}
+        onLayout={(e) => {
+          const { x, width } = e.nativeEvent.layout || {};
+          if (!dynamicSnap) return;
+          if (typeof x !== 'number' || typeof width !== 'number') return;
+          itemLayouts.current[keyVal] = { x, width };
+          updateSnapOffsets();
+        }}
       >
         {renderItem ? (
           renderItem({
@@ -131,6 +166,7 @@ export default function MenuTab({
           contentContainerStyle,
         ]}
         snapToInterval={snapToInterval}
+        snapToOffsets={dynamicSnap && snapOffsets.length ? snapOffsets : undefined}
         decelerationRate={decelerationRate}
         snapToAlignment={snapToAlignment}
         ref={scrollRef}

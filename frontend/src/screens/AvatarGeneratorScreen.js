@@ -48,9 +48,7 @@ const BLOCKED_KEYS = new Set(['showBackground', 'backgroundColor', 'backgroundSh
 const HAIR_BLOCKED_WITH_HAT = new Set(['long', 'bob']);
 const HAT_BLOCKING_VALUES = new Set(['beanie', 'turban']);
 const HAIR_FALLBACK = 'pixie';
-const TOP_TAB_WIDTH = 140;
 const TOP_TAB_GAP = 12;
-const TOP_TAB_SNAP_INTERVAL = TOP_TAB_WIDTH + TOP_TAB_GAP;
 const TOP_TAB_EDGE_PADDING = 10;
 const BODY_FEMALE_VALUE = 'breasts';
 const BODY_MALE_VALUE = 'chest';
@@ -537,9 +535,9 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
           horizontalPadding={10}
           contentContainerStyle={styles.tabRow}
           scrollRef={tabsScrollRef}
-          buttonStyle={[styles.tabSnapButton, { flex: 0 }]}
+          buttonStyle={{ flex: 0 }}
           gap={TOP_TAB_GAP}
-          snapToInterval={TOP_TAB_SNAP_INTERVAL}
+          dynamicSnap
           decelerationRate="fast"
           snapToAlignment="start"
           edgePadding={TOP_TAB_EDGE_PADDING}
@@ -816,9 +814,6 @@ const createStyles = (colors) =>
     tabRow: {
       gap: TOP_TAB_GAP,
       paddingVertical: 4,
-    },
-    tabSnapButton: {
-      width: TOP_TAB_WIDTH,
     },
     tabChip: {
       paddingHorizontal: 16,
