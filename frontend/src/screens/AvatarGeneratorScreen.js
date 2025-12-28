@@ -17,6 +17,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
+import { Asset } from 'expo-asset';
+import { SvgUri } from 'react-native-svg';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { updateCurrentUser } from '../api';
 import { emitProfileUpdated } from '../utils/profileEvents';
@@ -33,6 +35,7 @@ const sampleHeroUri =
   'https://cdn.dribbble.com/userupload/30645890/file/original-500c027610acebba14fe69de5572dcdd.png?resize=752x&vertical=center';
 const shuffleSoundAsset = require('../../assets/sounds/shuffle.mp3');
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
+const hajpGraphicPreview = Asset.fromModule(require('../../assets/svg/logo.svg')).uri;
 
 const {
   hairColors,
@@ -79,6 +82,21 @@ const optionGroups = optionGroupsData
           ...option,
           emoji: option.value === BODY_FEMALE_VALUE ? '♀' : option.value === BODY_MALE_VALUE ? '♂' : option.emoji,
         })),
+      };
+    }
+    if (group.key === 'graphic') {
+      const options = Array.isArray(group.options) ? group.options : [];
+      const ordered = [
+        ...options.filter((option) => option.value === 'hajp'),
+        ...options.filter((option) => option.value !== 'hajp'),
+      ];
+      return {
+        ...group,
+        options: ordered.map((option) =>
+          option.value === 'hajp'
+            ? { ...option, preview: hajpGraphicPreview }
+            : option,
+        ),
       };
     }
     const colorInfo = colorSwatchMap[group.key];
@@ -595,7 +613,9 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
                 ]}
                 renderItem={({ item, active }) => (
                   <>
-                    {item.swatchGradient ? (
+                    {item.preview ? (
+                      <SvgUri uri={item.preview} width={64} height={42} />
+                    ) : item.swatchGradient ? (
                       <LinearGradient
                         colors={item.swatchGradient}
                         start={{ x: 0, y: 0 }}

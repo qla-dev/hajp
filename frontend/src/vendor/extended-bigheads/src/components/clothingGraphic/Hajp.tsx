@@ -8,7 +8,7 @@ export const HajpGraphic = () => {
     <>
       <rect x="441.15" y="860.49" width="112" height="112" fill="none" />
       <g
-        transform="translate(436 878) scale(0.1113043478 0.1350000000)"
+        transform="translate(413 869) scale(0.1500000000 0.1800000000)"
         dangerouslySetInnerHTML={{ __html: hajpLogoInner }}
       />
     </>
