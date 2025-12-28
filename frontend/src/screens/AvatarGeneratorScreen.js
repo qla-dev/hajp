@@ -182,7 +182,8 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
 
     if (!hasSeedAvatar) {
       const body = authUserGender === 'boy' ? BODY_MALE_VALUE : BODY_FEMALE_VALUE;
-      const hair = authUserGender === 'girl' ? 'long' : defaultConfig.hair;
+      const prefersLongHair = authUserGender === 'girl' || authUserGender === 'female';
+      const hair = prefersLongHair ? 'long' : defaultConfig.hair;
       const base = applyBaseDefaults({ ...defaultConfig, body, hair }, { force: true });
       const prepared = applyGenderLashes(applyBodyMouth(base));
       return enforceCirclePurple(prepared);
@@ -919,7 +920,7 @@ const createStyles = (colors) =>
     },
     aiBorder: {
       padding: 1.5,
-      borderRadius: 20,
+      borderRadius: 25,
       height: 57,
       overflow: 'hidden',
       backgroundColor: colors.background,
@@ -939,7 +940,7 @@ const createStyles = (colors) =>
     },
 
     aiButtonInner: {
-      borderRadius: 19,
+      borderRadius: 25,
       height: 54,
       overflow: 'hidden',
       alignItems: 'center',
@@ -1003,7 +1004,7 @@ const createStyles = (colors) =>
 
     saveCta: {
       flex: 1,
-      borderRadius: 20,
+      borderRadius: 30,
       paddingVertical: 12,
       flexDirection: 'row',
       alignItems: 'center',
