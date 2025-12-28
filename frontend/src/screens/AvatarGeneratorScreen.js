@@ -572,10 +572,11 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
                 gap={10}
                 contentContainerStyle={styles.optionsRow}
                 scrollRef={optionsScrollRef}
-                snapToInterval={152}
+                horizontalPadding={10}
+                dynamicSnap
                 decelerationRate="fast"
                 snapToAlignment="start"
-                edgePadding={10}
+                edgePadding={TOP_TAB_EDGE_PADDING}
                 onScrollBeginDrag={() => {
                   optionDragRef.current = true;
                 }}
