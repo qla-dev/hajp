@@ -29,6 +29,7 @@ export default function MenuTab({
   onScrollBeginDrag,
   onMomentumScrollEnd,
   scrollRef,
+  edgePadding = 0,
 }) {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -43,6 +44,21 @@ export default function MenuTab({
     'menu-tab-l': { paddingVertical: 12, paddingHorizontal: 16, fontSize: 16 },
   };
   const size = sizeStyles[variant] || sizeStyles['menu-tab-m'];
+
+  React.useEffect(() => {
+    if (!scrollable || !scrollRef?.current) return;
+    const idx = items.findIndex((item, i) => {
+      const keyVal = item?.key ?? item?.value ?? item?.label ?? String(i);
+      return keyVal === activeKey;
+    });
+    if (idx < 0) return;
+    const gapVal = gap || 0;
+    const baseWidth = size?.minWidth || snapToInterval || 0;
+    const interval = snapToInterval || (baseWidth ? baseWidth + gapVal : undefined);
+    if (!interval) return;
+    const offset = Math.max(0, idx * interval);
+    scrollRef.current?.scrollTo?.({ x: offset, animated: true });
+  }, [activeKey, gap, items, scrollRef, scrollable, size?.minWidth, snapToInterval]);
 
   const renderButton = (item, index) => {
     const keyVal = item?.key ?? item?.value ?? item?.label ?? String(index);
@@ -109,7 +125,11 @@ export default function MenuTab({
         horizontal
         showsHorizontalScrollIndicator={false}
         style={containerStyle}
-        contentContainerStyle={[styles.scrollContent, { gap }, contentContainerStyle]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { gap, paddingHorizontal: edgePadding },
+          contentContainerStyle,
+        ]}
         snapToInterval={snapToInterval}
         decelerationRate={decelerationRate}
         snapToAlignment={snapToAlignment}

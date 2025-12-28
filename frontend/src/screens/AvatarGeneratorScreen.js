@@ -202,6 +202,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   const optionsAnim = useRef(new Animated.Value(1)).current;
   const optionDragRef = useRef(false);
   const optionsScrollRef = useRef(null);
+  const tabsScrollRef = useRef(null);
 
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -521,6 +522,11 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
           variant="menu-tab-s"
           horizontalPadding={10}
           contentContainerStyle={styles.tabRow}
+          scrollRef={tabsScrollRef}
+          snapToInterval={150}
+          decelerationRate="fast"
+          snapToAlignment="start"
+          edgePadding={10}
         />
 
         {activeGroup ? (
@@ -545,6 +551,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
                 snapToInterval={152}
                 decelerationRate="fast"
                 snapToAlignment="start"
+                edgePadding={14}
                 onScrollBeginDrag={() => {
                   optionDragRef.current = true;
                 }}
