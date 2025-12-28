@@ -88,7 +88,16 @@ export default function RegisterScreen({ navigation }) {
       Alert.alert('Registracija', message, [
         {
           text: 'Nastavi',
-          onPress: () => navigation.reset({ index: 0, routes: [{ name: 'SetupProfile' }] }),
+          onPress: () =>
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: 'AvatarGenerator',
+                  params: { authUserGender: gender, isSetup: 1 },
+                },
+              ],
+            }),
         },
       ]);
     } catch (e) {

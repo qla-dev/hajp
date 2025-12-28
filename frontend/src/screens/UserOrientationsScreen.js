@@ -2,14 +2,18 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 
-export default function SetupProfileScreen({ navigation }) {
+export default function UserOrientationsScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Setup Profile</Text>
-      <TouchableOpacity style={styles.primaryButton} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Main' }] })}>
+      <Text style={styles.title}>Spreman si</Text>
+      <TouchableOpacity
+        style={styles.primaryButton}
+        onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Main' }] })}
+        activeOpacity={0.9}
+      >
         <Text style={styles.primaryButtonText}>Otvori aplikaciju</Text>
       </TouchableOpacity>
     </View>
@@ -43,4 +47,3 @@ const createStyles = (colors) =>
       fontSize: 16,
     },
   });
-

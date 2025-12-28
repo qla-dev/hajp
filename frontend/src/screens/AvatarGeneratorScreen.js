@@ -163,6 +163,7 @@ const applyGenderLashes = (cfg = {}) => {
 export default function AvatarGeneratorScreen({ navigation, route }) {
   const seedConfig = route?.params?.seedConfig;
   const authUserGender = route?.params?.authUserGender || 'female';
+  const isSetup = route?.params?.isSetup ? true : false;
 
   const initialConfig = useMemo(() => {
     const hasSeedAvatar =
@@ -359,17 +360,23 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
       const { data } = await updateCurrentUser({ avatar: JSON.stringify(payload) });
       emitProfileUpdated(data);
       Alert.alert('Avatar sačuvan', 'Tvoj novi avatar je postavljen na profil.');
-      navigation.goBack();
+      if (isSetup) {
+        navigation.reset({ index: 0, routes: [{ name: 'UserOrientations' }] });
+      } else {
+        navigation.goBack();
+      }
     } catch (error) {
       Alert.alert('Greška', 'Nismo mogli sačuvati avatar. Pokušaj ponovo.');
     } finally {
       setSaving(false);
     }
-  }, [config, navigation, saving]);
+  }, [config, isSetup, navigation, saving]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       title: 'Avatar kreator',
+      headerLeft: isSetup ? () => null : undefined,
+      gestureEnabled: !isSetup,
       headerRight: () => (
         <TouchableOpacity
           onPress={handleSave}
@@ -385,7 +392,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
         </TouchableOpacity>
       ),
     });
-  }, [colors.primary, handleSave, navigation, saving, styles]);
+  }, [colors.primary, handleSave, isSetup, navigation, saving, styles]);
 
   useEffect(() => {
     if (route?.params?.preset) {
