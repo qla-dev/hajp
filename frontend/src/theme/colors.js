@@ -40,6 +40,8 @@ export const lightColors = {
   gradientEnd: '#FFE66D',
   primaryOpacity4: 'rgba(255, 107, 53, 0.4)',
   primaryOpacity2: 'rgba(255, 107, 53, 0.2)',
+  primarySoft: 'rgba(255, 107, 53, 0.1)',
+  secondarySoft: 'rgba(155, 89, 182, 0.1)',
 };
 
 export const darkColors = {
@@ -85,6 +87,8 @@ export const darkColors = {
   gradientEnd: '#FF9E66',
   primaryOpacity4: 'rgba(255, 107, 53, 0.4)',
   primaryOpacity2: 'rgba(255, 107, 53, 0.2)',
+  primarySoft: 'rgba(255, 107, 53, 0.2)',
+  secondarySoft: 'rgba(155, 89, 182, 0.2)',
 };
 
 export const THEME_MODES = {

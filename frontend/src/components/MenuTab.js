@@ -23,6 +23,7 @@ export default function MenuTab({
 }) {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const secondarySoft = colors.secondarySoft || colors.secondaryOpacity || 'rgba(155, 89, 182, 0.5)';
 
   const renderButton = (item) => {
     const active = item.key === activeKey;
@@ -33,7 +34,10 @@ export default function MenuTab({
           styles.tabButton,
           buttonStyle,
           active && styles.tabButtonActive,
-          active && { backgroundColor: isDark ? 'rgba(255, 107, 53, 0.12)' : '#eef2ff', borderColor: colors.primary },
+          active && {
+            borderColor: colors.secondary,
+            backgroundColor: secondarySoft,
+          },
           active && activeButtonStyle,
         ]}
         onPress={() => onChange?.(item.key)}
@@ -89,6 +93,6 @@ const createStyles = (colors) =>
       color: colors.text_secondary,
     },
     tabTextActive: {
-      color: colors.primary,
+      color: colors.secondary,
     },
   });

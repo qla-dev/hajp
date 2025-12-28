@@ -8,10 +8,6 @@ import Avatar from '../components/Avatar';
 import { getCurrentUser, updateCurrentUser, uploadProfilePhoto, removeProfilePhoto, baseURL } from '../api';
 import { emitProfileUpdated, addProfileUpdatedListener } from '../utils/profileEvents';
 
-const genderOptions = [
-  { key: 'girl', label: 'Žensko', icon: 'female-outline' },
-  { key: 'boy', label: 'Muško', icon: 'male-outline' },
-];
 const years = Array.from({ length: 35 }, (_, i) => 16 + i); // 16 through 50
 const AVATAR_SIZE = 180;
 const PROFILE_SIZE = 135;
@@ -20,7 +16,6 @@ const normalizeUser = (user) => ({
   name: user?.name || '',
   username: user?.username || '',
   email: user?.email || '',
-  sex: user?.sex || '',
   grade: user?.grade ? Number(user.grade) || 18 : 18,
   profile_photo: user?.profile_photo || '',
   avatar: user?.avatar || '',
@@ -65,7 +60,7 @@ export default function EditProfileScreen({ navigation, route }) {
     '&color=' +
     avatarTextColor;
 
-  const isDirty = ['name', 'email', 'sex'].some((key) => form[key] !== initialValues[key]);
+  const isDirty = ['name', 'email'].some((key) => form[key] !== initialValues[key]);
   const hasProfilePhoto = !!form.profile_photo;
   const profileCtaText = hasProfilePhoto ? 'Izmijeni sliku' : 'Uploadaj sliku';
   const avatarCtaText = form.avatar ? 'Izmijeni avatar' : 'Kreiraj avatar';
@@ -86,7 +81,7 @@ export default function EditProfileScreen({ navigation, route }) {
       const normalized = normalizeUser(data);
       setInitialValues((prevInitial) => {
         setForm((prevForm) => {
-          const wasDirty = ['name', 'email', 'sex', 'grade'].some((key) => prevForm[key] !== prevInitial[key]);
+          const wasDirty = ['name', 'email', 'grade'].some((key) => prevForm[key] !== prevInitial[key]);
           return wasDirty ? prevForm : normalized;
         });
         return normalized;
@@ -122,7 +117,6 @@ export default function EditProfileScreen({ navigation, route }) {
       const payload = {
         name: form.name.trim(),
         email: form.email.trim(),
-        sex: form.sex ? form.sex.trim() : null,
         // grade removed from backend; keep only editable fields
       };
       const { data } = await updateCurrentUser(payload);
@@ -133,7 +127,7 @@ export default function EditProfileScreen({ navigation, route }) {
     } finally {
       setSaving(false);
     }
-  }, [applyUser, form.email, form.name, form.sex, isDirty, navigation, saving]);
+  }, [applyUser, form.email, form.name, isDirty, navigation, saving]);
 
   const onPickPhoto = useCallback(async () => {
     if (uploadingPhoto) return;
@@ -214,8 +208,8 @@ export default function EditProfileScreen({ navigation, route }) {
 
   const onOpenAvatarGenerator = useCallback(() => {
     const seedConfig = parseAvatarConfig(form.avatar) || { avatarStyle: 'Circle' };
-    navigation.navigate('AvatarGenerator', { seedConfig, authUserGender: form.sex });
-  }, [form.avatar, form.sex, navigation]);
+    navigation.navigate('AvatarGenerator', { seedConfig });
+  }, [form.avatar, navigation]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -346,25 +340,6 @@ export default function EditProfileScreen({ navigation, route }) {
           autoCapitalize="none"
           keyboardType="email-address"
         />
-        <Text style={[styles.label, styles.labelSpacing]}>Pol</Text>
-        <View style={styles.genderRow}>
-          {genderOptions.map((item) => {
-            const active = form.sex === item.key;
-            return (
-              <TouchableOpacity
-                key={item.key}
-                onPress={() => onChange('sex', item.key)}
-                style={[styles.genderButton, active && styles.genderButtonActive]}
-                disabled={saving}
-              >
-                <View style={[styles.genderBadge, active && styles.genderBadgeActive]}>
-                  <Ionicons name={item.icon} size={16} color={active ? colors.textLight : colors.text_primary} />
-                </View>
-                <Text style={[styles.genderText, active && styles.genderTextActive]}>{item.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
       </View>
 
       <View style={styles.yearSection}>
@@ -538,45 +513,6 @@ const createStyles = (colors) =>
     labelSpacing: {
       marginTop: 6,
       marginBottom: 6,
-    },
-    genderRow: {
-      flexDirection: 'row',
-      gap: 12,
-    },
-    genderButton: {
-      flex: 1,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 14,
-      paddingVertical: 12,
-      paddingHorizontal: 12,
-      backgroundColor: colors.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-      gap: 8,
-    },
-    genderButtonActive: {
-      borderColor: colors.primary,
-      backgroundColor: colors.surface,
-    },
-    genderBadge: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.border,
-    },
-    genderBadgeActive: {
-      backgroundColor: colors.primary,
-    },
-    genderText: {
-      fontWeight: '700',
-      color: colors.text_primary,
-    },
-    genderTextActive: {
-      color: colors.primary,
     },
     yearScroll: {
       width: '100%',
