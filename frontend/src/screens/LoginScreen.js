@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard, LayoutAnimation, UIManager, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard, LayoutAnimation, UIManager, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
@@ -9,6 +9,13 @@ import FormTextInput from '../components/FormTextInput';
 
 const logoAsset = require('../../assets/svg/logo.svg');
 const logoUri = Image.resolveAssetSource(logoAsset)?.uri;
+
+let Haptics;
+try {
+  Haptics = require('expo-haptics');
+} catch {
+  Haptics = null;
+}
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -58,7 +65,11 @@ export default function LoginScreen({ navigation }) {
   }, []);
 
   const onLogin = async () => {
-    if (!identifier || !password) return;
+    Haptics?.selectionAsync?.().catch(() => {});
+    if (!identifier || !password) {
+      Alert.alert('Greška', 'Popunite sva polja.');
+      return;
+    }
     setLoading(true);
     try {
       await login({ email: identifier, password });
@@ -118,7 +129,13 @@ export default function LoginScreen({ navigation }) {
           <Text style={styles.loginButtonText}>{loading ? 'Prijava' : 'Prijavi se'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.registerLink}>
+        <TouchableOpacity
+          onPress={() => {
+            Haptics.selectionAsync?.().catch(() => {});
+            navigation.navigate('Register');
+          }}
+          style={styles.registerLink}
+        >
           <Text style={styles.registerLinkText}>
             Nemaš račun? <Text style={styles.registerLinkBold}>Registruj se</Text>
           </Text>

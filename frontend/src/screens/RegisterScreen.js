@@ -28,6 +28,17 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 const logoAsset = require('../../assets/svg/logo.svg');
 const logoUri = Image.resolveAssetSource(logoAsset)?.uri;
 
+let Haptics;
+try {
+  Haptics = require('expo-haptics');
+} catch {
+  Haptics = null;
+}
+
+const triggerHaptic = () => {
+  Haptics?.selectionAsync?.().catch(() => {});
+};
+
 const genderOptions = [
   { key: 'girl', label: 'Žensko', icon: 'female-outline' },
   { key: 'boy', label: 'Muško', icon: 'male-outline' },
@@ -94,6 +105,7 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const onRegister = async () => {
+    triggerHaptic();
     if (!name || !username || !email || !password || !confirmPassword || !gender || !year) {
       Alert.alert('Greška', 'Popuni sva polja.');
       return;
@@ -281,7 +293,13 @@ export default function RegisterScreen({ navigation }) {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginLink}>
+          <TouchableOpacity
+            onPress={() => {
+              triggerHaptic();
+              navigation.navigate('Login');
+            }}
+            style={styles.loginLink}
+          >
             <Text style={styles.loginLinkText}>
               Već imaš račun? <Text style={styles.loginLinkBold}>Prijavi se</Text>
             </Text>

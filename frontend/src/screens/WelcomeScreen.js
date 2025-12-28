@@ -9,6 +9,18 @@ import AvatarHeroAnimated from '../components/AvatarHeroAnimated';
 const logoUri = Asset.fromModule(require('../../assets/svg/logo.svg')).uri;
 const HERO_HEIGHT = 320;
 
+let Haptics;
+try {
+  // Optional: Haptics might not be available in some builds
+  Haptics = require('expo-haptics');
+} catch {
+  Haptics = null;
+}
+
+const triggerHaptic = () => {
+  Haptics?.selectionAsync?.().catch(() => {});
+};
+
 export default function WelcomeScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -48,11 +60,23 @@ export default function WelcomeScreen({ navigation }) {
       </View>
 
       <View style={styles.bottomContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.startButton}>
+        <TouchableOpacity
+          onPress={() => {
+            triggerHaptic();
+            navigation.navigate('Register');
+          }}
+          style={styles.startButton}
+        >
           <Text style={styles.startButtonText}>Kreni</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginButton}>
+        <TouchableOpacity
+          onPress={() => {
+            triggerHaptic();
+            navigation.navigate('Login');
+          }}
+          style={styles.loginButton}
+        >
           <Text style={styles.loginText}>
             Već imas račun? <Text style={styles.loginLinkBold}>Prijavi se</Text>
           </Text>
