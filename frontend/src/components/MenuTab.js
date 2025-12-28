@@ -22,6 +22,7 @@ export default function MenuTab({
   gap = 10,
   color = 'primary',
   variant = 'menu-tab-m',
+  renderItem,
 }) {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -31,20 +32,23 @@ export default function MenuTab({
   const sizeStyles = {
     'menu-tab-xs': { paddingVertical: 6, paddingHorizontal: 8, fontSize: 12 },
     'menu-tab-s': { paddingVertical: 9, paddingHorizontal: 12, fontSize: 14 },
-    'menu-tab-m': { paddingVertical: 10, paddingHorizontal: 14, fontSize: 15 },
-    'menu-tab-l': { paddingVertical: 12, paddingHorizontal: 14, fontSize: 15 },
+    // M sized to mirror avatar option cards
+    'menu-tab-m': { paddingVertical: 14, paddingHorizontal: 12, fontSize: 15, minWidth: 140 },
+    'menu-tab-l': { paddingVertical: 12, paddingHorizontal: 16, fontSize: 16 },
   };
   const size = sizeStyles[variant] || sizeStyles['menu-tab-m'];
 
-  const renderButton = (item) => {
-    const active = item.key === activeKey;
+  const renderButton = (item, index) => {
+    const keyVal = item?.key ?? item?.value ?? item?.label ?? String(index);
+    const active = keyVal === activeKey;
     return (
       <TouchableOpacity
-        key={item.key}
+        key={keyVal}
         style={[
           styles.tabButton,
           buttonStyle,
           size && { paddingVertical: size.paddingVertical, paddingHorizontal: size.paddingHorizontal },
+          size?.minWidth ? { minWidth: size.minWidth } : null,
           active && styles.tabButtonActive,
           active && {
             borderColor: activeColor,
@@ -52,27 +56,44 @@ export default function MenuTab({
           },
           active && activeButtonStyle,
         ]}
-        onPress={() => onChange?.(item.key)}
+        onPress={() => onChange?.(keyVal)}
         activeOpacity={0.85}
       >
-        <Text
-          style={[
-            styles.tabText,
-            textStyle,
-            size && { fontSize: size.fontSize },
-            active && [styles.tabTextActive, { color: activeColor }],
-            active && activeTextStyle,
-          ]}
-        >
-          {item.label}
-        </Text>
+        {renderItem ? (
+          renderItem({
+            item,
+            active,
+            defaultStyles: {
+              button: styles.tabButton,
+              text: styles.tabText,
+              activeText: styles.tabTextActive,
+            },
+          })
+        ) : (
+          <Text
+            style={[
+              styles.tabText,
+              textStyle,
+              size && { fontSize: size.fontSize },
+              active && [styles.tabTextActive, { color: activeColor }],
+              active && activeTextStyle,
+            ]}
+          >
+            {item.label}
+          </Text>
+        )}
       </TouchableOpacity>
     );
   };
 
   const containerStyle = [
     styles.container,
-    { paddingTop: topPadding, paddingHorizontal: horizontalPadding, marginBottom: 12 },
+    {
+      paddingTop: topPadding,
+      paddingHorizontal: horizontalPadding,
+      marginBottom: 12,
+      flexDirection: 'row',
+    },
     style,
   ];
 
@@ -89,7 +110,7 @@ export default function MenuTab({
     );
   }
 
-  return <View style={[...containerStyle, { flexDirection: 'row', gap }]}>{items.map(renderButton)}</View>;
+  return <View style={[...containerStyle, { gap }]}>{items.map(renderButton)}</View>;
 }
 
 const createStyles = (colors) =>

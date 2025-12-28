@@ -352,6 +352,42 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     setConfig(sanitizeHairHatForHat(enforceCirclePurple(next)));
   }, [playShuffleSound]);
 
+  const renderOptionItem = useCallback(
+    ({ item, active }) => {
+      const option = item;
+      return (
+        <View style={[styles.optionCard, active && [styles.optionCardActive, { borderColor: colors.primary }]]}>
+          {option.swatchGradient ? (
+            <View
+              style={[
+                styles.optionSwatch,
+                {
+                  backgroundColor: option.swatch || '#fff',
+                  overflow: 'hidden',
+                },
+              ]}
+            >
+              <LinearGradient
+                colors={option.swatchGradient || []}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFillObject}
+              />
+            </View>
+          ) : option.swatch ? (
+            <View style={[styles.optionSwatch, { backgroundColor: option.swatch }]} />
+          ) : option.preview ? (
+            <Image source={{ uri: option.preview }} style={styles.optionPreview} />
+          ) : null}
+          <Text style={[styles.optionLabel, active && { color: colors.primary }]}>
+            {option.label || option.value || ''}
+          </Text>
+        </View>
+      );
+    },
+    [colors.primary],
+  );
+
   const handleSave = useCallback(async () => {
     if (saving) return;
     Haptics.selectionAsync().catch(() => {});
@@ -490,56 +526,48 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
         {activeGroup ? (
           <View style={[styles.optionsPanel, { borderColor: colors.border }]}>
             <Animated.View style={optionsAnimatedStyle}>
-              <ScrollView
-                key={activeGroup.key}
-                horizontal
-                showsHorizontalScrollIndicator={false}
+              <MenuTab
+                scrollable
+                items={activeGroup.options.map((option) => ({
+                  ...option,
+                  key: String(option.value),
+                }))}
+                activeKey={String(config[activeGroup.key])}
+                onChange={(val) => {
+                  const match = activeGroup.options.find((o) => String(o.value) === val);
+                  if (match) handleSelect(activeGroup.key, match.value);
+                }}
+                variant="menu-tab-m"
+                color="primary"
+                gap={10}
                 contentContainerStyle={styles.optionsRow}
-                snapToInterval={152}
-                decelerationRate="fast"
-                snapToAlignment="start"
-                ref={optionsScrollRef}
-                onScrollBeginDrag={() => {
-                  optionDragRef.current = true;
-                }}
-                onMomentumScrollEnd={() => {
-                  if (optionDragRef.current) {
-                    Haptics.selectionAsync().catch(() => {});
-                    playOptionSound();
-                  }
-                  optionDragRef.current = false;
-                }}
-              >
-                {activeGroup.options.map((option) => {
-                  const active = config[activeGroup.key] === option.value;
-                  return (
-                    <TouchableOpacity
-                      key={option.value}
-                      onPress={() => handleSelect(activeGroup.key, option.value)}
-                      style={[styles.optionCard, active && [styles.optionCardActive, { borderColor: colors.primary }]]}
-                      activeOpacity={0.9}
-                    >
-                      {option.swatchGradient ? (
-                        <LinearGradient
-                          colors={option.swatchGradient}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={[styles.swatch, { borderColor: colors.border }]}
-                        />
-                      ) : option.swatch ? (
-                        <View style={[styles.swatch, { backgroundColor: option.swatch }]} />
-                      ) : (
-                        <Text style={[styles.optionEmoji, active && { color: colors.primary }]}>
-                          {option.emoji || '??'}
-                        </Text>
-                      )}
-                      <Text style={[styles.optionText, active && styles.optionTextActive]} numberOfLines={1}>
-                        {option.label}
+                buttonStyle={[styles.optionCard, { flex: undefined }]}
+                activeButtonStyle={[
+                  styles.optionCardActive,
+                  { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+                ]}
+                renderItem={({ item, active }) => (
+                  <>
+                    {item.swatchGradient ? (
+                      <LinearGradient
+                        colors={item.swatchGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={[styles.swatch, { borderColor: colors.border }]}
+                      />
+                    ) : item.swatch ? (
+                      <View style={[styles.swatch, { backgroundColor: item.swatch }]} />
+                    ) : (
+                      <Text style={[styles.optionEmoji, active && { color: colors.primary }]}>
+                        {item.emoji || '??'}
                       </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+                    )}
+                    <Text style={[styles.optionText, active && styles.optionTextActive]} numberOfLines={1}>
+                      {item.label}
+                    </Text>
+                  </>
+                )}
+              />
             </Animated.View>
           </View>
         ) : null}
@@ -786,8 +814,7 @@ const createStyles = (colors) =>
       gap: 10,
     },
     optionCardActive: {
-      backgroundColor: colors.surface,
-      elevation: 5,
+      elevation: 2,
     },
     optionEmoji: {
       fontSize: 32,
