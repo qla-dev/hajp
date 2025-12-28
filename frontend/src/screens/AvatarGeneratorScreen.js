@@ -523,10 +523,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
           horizontalPadding={10}
           contentContainerStyle={styles.tabRow}
           scrollRef={tabsScrollRef}
-          snapToInterval={150}
-          decelerationRate="fast"
-          snapToAlignment="start"
-          edgePadding={10}
+          buttonStyle={{ flex: undefined }}
         />
 
         {activeGroup ? (
