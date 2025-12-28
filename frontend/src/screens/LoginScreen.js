@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard, LayoutAnimation, UIManager } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard, LayoutAnimation, UIManager, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { login, baseURL } from '../api';
 import FormTextInput from '../components/FormTextInput';
+
+const logoAsset = require('../../assets/svg/logo.svg');
+const logoUri = Image.resolveAssetSource(logoAsset)?.uri;
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -16,10 +19,27 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resolvedLogoUri, setResolvedLogoUri] = useState(logoUri);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const keyboardOffset = Platform.select({ ios: -20, android: 0 }); // tweak this value to move content when keyboard shows
-  const logoUri = Asset.fromModule(require('../../assets/svg/logo.svg')).uri;
+
+  useEffect(() => {
+    const asset = Asset.fromModule(logoAsset);
+    let cancelled = false;
+    (async () => {
+      try {
+        await asset.downloadAsync();
+        const uri = asset.localUri || asset.uri;
+        if (!cancelled) setResolvedLogoUri(uri);
+      } catch {
+        // ignore asset load errors; fallback to initial uri
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const animate = () =>
@@ -64,7 +84,7 @@ export default function LoginScreen({ navigation }) {
 
         <View style={styles.subtitleRow}>
           <Text style={styles.subtitle}>Dobrodošao nazad na </Text>
-          <SvgUri style={styles.logoimg} width={72} height={20} uri={logoUri} preserveAspectRatio="xMidYMid meet" />
+          <SvgUri style={styles.logoimg} width={72} height={20} uri={resolvedLogoUri} preserveAspectRatio="xMidYMid meet" />
         </View>
 
         <FormTextInput

@@ -1,5 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Keyboard, LayoutAnimation, UIManager, ActivityIndicator, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Keyboard,
+  LayoutAnimation,
+  UIManager,
+  ActivityIndicator,
+  Alert,
+  Image,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
@@ -10,6 +24,9 @@ import FormTextInput from '../components/FormTextInput';
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
+
+const logoAsset = require('../../assets/svg/logo.svg');
+const logoUri = Image.resolveAssetSource(logoAsset)?.uri;
 
 const genderOptions = [
   { key: 'girl', label: 'Žensko', icon: 'female-outline' },
@@ -29,10 +46,27 @@ export default function RegisterScreen({ navigation }) {
   const [year, setYear] = useState(18);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [resolvedLogoUri, setResolvedLogoUri] = useState(logoUri);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const keyboardOffset = Platform.select({ ios: 0, android: 0 }); // keep zero to avoid extra padding when keyboard opens
-  const logoUri = Asset.fromModule(require('../../assets/svg/logo.svg')).uri;
+
+  useEffect(() => {
+    const asset = Asset.fromModule(logoAsset);
+    let cancelled = false;
+    (async () => {
+      try {
+        await asset.downloadAsync();
+        const uri = asset.localUri || asset.uri;
+        if (!cancelled) setResolvedLogoUri(uri);
+      } catch {
+        // ignore asset load errors; fallback to initial uri
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const animate = () =>
@@ -105,7 +139,8 @@ export default function RegisterScreen({ navigation }) {
       const apiErrors = e?.response?.data?.errors || {};
       setErrors(apiErrors);
       const flattened = Object.values(apiErrors || {}).flat();
-      const msg = flattened.length ? flattened.join('\n') : e?.response?.data?.message || 'Registracija nije uspjela. Pokušaj ponovo.';
+      const msg =
+        flattened.length ? flattened.join('\n') : e?.response?.data?.message || 'Registracija nije uspjela. Pokušaj ponovo.';
       Alert.alert('Greška', msg);
     } finally {
       setLoading(false);
@@ -123,87 +158,87 @@ export default function RegisterScreen({ navigation }) {
           <Text style={styles.title}>Kreiraj račun</Text>
           <View style={styles.subtitleRow}>
             <Text style={styles.subtitle}>Uskoči na </Text>
-            <SvgUri style={styles.logoimg} width={72} height={20} uri={logoUri} preserveAspectRatio="xMidYMid meet" />
+            <SvgUri style={styles.logoimg} width={72} height={20} uri={resolvedLogoUri} preserveAspectRatio="xMidYMid meet" />
             <Text style={styles.subtitle}>i saznaj kome se dopadaš!</Text>
           </View>
 
-        <FormTextInput
-          placeholder="Username"
-          value={username}
-          onChangeText={(text) => {
-            clearError('username');
-            setUsername(text);
-          }}
-          autoCapitalize="none"
-          style={styles.input}
-        />
-        {!!errors?.username && <Text style={styles.errorText}>{errors.username[0]}</Text>}
-
-        <FormTextInput
-          placeholder="Ime i prezime"
-          value={name}
-          onChangeText={(text) => {
-            clearError('name');
-            setName(text);
-          }}
-          autoCapitalize="words"
-          style={styles.input}
-        />
-        {!!errors?.name && <Text style={styles.errorText}>{errors.name[0]}</Text>}
-
-        <FormTextInput
-          placeholder="Email"
-          value={email}
-          onChangeText={(text) => {
-            clearError('email');
-            setEmail(text);
-          }}
-          autoCapitalize="none"
-          keyboardType="email-address"
+          <FormTextInput
+            placeholder="Username"
+            value={username}
+            onChangeText={(text) => {
+              clearError('username');
+              setUsername(text);
+            }}
+            autoCapitalize="none"
             style={styles.input}
           />
-        {!!errors?.email && <Text style={styles.errorText}>{errors.email[0]}</Text>}
+          {!!errors?.username && <Text style={styles.errorText}>{errors.username[0]}</Text>}
 
-        <View style={styles.passwordWrapper}>
           <FormTextInput
-            placeholder="Lozinka"
-            value={password}
+            placeholder="Ime i prezime"
+            value={name}
             onChangeText={(text) => {
-              clearError('password');
-              setPassword(text);
+              clearError('name');
+              setName(text);
             }}
-            secureTextEntry={!showPassword}
-            style={[styles.input, styles.passwordInput]}
+            autoCapitalize="words"
+            style={styles.input}
           />
-          <TouchableOpacity
-            onPress={() => setShowPassword((prev) => !prev)}
-            style={styles.eyeButton}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={colors.text_secondary} />
-          </TouchableOpacity>
-        </View>
-        {!!errors?.password && <Text style={styles.errorText}>{errors.password[0]}</Text>}
+          {!!errors?.name && <Text style={styles.errorText}>{errors.name[0]}</Text>}
 
-        <View style={styles.passwordWrapper}>
           <FormTextInput
-            placeholder="Ponovi lozinku"
-            value={confirmPassword}
+            placeholder="Email"
+            value={email}
             onChangeText={(text) => {
-              clearError('password');
-              setConfirmPassword(text);
+              clearError('email');
+              setEmail(text);
             }}
-            secureTextEntry={!showConfirmPassword}
-            style={[styles.input, styles.passwordInput]}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            style={styles.input}
           />
-          <TouchableOpacity
-            onPress={() => setShowConfirmPassword((prev) => !prev)}
-            style={styles.eyeButton}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={20} color={colors.text_secondary} />
-          </TouchableOpacity>
-        </View>
+          {!!errors?.email && <Text style={styles.errorText}>{errors.email[0]}</Text>}
+
+          <View style={styles.passwordWrapper}>
+            <FormTextInput
+              placeholder="Lozinka"
+              value={password}
+              onChangeText={(text) => {
+                clearError('password');
+                setPassword(text);
+              }}
+              secureTextEntry={!showPassword}
+              style={[styles.input, styles.passwordInput]}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword((prev) => !prev)}
+              style={styles.eyeButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={colors.text_secondary} />
+            </TouchableOpacity>
+          </View>
+          {!!errors?.password && <Text style={styles.errorText}>{errors.password[0]}</Text>}
+
+          <View style={styles.passwordWrapper}>
+            <FormTextInput
+              placeholder="Ponovi lozinku"
+              value={confirmPassword}
+              onChangeText={(text) => {
+                clearError('password');
+                setConfirmPassword(text);
+              }}
+              secureTextEntry={!showConfirmPassword}
+              style={[styles.input, styles.passwordInput]}
+            />
+            <TouchableOpacity
+              onPress={() => setShowConfirmPassword((prev) => !prev)}
+              style={styles.eyeButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={20} color={colors.text_secondary} />
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.genderRow}>
             {genderOptions.map((item) => {
