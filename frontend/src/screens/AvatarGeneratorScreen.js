@@ -744,7 +744,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
             <ActivityIndicator color="#fff" />
           ) : (
             <>
-              <Ionicons name="person-circle-outline" size={18} color="#fff" style={styles.saveCtaIcon} />
+              <Ionicons name="happy-outline" size={18} color="#fff" style={styles.saveCtaIcon} />
               <Text style={styles.saveCtaText}>Sačuvaj avatar</Text>
             </>
           )}
@@ -920,7 +920,7 @@ const createStyles = (colors) =>
     },
     aiBorder: {
       padding: 1.5,
-      borderRadius: 25,
+      borderRadius: 30,
       height: 57,
       overflow: 'hidden',
       backgroundColor: colors.background,
@@ -940,7 +940,7 @@ const createStyles = (colors) =>
     },
 
     aiButtonInner: {
-      borderRadius: 25,
+      borderRadius: 31,
       height: 54,
       overflow: 'hidden',
       alignItems: 'center',
