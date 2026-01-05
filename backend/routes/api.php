@@ -95,6 +95,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/requests', [UserController::class, 'friendRequests']);
         Route::post('/{user}/add', [UserController::class, 'addFriend'])->middleware('isPrivate');
         Route::post('/{user}/approve', [UserController::class, 'approveFriend']);
+        Route::post('/{user}/block', [UserController::class, 'blockUser']);
+        Route::post('/{user}/report', [UserController::class, 'reportUser']);
         Route::delete('/{user}/remove', [UserController::class, 'removeFriend']);
     });
 

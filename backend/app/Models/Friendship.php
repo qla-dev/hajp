@@ -13,6 +13,18 @@ class Friendship extends Model
         'auth_user_id',
         'user_id',
         'approved',
+        'blocked',
+        'reported',
+    ];
+
+    protected $casts = [
+        'approved' => 'boolean',
+        'blocked' => 'boolean',
+    ];
+
+    protected $attributes = [
+        'blocked' => 0,
+        'reported' => '0',
     ];
 
     public function requester(): BelongsTo

@@ -356,6 +356,13 @@ class UserController extends Controller
             })
             ->first();
 
+        if ($existing && $existing->blocked) {
+            return response()->json([
+                'message' => 'Korisnik je blokiran.',
+                'blocked' => 1,
+            ], 403);
+        }
+
         if ($existing) {
             $approvedExisting = (int) ($existing->approved ?? 0);
             $status = $approvedExisting ? 'approved' : 'pending';
@@ -465,6 +472,81 @@ class UserController extends Controller
             ->delete();
 
         return response()->json(['message' => 'Prijatelj uklonjen.'], 200);
+    }
+
+    public function blockUser(Request $request, User $user)
+    {
+        $authUser = $request->user();
+
+        if ($authUser->id === $user->id) {
+            return response()->json(['message' => 'Ne moŽØe­ blokirati sebe.'], 422);
+        }
+
+        $friendship = $this->findFriendshipBetween($authUser->id, $user->id);
+
+        if (!$friendship) {
+            $friendship = new Friendship([
+                'auth_user_id' => $authUser->id,
+                'user_id' => $user->id,
+                'approved' => 0,
+            ]);
+        }
+
+        $friendship->blocked = 1;
+        $friendship->reported = '0';
+        $friendship->approved = 0;
+        $friendship->save();
+
+        return response()->json([
+            'message' => 'Korisnik je blokiran.',
+            'blocked' => 1,
+        ]);
+    }
+
+    public function reportUser(Request $request, User $user)
+    {
+        $authUser = $request->user();
+
+        if ($authUser->id === $user->id) {
+            return response()->json(['message' => 'Ne moŽØe­ prijaviti sebe.'], 422);
+        }
+
+        $data = $request->validate([
+            'message' => 'required|string|max:1000',
+        ]);
+
+        $friendship = $this->findFriendshipBetween($authUser->id, $user->id);
+
+        if (!$friendship) {
+            $friendship = new Friendship([
+                'auth_user_id' => $authUser->id,
+                'user_id' => $user->id,
+                'approved' => 0,
+            ]);
+        }
+
+        $friendship->blocked = 1;
+        $friendship->reported = $data['message'] ?: '0';
+        $friendship->approved = 0;
+        $friendship->save();
+
+        return response()->json([
+            'message' => 'Korisnik je blokiran i prijavljen.',
+            'blocked' => 1,
+            'reported' => $friendship->reported,
+        ]);
+    }
+
+    private function findFriendshipBetween(int $authId, int $otherId): ?Friendship
+    {
+        return Friendship::query()
+            ->where(function ($query) use ($authId, $otherId) {
+                $query->where('auth_user_id', $authId)->where('user_id', $otherId);
+            })
+            ->orWhere(function ($query) use ($authId, $otherId) {
+                $query->where('auth_user_id', $otherId)->where('user_id', $authId);
+            })
+            ->first();
     }
 
     private function buildFriendsList(int $userId, ?int $roomId = null)

@@ -11,13 +11,15 @@ import {
   PanResponder,
   Alert,
   Easing,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri, SvgXml } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, removeFriend, recordProfileView, updateCurrentUser } from '../api';
+import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, removeFriend, recordProfileView, updateCurrentUser, blockUser, reportUser } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 import BottomCTA from '../components/BottomCTA';
 import SuggestionSlider from '../components/SuggestionSlider';
@@ -44,6 +46,7 @@ export default function ProfileScreen({ navigation, route }) {
   }, []);
   const [friendStatus, setFriendStatus] = useState({ exists: false, approved: null });
   const [friendStatusLoading, setFriendStatusLoading] = useState(false);
+  const [isBlockedUser, setIsBlockedUser] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [connectIconXml, setConnectIconXml] = useState(null);
   const glowAnim = useRef(new Animated.Value(0)).current;
@@ -52,6 +55,10 @@ export default function ProfileScreen({ navigation, route }) {
   const noteSheetRef = useRef(null);
   const [noteContainerWidth, setNoteContainerWidth] = useState(0);
   const [noteTextWidth, setNoteTextWidth] = useState(0);
+  const [blockActionLoading, setBlockActionLoading] = useState(false);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [reportMessage, setReportMessage] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
   const marqueeAnim = useRef(new Animated.Value(0)).current;
   const marqueeLoop = useRef(null);
   const MARQUEE_SPACER = 32;
@@ -152,6 +159,7 @@ export default function ProfileScreen({ navigation, route }) {
   const loadData = useCallback(async () => {
     const current = await getCurrentUser();
     setUser(current);
+    setIsBlockedUser(false);
     await loadVotes();
     try {
       const { data } = await fetchUserRooms();
@@ -170,6 +178,7 @@ export default function ProfileScreen({ navigation, route }) {
   const loadOtherProfile = useCallback(
     async (userId) => {
       if (!userId) return;
+      setIsBlockedUser(false);
       setFriendStatusLoading(true);
       try {
         const [{ data: userRes }, { data: roomsRes }, { data: friendsRes }, { data: statusRes }] = await Promise.all([
@@ -274,16 +283,18 @@ export default function ProfileScreen({ navigation, route }) {
   const glowScale = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.25] });
   const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
-  const isFriendActionLoading = connecting || friendStatusLoading;
+  const isFriendActionLoading = connecting || friendStatusLoading || blockActionLoading || reportSubmitting;
   const isConnected = friendStatus.exists && friendStatus.approved === 1;
   const isPendingRequest = friendStatus.exists && friendStatus.approved !== 1;
   const showConnectedStyle = isConnected && !isFriendActionLoading;
-  const connectLabel = friendStatus.exists
+  const connectLabel = isBlockedUser
+    ? 'Blokiran'
+    : friendStatus.exists
     ? friendStatus.approved === 1
       ? 'Povezani ste'
       : 'Zahtjev poslan'
     : 'Poveži se';
-  const isConnectCta = !friendStatus.exists && !isFriendActionLoading;
+  const isConnectCta = !friendStatus.exists && !isFriendActionLoading && !isBlockedUser;
   const connectButtonStyle = [
     styles.shareButton,
     !isConnected && styles.connectButton,
@@ -344,7 +355,7 @@ export default function ProfileScreen({ navigation, route }) {
   }, [noteDisplay, noteContainerWidth, derivedTextWidth, marqueeAnim, marqueeDistance]);
 
   const handleConnectPress = async () => {
-    if (!isOtherProfile || !route?.params?.userId || isFriendActionLoading) return;
+    if (!isOtherProfile || !route?.params?.userId || isFriendActionLoading || isBlockedUser) return;
 
     const targetId = route.params.userId;
 
@@ -397,6 +408,59 @@ export default function ProfileScreen({ navigation, route }) {
     }
   };
 
+  const performBlock = useCallback(async () => {
+    if (!route?.params?.userId) return;
+    setBlockActionLoading(true);
+    try {
+      await blockUser(route.params.userId);
+      setIsBlockedUser(true);
+      setFriendStatus({ exists: true, approved: null });
+      Alert.alert('Blokirano', 'Korisnik je blokiran.');
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Nije moguće blokirati korisnika.';
+      Alert.alert('Greška', message);
+    } finally {
+      setBlockActionLoading(false);
+    }
+  }, [route?.params?.userId]);
+
+  const confirmBlock = useCallback(() => {
+    Alert.alert('Blokiraj korisnika?', 'Ova radnja će spriječiti dalju interakciju.', [
+      { text: 'Odustani', style: 'cancel' },
+      { text: 'Blokiraj', style: 'destructive', onPress: performBlock },
+    ]);
+  }, [performBlock]);
+
+  const handleSubmitReport = useCallback(async () => {
+    if (!route?.params?.userId) return;
+    const message = (reportMessage || '').trim();
+    if (!message) return;
+
+    setReportSubmitting(true);
+    try {
+      await reportUser(route.params.userId, message);
+      setIsBlockedUser(true);
+      setFriendStatus({ exists: true, approved: null });
+      Alert.alert('Poslano', 'Korisnik je blokiran i prijavljen.');
+      setReportModalVisible(false);
+      setReportMessage('');
+    } catch (error) {
+      const errMessage = error?.response?.data?.message || 'Nije moguće prijaviti korisnika.';
+      Alert.alert('Greška', errMessage);
+    } finally {
+      setReportSubmitting(false);
+    }
+  }, [reportMessage, route?.params?.userId]);
+
+  const openOptions = useCallback(() => {
+    if (!isOtherProfile || isFriendActionLoading || !route?.params?.userId) return;
+    Alert.alert('Opcije korisnika', 'Odaberi akciju', [
+      { text: 'Odustani', style: 'cancel' },
+      { text: 'Blokiraj', style: 'destructive', onPress: confirmBlock },
+      { text: 'Blokiraj i prijavi', onPress: () => setReportModalVisible(true) },
+    ]);
+  }, [confirmBlock, isFriendActionLoading, isOtherProfile, route?.params?.userId]);
+
   const handleOpenNote = useCallback(() => {
     if (!isMine) return;
     setNoteDraft(noteText);
@@ -430,6 +494,22 @@ export default function ProfileScreen({ navigation, route }) {
       : 'Profil';
     navigation.setOptions?.({ title });
   }, [navigation, user]);
+
+  useEffect(() => {
+    if (!isOtherProfile) return;
+    navigation.setOptions?.({
+      headerRight: () => (
+        <TouchableOpacity
+          style={styles.glassButton}
+          onPress={openOptions}
+          disabled={isFriendActionLoading}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="ellipsis-horizontal" size={20} color={colors.text_primary} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [colors.text_primary, isFriendActionLoading, isOtherProfile, navigation, openOptions, styles.glassButton]);
 
   const { registerMenuRefresh } = useMenuRefresh();
   const menuRefreshRunningRef = useRef(false);
@@ -653,7 +733,7 @@ export default function ProfileScreen({ navigation, route }) {
               <TouchableOpacity
                 style={connectButtonStyle}
                 onPress={handleConnectPress}
-                disabled={isFriendActionLoading}
+                disabled={isFriendActionLoading || isBlockedUser}
               >
                 {isFriendActionLoading ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', columnGap: 8 }}>
@@ -716,6 +796,57 @@ export default function ProfileScreen({ navigation, route }) {
         onSave={handleSaveNote}
         onClose={() => setSavingNote(false)}
       />
+
+      <Modal
+        transparent
+        visible={reportModalVisible}
+        animationType="fade"
+        onRequestClose={() => setReportModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={styles.modalTitle}>Blokiraj i prijavi</Text>
+            <Text style={styles.modalSubtitle}>Dodaj kratku poruku koja će ostati uz prijavu.</Text>
+            <TextInput
+              value={reportMessage}
+              onChangeText={setReportMessage}
+              placeholder="Razlog prijave"
+              placeholderTextColor={colors.text_secondary}
+              style={[
+                styles.modalInput,
+                { borderColor: colors.border, backgroundColor: colors.background, color: colors.text_primary },
+              ]}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalCancel]}
+                onPress={() => setReportModalVisible(false)}
+                disabled={reportSubmitting}
+              >
+                <Text style={styles.modalCancelText}>Otkaži</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  styles.modalPrimary,
+                  (reportSubmitting || !reportMessage.trim()) && styles.modalPrimaryDisabled,
+                ]}
+                onPress={handleSubmitReport}
+                disabled={reportSubmitting || !reportMessage.trim()}
+              >
+                {reportSubmitting ? (
+                  <ActivityIndicator size="small" color={colors.textLight} />
+                ) : (
+                  <Text style={styles.modalPrimaryText}>Pošalji</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {isMine && (
         <BottomCTA
@@ -954,6 +1085,68 @@ const createStyles = (colors) =>
       fontSize: 15,
       fontWeight: '600',
       color: colors.text_primary,
+    },
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+    },
+    modalCard: {
+      width: '100%',
+      borderRadius: 18,
+      padding: 16,
+      borderWidth: 1,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: colors.text_primary,
+      marginBottom: 4,
+    },
+    modalSubtitle: {
+      fontSize: 14,
+      color: colors.text_secondary,
+      marginBottom: 10,
+    },
+    modalInput: {
+      width: '100%',
+      borderWidth: 1,
+      borderRadius: 12,
+      padding: 12,
+      minHeight: 90,
+      fontSize: 14,
+      marginBottom: 12,
+    },
+    modalActions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      gap: 10,
+    },
+    modalButton: {
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 12,
+    },
+    modalCancel: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    modalCancelText: {
+      color: colors.text_primary,
+      fontWeight: '700',
+    },
+    modalPrimary: {
+      backgroundColor: colors.primary,
+    },
+    modalPrimaryDisabled: {
+      opacity: 0.5,
+    },
+    modalPrimaryText: {
+      color: colors.textLight,
+      fontWeight: '800',
     },
     connectButton: {
       borderColor: colors.primary,
