@@ -13,6 +13,7 @@ import {
   Easing,
   Modal,
   TextInput,
+  Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -431,35 +432,61 @@ export default function ProfileScreen({ navigation, route }) {
     ]);
   }, [performBlock]);
 
-  const handleSubmitReport = useCallback(async () => {
-    if (!route?.params?.userId) return;
-    const message = (reportMessage || '').trim();
-    if (!message) return;
+  const submitReport = useCallback(
+    async (message) => {
+      if (!route?.params?.userId) return;
+      const trimmed = (message || '').trim();
+      if (!trimmed) return;
 
-    setReportSubmitting(true);
-    try {
-      await reportUser(route.params.userId, message);
-      setIsBlockedUser(true);
-      setFriendStatus({ exists: true, approved: null });
-      Alert.alert('Poslano', 'Korisnik je blokiran i prijavljen.');
-      setReportModalVisible(false);
-      setReportMessage('');
-    } catch (error) {
-      const errMessage = error?.response?.data?.message || 'Nije moguće prijaviti korisnika.';
-      Alert.alert('Greška', errMessage);
-    } finally {
-      setReportSubmitting(false);
-    }
-  }, [reportMessage, route?.params?.userId]);
+      setReportSubmitting(true);
+      try {
+        await reportUser(route.params.userId, trimmed);
+        setIsBlockedUser(true);
+        setFriendStatus({ exists: true, approved: null });
+        Alert.alert('Poslano', 'Korisnik je blokiran i prijavljen.');
+        setReportModalVisible(false);
+        setReportMessage('');
+      } catch (error) {
+        const errMessage = error?.response?.data?.message || 'Nije moguće prijaviti korisnika.';
+        Alert.alert('Greška', errMessage);
+      } finally {
+        setReportSubmitting(false);
+      }
+    },
+    [route?.params?.userId],
+  );
+
+  const handleSubmitReport = useCallback(() => submitReport(reportMessage), [reportMessage, submitReport]);
 
   const openOptions = useCallback(() => {
     if (!isOtherProfile || isFriendActionLoading || !route?.params?.userId) return;
     Alert.alert('Opcije korisnika', 'Odaberi akciju', [
       { text: 'Odustani', style: 'cancel' },
       { text: 'Blokiraj', style: 'destructive', onPress: confirmBlock },
-      { text: 'Blokiraj i prijavi', onPress: () => setReportModalVisible(true) },
+      {
+        text: 'Blokiraj i prijavi',
+        onPress: () => {
+          if (Platform.OS === 'ios' && typeof Alert.prompt === 'function') {
+            Alert.prompt(
+              'Blokiraj i prijavi',
+              'Dodaj razlog zbog kojeg blokiraš korisnika.',
+              [
+                { text: 'Otkaži', style: 'cancel' },
+                {
+                  text: 'Pošalji',
+                  onPress: (value) => submitReport(value),
+                },
+              ],
+              'plain-text',
+              reportMessage,
+            );
+          } else {
+            setReportModalVisible(true);
+          }
+        },
+      },
     ]);
-  }, [confirmBlock, isFriendActionLoading, isOtherProfile, route?.params?.userId]);
+  }, [confirmBlock, isFriendActionLoading, isOtherProfile, reportMessage, route?.params?.userId, submitReport]);
 
   const handleOpenNote = useCallback(() => {
     if (!isMine) return;
@@ -806,7 +833,7 @@ export default function ProfileScreen({ navigation, route }) {
         <View style={styles.modalBackdrop}>
           <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={styles.modalTitle}>Blokiraj i prijavi</Text>
-            <Text style={styles.modalSubtitle}>Dodaj kratku poruku koja će ostati uz prijavu.</Text>
+            <Text style={styles.modalSubtitle}>Dodaj razlog zbog kojeg blokiraš korisnika.</Text>
             <TextInput
               value={reportMessage}
               onChangeText={setReportMessage}
