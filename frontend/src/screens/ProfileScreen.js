@@ -821,19 +821,21 @@ export default function ProfileScreen({ navigation, route }) {
               onLinkPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}
             />
             <View style={styles.privateNotice}>
-              {!isBlockedUser && (
-                <View style={styles.privateIcon}>
-                  <Ionicons name="lock-closed-outline" size={40} color={colors.text_secondary} />
-                </View>
-              )}
+              <View style={styles.privateIcon}>
+                <Ionicons
+                  name={isBlockedUser ? 'alert-circle-outline' : 'lock-closed-outline'}
+                  size={40}
+                  color={colors.text_secondary}
+                />
+              </View>
               <Text style={styles.privateTitle}>
-                {isBlockedUser ? 'Nažalost, korisnik ne postoji.' : 'Ovo je privatan racun'}
+                {isBlockedUser ? 'Nažalost, korisnik ne postoji.' : 'Ovo je privatan račun'}
               </Text>
-              {!isBlockedUser && (
-                <Text style={styles.privateSubtitle}>
-                  Pocnite pratiti ovaj korisnicki racun kako biste vidjeli njihove fotografije i videozapise.
-                </Text>
-              )}
+              <Text style={styles.privateSubtitle}>
+                {isBlockedUser
+                  ? 'Provjeri link ili korisničko ime.'
+                  : 'Počnite pratiti ovaj korisnički račun kako biste vidjeli njihove fotografije i videozapise.'}
+              </Text>
             </View>
           </View>
         ) : (
@@ -1040,7 +1042,7 @@ const createStyles = (colors) =>
       height: 64,
       justifyContent: 'center',
       alignItems: 'center',
-      transform: [{ translateX: 5 }, { translateY: -5 }],
+      transform: [{ translateX: 0 }, { translateY: 0 }],
     },
     coin: {
       position: 'absolute',
@@ -1237,6 +1239,10 @@ const createStyles = (colors) =>
       borderBottomWidth: 1,
       borderTopWidth: 0,
       borderColor: colors.border,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'column',
     },
     userDetails: {
       paddingHorizontal: 24,

@@ -187,15 +187,15 @@ const createStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: colors.transparent,
     },
     listContent: {
-      paddingHorizontal: 20,
+      paddingHorizontal: 15,
       paddingTop: 10,
       paddingBottom: 75,
     },
     bottomCta: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 15,
       paddingBottom: 50,
     },
     emptyContainer: {
@@ -210,7 +210,7 @@ const createStyles = (colors) =>
       marginBottom: 12,
       padding: 16,
       borderRadius: 20,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.transparent,
       borderWidth: 1,
       borderColor: colors.border,
     },
