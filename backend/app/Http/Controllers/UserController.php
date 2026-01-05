@@ -313,16 +313,26 @@ class UserController extends Controller
             })
             ->first();
 
+        if ($friendship && $friendship->blocked) {
+            return response()->json([
+                'exists' => true,
+                'approved' => (int) ($friendship->approved ?? 0),
+                'blocked' => 1,
+            ]);
+        }
+
         if (!$friendship) {
             return response()->json([
                 'exists' => false,
                 'approved' => null,
+                'blocked' => 0,
             ]);
         }
 
         return response()->json([
             'exists' => true,
             'approved' => (int) ($friendship->approved ?? 1),
+            'blocked' => 0,
         ]);
     }
 
@@ -358,7 +368,7 @@ class UserController extends Controller
 
         if ($existing && $existing->blocked) {
             return response()->json([
-                'message' => 'Korisnik je blokiran.',
+                'message' => 'Korisnik ne postoji.',
                 'blocked' => 1,
             ], 403);
         }

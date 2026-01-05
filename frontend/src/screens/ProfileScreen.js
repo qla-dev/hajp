@@ -34,7 +34,7 @@ const NOTE_MARQUEE_WIDTH = 220;
 export default function ProfileScreen({ navigation, route }) {
   const NAV_ICON_BASE_URI = `${baseURL}/img/nav-icons`;
   const CONNECT_ICON_URI = `${NAV_ICON_BASE_URI}/user-add.svg`;
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({ name: 'Korisnik' });
   const [hypeCount, setHypeCount] = useState(0);
   const [recentHypes, setRecentHypes] = useState([]);
   const [roomSummary, setRoomSummary] = useState({ total: 0, rooms: [] });
@@ -182,26 +182,40 @@ export default function ProfileScreen({ navigation, route }) {
       setIsBlockedUser(false);
       setFriendStatusLoading(true);
       try {
-        const [{ data: userRes }, { data: roomsRes }, { data: friendsRes }, { data: statusRes }] = await Promise.all([
-          fetchUserProfile(userId),
-          fetchUserRoomsFor(userId),
-          fetchUserFriendsCount(userId),
-          fetchFriendshipStatus(userId),
-        ]);
-        setUser(userRes?.data || userRes || null);
-        setRoomSummary({ total: roomsRes?.total || 0, rooms: roomsRes?.rooms || [] });
-        setFriendsCount(friendsRes?.count ?? 0);
+        const { data: statusRes } = await fetchFriendshipStatus(userId);
+        const blocked = !!statusRes?.blocked;
+        setIsBlockedUser(blocked);
         setFriendStatus({
           exists: !!statusRes?.exists,
           approved: typeof statusRes?.approved === 'number' ? statusRes.approved : null,
         });
+
+        if (blocked) {
+          setUser({ name: 'Korisnik' });
+          setRoomSummary({ total: 0, rooms: [] });
+          setFriendsCount(0);
+          setHypeCount(0);
+          setRecentHypes([]);
+          return;
+        }
+
+        const [{ data: userRes }, { data: roomsRes }, { data: friendsRes }] = await Promise.all([
+          fetchUserProfile(userId),
+          fetchUserRoomsFor(userId),
+          fetchUserFriendsCount(userId),
+        ]);
+        setUser(userRes?.data || userRes || null);
+        setRoomSummary({ total: roomsRes?.total || 0, rooms: roomsRes?.rooms || [] });
+        setFriendsCount(friendsRes?.count ?? 0);
         await loadVotes(userId);
       } catch {
+        setIsBlockedUser(false);
         setRoomSummary({ total: 0, rooms: [] });
         setFriendsCount(0);
         setFriendStatus({ exists: false, approved: null });
         setHypeCount(0);
         setRecentHypes([]);
+        setUser({ name: 'Korisnik' });
       } finally {
         setFriendStatusLoading(false);
       }
@@ -261,26 +275,35 @@ export default function ProfileScreen({ navigation, route }) {
   const hasActiveFriendship = friendStatus.exists && friendStatus.approved === 1;
   const isPrivateProfile = Boolean(user?.is_private);
   const showPrivateNotice = isOtherProfile && isPrivateProfile && !hasActiveFriendship;
-  const canViewFriendsList = !showPrivateNotice;
+  const showUnavailable = isBlockedUser || showPrivateNotice;
+  const canViewFriendsList = !showUnavailable;
 
-  const username = user?.name ? user.name.toLowerCase().replace(' ', '') : 'gost';
-  const normalizedRooms = (roomSummary.rooms || [])
-    .map((room) => {
-      if (typeof room === 'string') return room;
-      if (room?.name) return room.name;
-      return '';
-    })
-    .filter(Boolean);
+  const safeUser = isBlockedUser ? { name: 'Korisnik' } : user || { name: 'Korisnik' };
+  const displayName = safeUser?.name || 'Korisnik';
+  const displayProfilePhoto = isBlockedUser ? null : safeUser?.profile_photo;
+  const displayAvatarConfig = isBlockedUser ? null : safeUser?.avatar;
+  const username = safeUser?.name ? safeUser.name.toLowerCase().replace(' ', '') : 'gost';
+  const normalizedRooms = isBlockedUser
+    ? []
+    : (roomSummary.rooms || [])
+        .map((room) => {
+          if (typeof room === 'string') return room;
+          if (room?.name) return room.name;
+          return '';
+        })
+        .filter(Boolean);
   const displayedRooms = normalizedRooms.slice(0, 3);
-  const remainingRooms = Math.max((roomSummary.total || 0) - displayedRooms.length, 0);
+  const remainingRooms = isBlockedUser ? 0 : Math.max((roomSummary.total || 0) - displayedRooms.length, 0);
   const roomLine =
     displayedRooms.length > 0
       ? `Član ${displayedRooms.join(', ')}${remainingRooms > 0 ? ` i još ${remainingRooms} soba` : ''}`
       : 'Nema članstava u sobama';
-  const coinBalance = user?.coins ?? 58;
-  const noteText = (user?.note || '').trim();
+  const coinBalance = safeUser?.coins ?? 58;
+  const noteText = isBlockedUser ? '' : (user?.note || '').trim();
   const showNoteBubble = isMine || !!noteText;
   const noteDisplay = isMine ? noteText || 'Dodaj misao' : noteText;
+  const friendsCountDisplay = isBlockedUser ? 0 : friendsCount;
+  const hypeCountDisplay = isBlockedUser ? 0 : hypeCount;
   const glowScale = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.25] });
   const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
@@ -289,7 +312,7 @@ export default function ProfileScreen({ navigation, route }) {
   const isPendingRequest = friendStatus.exists && friendStatus.approved !== 1;
   const showConnectedStyle = isConnected && !isFriendActionLoading;
   const connectLabel = isBlockedUser
-    ? 'Blokiran'
+    ? 'Korisnik ne postoji'
     : friendStatus.exists
     ? friendStatus.approved === 1
       ? 'Povezani ste'
@@ -415,6 +438,11 @@ export default function ProfileScreen({ navigation, route }) {
     try {
       await blockUser(route.params.userId);
       setIsBlockedUser(true);
+      setUser({ name: 'Korisnik' });
+      setRoomSummary({ total: 0, rooms: [] });
+      setFriendsCount(0);
+      setHypeCount(0);
+      setRecentHypes([]);
       setFriendStatus({ exists: true, approved: null });
       Alert.alert('Blokirano', 'Korisnik je blokiran.');
     } catch (error) {
@@ -442,6 +470,11 @@ export default function ProfileScreen({ navigation, route }) {
       try {
         await reportUser(route.params.userId, trimmed);
         setIsBlockedUser(true);
+        setUser({ name: 'Korisnik' });
+        setRoomSummary({ total: 0, rooms: [] });
+        setFriendsCount(0);
+        setHypeCount(0);
+        setRecentHypes([]);
         setFriendStatus({ exists: true, approved: null });
         Alert.alert('Poslano', 'Korisnik je blokiran i prijavljen.');
         setReportModalVisible(false);
@@ -459,7 +492,7 @@ export default function ProfileScreen({ navigation, route }) {
   const handleSubmitReport = useCallback(() => submitReport(reportMessage), [reportMessage, submitReport]);
 
   const openOptions = useCallback(() => {
-    if (!isOtherProfile || isFriendActionLoading || !route?.params?.userId) return;
+    if (!isOtherProfile || isFriendActionLoading || !route?.params?.userId || isBlockedUser) return;
     Alert.alert('Opcije korisnika', 'Odaberi akciju', [
       { text: 'Odustani', style: 'cancel' },
       { text: 'Blokiraj', style: 'destructive', onPress: confirmBlock },
@@ -514,13 +547,14 @@ export default function ProfileScreen({ navigation, route }) {
   );
 
   useEffect(() => {
-    const title = user?.username
-      ? `@${user.username}`
-      : user?.name
-      ? `@${user.name.replace(/\s+/g, '').toLowerCase()}`
-      : 'Profil';
+    const baseUser = safeUser;
+    const title = baseUser?.username
+      ? `@${baseUser.username}`
+      : baseUser?.name
+      ? baseUser.name || 'Korisnik'
+      : 'Korisnik';
     navigation.setOptions?.({ title });
-  }, [navigation, user]);
+  }, [navigation, safeUser]);
 
   useEffect(() => {
     if (!isOtherProfile) return;
@@ -609,10 +643,10 @@ export default function ProfileScreen({ navigation, route }) {
           <View style={styles.profileRow}>
             <View style={styles.avatarWrapper}>
               <Avatar
-                user={user}
-                profilePhoto={user?.profile_photo}
-                avatarConfig={user?.avatar}
-                name={user?.name || 'Korisnik'}
+                user={isBlockedUser ? null : user}
+                profilePhoto={displayProfilePhoto}
+                avatarConfig={displayAvatarConfig}
+                name={displayName}
                 variant="avatar-l"
                 style={styles.profileImage}
                 mode="auto"
@@ -693,7 +727,7 @@ export default function ProfileScreen({ navigation, route }) {
             </View>
 
             <View style={styles.statsColumn}>
-              <Text style={styles.userName}>{user?.name || ''}</Text>
+              <Text style={styles.userName}>{displayName}</Text>
               <View style={styles.statsRow}>
                 <TouchableOpacity
                   style={styles.statItemRow}
@@ -705,11 +739,11 @@ export default function ProfileScreen({ navigation, route }) {
                     })
                   }
                 >
-                  <Text style={styles.statNumber}>{friendsCount}</Text>
+                  <Text style={styles.statNumber}>{friendsCountDisplay}</Text>
                   <Text style={styles.statLabel}>prijatelja</Text>
                 </TouchableOpacity>
                 <View style={styles.statItemRow}>
-                  <Text style={styles.statNumber}>{hypeCount}</Text>
+                  <Text style={styles.statNumber}>{hypeCountDisplay}</Text>
                   <Text style={styles.statLabel}>hajpova</Text>
                 </View>
               </View>
@@ -718,7 +752,7 @@ export default function ProfileScreen({ navigation, route }) {
         </View>
       
 
-        {!showPrivateNotice && (
+        {!showUnavailable && (
           <View style={styles.userDetails}>
             <View style={styles.roomRow}>
               <View style={styles.roomAvatars}>
@@ -780,20 +814,26 @@ export default function ProfileScreen({ navigation, route }) {
           )}
         </View>
 
-        {showPrivateNotice ? (
+        {showUnavailable ? (
           <View style={styles.privateWrapper}>
             <SuggestionSlider
               linkLabel="Pogledaj sve"
               onLinkPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}
             />
             <View style={styles.privateNotice}>
-              <View style={styles.privateIcon}>
-                <Ionicons name="lock-closed-outline" size={40} color={colors.text_secondary} />
-              </View>
-              <Text style={styles.privateTitle}>Ovo je privatan račun</Text>
-              <Text style={styles.privateSubtitle}>
-                Počnite pratiti ovaj korisnički račun kako biste vidjeli njihove fotografije i videozapise.
+              {!isBlockedUser && (
+                <View style={styles.privateIcon}>
+                  <Ionicons name="lock-closed-outline" size={40} color={colors.text_secondary} />
+                </View>
+              )}
+              <Text style={styles.privateTitle}>
+                {isBlockedUser ? 'Nažalost, korisnik ne postoji.' : 'Ovo je privatan racun'}
               </Text>
+              {!isBlockedUser && (
+                <Text style={styles.privateSubtitle}>
+                  Pocnite pratiti ovaj korisnicki racun kako biste vidjeli njihove fotografije i videozapise.
+                </Text>
+              )}
             </View>
           </View>
         ) : (
@@ -1389,6 +1429,16 @@ const createStyles = (colors) =>
       marginTop: 12,
       paddingHorizontal: 16,
       paddingBottom: 50,
+    },
+    glassButton: {
+      paddingHorizontal: 8,
+      paddingVertical: 6,
+      borderRadius: 14,
+      borderWidth: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 32,
+      minWidth: 32,
     },
     noteCloseFloating: {
       position: 'absolute',
