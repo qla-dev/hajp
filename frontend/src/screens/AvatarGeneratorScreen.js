@@ -413,6 +413,7 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
       hair: gender === 'female' ? 'long' : defaultConfig.hair,
     });
     next = applyBaseDefaults(next, { force: true });
+    next.graphic = 'hajp';
     next = applyBodyMouth(next);
     next = applyGenderLashes(next);
     setConfig(sanitizeHairHatForHat(enforceCirclePurple(next)));
