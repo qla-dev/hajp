@@ -18,6 +18,7 @@ export default function CoinHeaderIndicator({ onPress }) {
   const [coins, setCoins] = useState(getCachedCoinBalance());
   const containerRef = useRef(null);
   const [coinSvgUri, setCoinSvgUri] = useState(null);
+  const hasValidLayoutRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
@@ -47,6 +48,7 @@ export default function CoinHeaderIndicator({ onPress }) {
           const nextCoins = data?.coins ?? 0;
           if (isMounted) {
             updateCoinBalance(nextCoins);
+            setCoins(nextCoins);
           }
         } catch (error) {
           console.warn('Failed to load coins', error);
@@ -69,6 +71,11 @@ export default function CoinHeaderIndicator({ onPress }) {
     if (!handle) return;
     InteractionManager.runAfterInteractions(() => {
       UIManager.measureInWindow(handle, (pageX, pageY, width, height) => {
+        if (height <= 0 || width <= 0) return;
+        if (pageY < 0 && hasValidLayoutRef.current) return;
+        if (pageY >= 0) {
+          hasValidLayoutRef.current = true;
+        }
         setCoinHeaderLayout({ x: pageX, y: pageY, width, height });
       });
     });
@@ -76,10 +83,10 @@ export default function CoinHeaderIndicator({ onPress }) {
 
   useEffect(() => {
     measureLayout();
-    const pending = setInterval(measureLayout, 500);
+    const pending = setTimeout(measureLayout, 400);
     const listener = Platform.OS === 'web' ? null : Dimensions.addEventListener?.('change', measureLayout);
     return () => {
-      clearInterval(pending);
+      clearTimeout(pending);
       listener?.remove?.();
     };
   }, [measureLayout]);
@@ -111,20 +118,24 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      paddingHorizontal: 4,
+      paddingHorizontal: 2,
+      paddingVertical: 0,
+      borderWidth: 0,
+      backgroundColor: 'transparent',
     },
     fallbackIcon: {
       width: 24,
       height: 24,
       borderRadius: 12,
-      borderWidth: 1,
+      borderWidth: 0,
       alignItems: 'center',
       justifyContent: 'center',
+      backgroundColor: 'transparent',
     },
     label: {
       color: colors.text_primary,
       fontWeight: '600',
       fontSize: 13,
-      minWidth: 10,
+      minWidth: 12,
     },
   });
