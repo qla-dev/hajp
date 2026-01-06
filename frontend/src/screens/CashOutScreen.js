@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ScrollView,
   View,
@@ -13,7 +13,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { postRoomCashout, fetchCoinBalance } from '../api';
+import { postRoomCashout, fetchCoinBalance, fetchRoomCashoutStatus } from '../api';
 import LottieView from 'lottie-react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { updateCoinBalance, getCachedCoinBalance } from '../utils/coinHeaderTracker';
@@ -25,6 +25,12 @@ const coinSoundAsset = require('../../assets/sounds/coins.mp3');
 const applauseSoundAsset = require('../../assets/sounds/applause.mp3');
 const coinAsset = require('../../assets/svg/coin.svg');
 const coinAssetDefaultUri = Asset.fromModule(coinAsset).uri;
+
+const deriveAmount = (raw) => {
+  const num = Number(raw);
+  if (!Number.isFinite(num)) return null;
+  return Math.max(0, Math.floor(num));
+};
 
 export default function CashOutScreen({ route, navigation }) {
   const { roomId, coinsEarned, cashoutAmount } = route.params || {};
@@ -41,16 +47,26 @@ export default function CashOutScreen({ route, navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
+  const [payoutCoins, setPayoutCoins] = useState(() => deriveAmount(coinsEarned ?? cashoutAmount));
   const confettiTimer = useRef(null);
   const confettiRef = useRef(null);
   const coinSoundRef = useRef(null);
   const applauseSoundRef = useRef(null);
   const handleConfettiComplete = () => setCelebrating(false);
-  const payoutCoins = Number.isFinite(coinsEarned)
-    ? Math.max(0, Math.floor(coinsEarned))
-    : Number.isFinite(cashoutAmount)
-    ? Math.max(0, Math.floor(cashoutAmount))
-    : 0;
+  const fetchCashoutAmount = useCallback(async () => {
+    if (!roomId) return null;
+    try {
+      const { data } = await fetchRoomCashoutStatus(roomId);
+      const amount = deriveAmount(
+        data?.cashout_amount ?? data?.cashout?.amount ?? data?.amount ?? data?.coins ?? data?.earned_coins,
+      );
+      if (amount != null) setPayoutCoins(amount);
+      return amount;
+    } catch (err) {
+      console.warn('Failed to load cashout amount', err);
+      return null;
+    }
+  }, [roomId]);
 
   useEffect(() => () => clearTimeout(confettiTimer.current), []);
 
@@ -120,6 +136,10 @@ export default function CashOutScreen({ route, navigation }) {
   }, [preloadCoinAsset]);
 
   useEffect(() => {
+    fetchCashoutAmount();
+  }, [fetchCashoutAmount]);
+
+  useEffect(() => {
     // Ensure header coin indicator shows current balance on entry
     fetchCoinBalance()
       .then(({ data }) => {
@@ -176,10 +196,14 @@ export default function CashOutScreen({ route, navigation }) {
     setErrorMessage('');
     playCoinSound();
     try {
+      const ensuredAmount = payoutCoins ?? (await fetchCashoutAmount()) ?? 0;
       await Haptics.selectionAsync();
       const { data } = await postRoomCashout(roomId);
+      const apiAmount = deriveAmount(data?.cashout_amount ?? data?.cashout?.amount ?? data?.amount ?? data?.coins);
+      const coinsForAnimation = apiAmount ?? ensuredAmount;
+      if (apiAmount != null) setPayoutCoins(apiAmount);
       setCelebrating(true);
-      const animationPromise = animateCoinTransfer();
+      const animationPromise = animateCoinTransfer(coinsForAnimation);
       const refreshPromise = refreshCoinTotals();
       await Promise.allSettled([animationPromise, refreshPromise]);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -206,12 +230,12 @@ export default function CashOutScreen({ route, navigation }) {
       });
     });
 
-  const animateCoinTransfer = async () => {
+  const animateCoinTransfer = async (coinsCount) => {
     const readyUri = await preloadCoinAsset();
     const coinUriForAnimation = readyUri || preloadedCoinUriRef.current || coinSvgUri;
     if (coinUriForAnimation && !coinSvgUri) setCoinSvgUri(coinUriForAnimation);
     preloadedCoinUriRef.current = coinUriForAnimation || preloadedCoinUriRef.current;
-    const coinsToAnimate = Math.max(0, Math.min(payoutCoins || 0, 25));
+    const coinsToAnimate = Math.max(0, Math.min(coinsCount ?? 0, 25));
     if (coinsToAnimate <= 0) return;
     const buttonLayout = await measureButton();
     if (!buttonLayout) return;

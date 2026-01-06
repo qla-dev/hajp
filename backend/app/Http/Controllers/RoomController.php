@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CashoutHistory;
 use App\Models\Question;
+use App\Models\Poll;
 use App\Models\Room;
 use App\Models\RoomMember;
 use App\Models\Friendship;
@@ -479,13 +480,15 @@ class RoomController extends Controller
                 ->where('poll_id', $poll->id)
                 ->exists();
         }
+        $cashoutAmount = $this->calculateCashoutAmount($room, $poll, $user);
+        $canCashout = !$hasCashout && $cashoutAmount > 0;
 
         return response()->json([
             'poll_id' => $poll->id,
             'last_poll_at' => ($poll->updated_at ?? $poll->created_at)->toIso8601String(),
             'next_poll_at' => $nextPollAt->toIso8601String(),
-            'can_cashout' => !$hasCashout,
-            'cashout_amount' => 10,
+            'can_cashout' => $canCashout,
+            'cashout_amount' => $cashoutAmount,
         ]);
     }
 
@@ -501,6 +504,11 @@ class RoomController extends Controller
             return response()->json(['message' => 'Nema anketa za isplatu'], 404);
         }
 
+        $cashoutAmount = $this->calculateCashoutAmount($room, $poll, $user);
+        if ($cashoutAmount <= 0) {
+            return response()->json(['message' => 'Nema coinova za isplatu'], 422);
+        }
+
         $existing = CashoutHistory::where('user_id', $user->id)
             ->where('poll_id', $poll->id)
             ->exists();
@@ -510,12 +518,12 @@ class RoomController extends Controller
 
         /** @var CashoutHistory|null $history */
         $history = null;
-        DB::transaction(function () use ($user, $poll, &$history) {
+        DB::transaction(function () use ($user, $poll, &$history, $cashoutAmount) {
             $history = CashoutHistory::create([
                 'user_id' => $user->id,
                 'poll_id' => $poll->id,
             ]);
-            $user->increment('hajp_coins', 10);
+            $user->increment('hajp_coins', $cashoutAmount);
         });
 
         $user->refresh();
@@ -524,8 +532,24 @@ class RoomController extends Controller
         return response()->json([
             'coins' => $user->coins,
             'cashout' => $history,
+            'cashout_amount' => $cashoutAmount,
             'next_poll_at' => $nextPollAt->toIso8601String(),
         ], 201);
+    }
+
+    private function calculateCashoutAmount(Room $room, Poll $poll, ?User $user): int
+    {
+        if (!$user) {
+            return 0;
+        }
+
+        return $poll->questions()
+            ->whereHas('votes', function ($q) use ($user, $room) {
+                $q->where('user_id', $user->id)
+                    ->where('room_id', $room->id)
+                    ->whereNotNull('selected_user_id');
+            })
+            ->count();
     }
 
     public function rank(Request $request, Room $room, string $period)
