@@ -104,7 +104,7 @@ export default function CoinHeaderIndicator({ onPress }) {
         <SvgUri width={24} height={24} uri={coinSvgUri} />
       ) : (
         <View style={[styles.fallbackIcon, { borderColor: colors.border, backgroundColor: colors.surface }]}>
-          <Text style={{ color: colors.primary, fontWeight: '800' }}>₵</Text>
+          <Text style={{ color: colors.primary, fontWeight: '800' }}></Text>
         </View>
       )}
       <Text style={styles.label}>{coins}</Text>
@@ -121,8 +121,7 @@ const createStyles = (colors) =>
       flexShrink: 0,
       minHeight: 32,
       minWidth: 54,
-      paddingHorizontal: 5,
-      paddingVertical: 6,
+      paddingHorizontal: 8,
       borderRadius: 18,
       borderWidth: 0,
       backgroundColor: 'transparent',
