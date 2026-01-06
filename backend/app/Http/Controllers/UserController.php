@@ -99,7 +99,7 @@ class UserController extends Controller
             ->where('id', '!=', $user->id)
             ->inRandomOrder()
             ->limit(12)
-            ->get(['id', 'name', 'username', 'profile_photo', 'sex']);
+            ->get(['id', 'name', 'username', 'profile_photo', 'avatar', 'sex']);
 
         return response()->json(['data' => $suggestions]);
     }
@@ -125,7 +125,7 @@ class UserController extends Controller
         $friendRequests = Friendship::query()
             ->where('user_id', $userId)
             ->where('approved', 0)
-            ->with(['requester:id,name,username,profile_photo'])
+            ->with(['requester:id,name,username,profile_photo,avatar'])
             ->orderByDesc('created_at')
             ->get()
             ->map(function ($friendship) {
@@ -137,13 +137,14 @@ class UserController extends Controller
                     'name' => $friendship->requester?->name,
                     'username' => $friendship->requester?->username,
                     'profile_photo' => $friendship->requester?->profile_photo,
+                    'avatar' => $friendship->requester?->avatar,
                     'created_at' => $friendship->created_at,
                 ];
             });
 
         // Invites sent to me to join rooms (I need to accept)
         $roomInvitesForMe = RoomMember::query()
-            ->with(['room:id,name,cover_url,type', 'room.vibe:id,slug,icon', 'invitedBy:id,name,username,profile_photo'])
+            ->with(['room:id,name,cover_url,type', 'room.vibe:id,slug,icon', 'invitedBy:id,name,username,profile_photo,avatar'])
             ->where('user_id', $userId)
             ->where('accepted', 0)
             ->orderByDesc('created_at')
@@ -160,6 +161,7 @@ class UserController extends Controller
                     'inviter_name' => $membership->invitedBy?->name,
                     'username' => $membership->invitedBy?->username,
                     'profile_photo' => $membership->room?->cover_url ?? $membership->invitedBy?->profile_photo,
+                    'avatar' => $membership->invitedBy?->avatar,
                     'created_at' => $membership->created_at,
                 ];
             });
@@ -173,7 +175,7 @@ class UserController extends Controller
             ->unique();
 
         $roomApprovals = RoomMember::query()
-            ->with(['user:id,name,username,profile_photo', 'room:id,name,cover_url,type', 'room.vibe:id,slug,icon'])
+            ->with(['user:id,name,username,profile_photo,avatar', 'room:id,name,cover_url,type', 'room.vibe:id,slug,icon'])
             ->whereIn('room_id', $adminRoomIds)
             ->where('approved', 0)
             ->where('accepted', 1)
@@ -190,6 +192,7 @@ class UserController extends Controller
                     'room_icon' => $membership->room?->vibe?->icon,
                     'username' => $membership->user?->username,
                     'profile_photo' => $membership->user?->profile_photo ?? $membership->room?->cover_url,
+                    'avatar' => $membership->user?->avatar,
                     'created_at' => $membership->created_at,
                 ];
             });
@@ -210,7 +213,7 @@ class UserController extends Controller
         $blocked = Friendship::query()
             ->where('auth_user_id', $authId)
             ->where('blocked', 1)
-            ->with(['friend:id,name,username,profile_photo'])
+            ->with(['friend:id,name,username,profile_photo,avatar'])
             ->orderByDesc('updated_at')
             ->get()
             ->map(function ($friendship) {
@@ -221,6 +224,7 @@ class UserController extends Controller
                     'name' => $friend?->name,
                     'username' => $friend?->username,
                     'profile_photo' => $friend?->profile_photo,
+                    'avatar' => $friend?->avatar,
                     'blocked_at' => $friendship->updated_at,
                 ];
             })
@@ -613,7 +617,7 @@ class UserController extends Controller
                 $query->where('auth_user_id', $userId)->orWhere('user_id', $userId);
             })
             ->where('approved', 1)
-            ->with(['requester:id,name,username,profile_photo', 'friend:id,name,username,profile_photo'])
+            ->with(['requester:id,name,username,profile_photo,avatar', 'friend:id,name,username,profile_photo,avatar'])
             ->orderByDesc('created_at')
             ->limit(50)
             ->get()
@@ -627,6 +631,7 @@ class UserController extends Controller
                     'name' => $other?->name,
                     'username' => $other?->username,
                     'profile_photo' => $other?->profile_photo,
+                    'avatar' => $other?->avatar,
                     'created_at' => $friendship->created_at,
                 ];
             });

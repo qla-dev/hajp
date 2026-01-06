@@ -408,18 +408,20 @@ const createStyles = (colors) =>
       flex: 1,
       backgroundColor: colors.background,
       paddingTop: 10,
-      paddingHorizontal: 16,
+      paddingHorizontal: 0,
       paddingBottom: 4,
     },
     listContent: {
       paddingTop: 8,
       paddingBottom: 16,
+      paddingHorizontal: 16,
     },
     searchRow: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingTop: 100,
       paddingBottom: 8,
+      paddingHorizontal: 16,
     },
     searchInput: {
       flex: 1,

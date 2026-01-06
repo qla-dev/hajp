@@ -25,6 +25,35 @@ const shuffleSoundAsset = require('../../assets/sounds/shuffle.mp3');
 const coinAsset = require('../../assets/svg/coin.svg');
 const coinAssetUri = Asset.fromModule(coinAsset).uri;
 
+const isSvgUri = (uri) => {
+  if (!uri || typeof uri !== 'string') return false;
+  const trimmed = uri.trim();
+  if (!trimmed) return false;
+  const lowered = trimmed.toLowerCase();
+  return (
+    lowered.startsWith('<svg') ||
+    lowered.includes('avataaars.io') ||
+    lowered.startsWith('data:image/svg') ||
+    lowered.includes('.svg')
+  );
+};
+
+const hasAvatarConfig = (value) => {
+  if (!value) return false;
+  if (typeof value === 'object') return true;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return false;
+    try {
+      const parsed = JSON.parse(trimmed);
+      return !!parsed && typeof parsed === 'object';
+    } catch {
+      return false;
+    }
+  }
+  return false;
+};
+
 
 
 export default function PollingScreen({ route, navigation }) {
@@ -89,6 +118,17 @@ export default function PollingScreen({ route, navigation }) {
       end: selected.end || fallback.end,
     };
   }, [backgrounds, bgGradient, colors.primary]);
+  const zoomAvatarIsSvg = useMemo(() => {
+    if (!zoomAvatar) return false;
+    const profilePhoto =
+      typeof zoomAvatar.profilePhoto === 'string' ? zoomAvatar.profilePhoto.trim() : zoomAvatar.profilePhoto;
+    if (profilePhoto) return false;
+    if (hasAvatarConfig(zoomAvatar.avatarConfig)) return true;
+    return isSvgUri(zoomAvatar.uri);
+  }, [zoomAvatar]);
+  const zoomAvatarSize = zoomAvatarIsSvg ? 340 : 300;
+  const zoomAvatarLift = zoomAvatarIsSvg ? Math.round(zoomAvatarSize * -0.06) : 0;
+  const zoomSvgOffset = zoomAvatarIsSvg ? Math.round(zoomAvatarSize * -0.04) : 0;
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', () => {
       const parent = navigation.getParent();
@@ -469,22 +509,24 @@ export default function PollingScreen({ route, navigation }) {
                       outputRange: [0.9, 1.02],
                     }),
                   },
+                  { translateY: zoomAvatarLift },
                 ],
               },
             ]}
-            >
+          >
             <Avatar
               uri={zoomAvatar?.uri}
               avatarConfig={zoomAvatar?.avatarConfig}
               profilePhoto={zoomAvatar?.profilePhoto}
               user={zoomAvatar?.user}
               name={zoomAvatar?.name}
-              size={300}
+              size={zoomAvatarSize}
+              svgOffset={zoomSvgOffset}
               zoomModal={false}
             />
-            </Animated.View>
-          </Pressable>
-        )}
+          </Animated.View>
+        </Pressable>
+      )}
 
       <View style={styles.bottomActions}>
         <TouchableOpacity onPress={handleShuffle} style={styles.actionButton} disabled={refreshingQuestion || interactionLocked}>

@@ -9,7 +9,10 @@ import { baseURL } from '../api';
 export const sizeMap = {
   xs: { photoSize: 64, avatarSize: 47, slotSize: 64, font: 12 },
   s: { photoSize: 36, avatarSize: 46, slotSize: 36, font: 12 },
+  friendlist: { photoSize: 48, avatarSize: 64, slotSize: 48, font: 16 },
   m: { photoSize: 120, avatarSize: 158, slotSize: 120, font: 32 }, // current default
+  suggestiongrid: { photoSize: 100, avatarSize: 132, slotSize: 100, font: 28 },
+  suggestionslider: { photoSize: 80, avatarSize: 105, slotSize: 80, font: 24 },
   l: { photoSize: 158, avatarSize: 228, slotSize: 158, font: 40 },
   xl: { photoSize: 190, avatarSize: 250, slotSize: 190, font: 48 },
   hero: { photoSize: 180, avatarSize: 237, slotSize: 180, font: 38 },
@@ -100,6 +103,7 @@ export default function Avatar({
   flip = false,
   bgMode = 'default', // 'default' | 'random'
   onPress,
+  svgOffset = 0,
 }) {
   const { colors } = useTheme();
   const [imageError, setImageError] = useState(false);
@@ -218,6 +222,7 @@ export default function Avatar({
   const initialsOnly = isInitialsPlaceholderUri(effectiveUri);
   const isSvg = !initialsOnly && isSvgUri(effectiveUri);
   const paletteColor = bgMode === 'random' ? colors.secondary : '#b794f4';
+  const svgContentOffset = isSvg ? svgOffset : 0;
 
   const slotDimensionStyle = { width: slotSize, height: slotSize, borderRadius: slotSize / 2 };
   const contentDimensionStyle = { width: resolvedSize, height: resolvedSize, borderRadius: resolvedSize / 2 };
@@ -263,8 +268,25 @@ export default function Avatar({
     };
   }, [colors.secondary, effectiveUri, isSvg, paletteColor]);
 
-  const renderContent = (dimensionStyle = contentDimensionStyle, fontSize = resolvedFont, sizeForElement = resolvedSize) => {
-    const assetStyle = [styles.base, dimensionStyle, flip ? styles.flip : null, assetReady ? null : styles.hidden];
+  const renderContent = (
+    dimensionStyle = contentDimensionStyle,
+    fontSize = resolvedFont,
+    sizeForElement = resolvedSize,
+    options = {},
+  ) => {
+    const { svgOffset = 0 } = options;
+    const buildAssetStyle = (extraTransform = null) => {
+      const transforms = [];
+      if (flip) transforms.push({ scaleX: -1 });
+      if (extraTransform) transforms.push(extraTransform);
+      return [
+        styles.base,
+        dimensionStyle,
+        transforms.length ? { transform: transforms } : null,
+        assetReady ? null : styles.hidden,
+        borderStyle,
+      ];
+    };
     const fallbackBg = contentMode === 'avatar' ? 'transparent' : colors.profilePurple;
     const fallbackTextColor = fallbackBg === 'transparent' ? colors.text_primary : colors.textLight;
     const fallbackNode = (
@@ -274,19 +296,16 @@ export default function Avatar({
     );
 
     if (effectiveUri && isSvg && !svgError) {
+      const offsetTransform = svgOffset ? { translateY: svgOffset } : null;
+      const svgStyle = buildAssetStyle(offsetTransform);
       const node = svgMarkup ? (
-        <SvgXml
-          xml={svgMarkup}
-          width={sizeForElement}
-          height={sizeForElement}
-          style={[...assetStyle, borderStyle]}
-        />
+        <SvgXml xml={svgMarkup} width={sizeForElement} height={sizeForElement} style={svgStyle} />
       ) : (
         <SvgUri
           uri={effectiveUri}
           width={sizeForElement}
           height={sizeForElement}
-          style={[...assetStyle, borderStyle]}
+          style={svgStyle}
           onLoad={() => setAssetReady(true)}
           onError={() => setSvgError(true)}
         />
@@ -303,7 +322,7 @@ export default function Avatar({
       const node = (
         <Image
           source={{ uri: effectiveUri }}
-          style={[...assetStyle, borderStyle]}
+          style={buildAssetStyle()}
           onLoad={() => setAssetReady(true)}
           onLoadEnd={() => setAssetReady(true)}
           onError={() => setImageError(true)}
@@ -348,6 +367,7 @@ export default function Avatar({
     () => ({ width: zoomSize, height: zoomSize, borderRadius: zoomSize / 2 }),
     [zoomSize],
   );
+  const svgPreviewOffset = isSvg ? Math.round(zoomSize * -0.04) : 0;
 
   return (
     <>
@@ -355,7 +375,9 @@ export default function Avatar({
         onPress={canZoom || onPress ? handlePress : undefined}
         style={[styles.slotWrapper, slotDimensionStyle, style]}
       >
-        <View style={[styles.contentOverlay, contentDimensionStyle]}>{renderContent()}</View>
+        <View style={[styles.contentOverlay, contentDimensionStyle]}>
+          {renderContent(contentDimensionStyle, resolvedFont, resolvedSize, { svgOffset: svgContentOffset })}
+        </View>
       </Wrapper>
 
       {showZoom && canZoom && (
@@ -372,7 +394,7 @@ export default function Avatar({
                 ],
               }}
             >
-              {renderContent(zoomDimensionStyle, zoomFont, zoomSize)}
+              {renderContent(zoomDimensionStyle, zoomFont, zoomSize, { svgOffset: svgPreviewOffset })}
             </Animated.View>
           </Pressable>
         </Modal>
@@ -415,9 +437,6 @@ const styles = StyleSheet.create({
   },
   hidden: {
     opacity: 0,
-  },
-  flip: {
-    transform: [{ scaleX: -1 }],
   },
   avatarOverlay: {
     flex: 1,

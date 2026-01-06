@@ -3,13 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { baseURL } from '../api';
+import Avatar from './Avatar';
 
 export default function FriendListItem({
   friend,
@@ -37,17 +36,6 @@ export default function FriendListItem({
     friend.inviter_name ||
     friend.name;
 
-  const pickAvatarField = (item) =>
-    item.profile_photo || item.photo || item.avatar || item.image || null;
-
-  const resolveAvatar = (photo) => {
-    if (!photo) return null;
-    if (/^https?:\/\//i.test(photo)) return photo;
-    const cleanBase = (baseURL || '').replace(/\/+$/, '');
-    const cleanPath = photo.replace(/^\/+/, '');
-    return `${cleanBase}/${cleanPath}`;
-  };
-
   const renderAvatar = () => {
     if (
       isRequestList &&
@@ -60,23 +48,14 @@ export default function FriendListItem({
         </View>
       );
     }
-
-    const avatarUri = resolveAvatar(pickAvatarField(friend));
-    if (avatarUri) {
-      return <Image source={{ uri: avatarUri }} style={styles.avatar} />;
-    }
-
-    const label = friend.name || friend.username || 'Korisnik';
-    const initials = label
-      .split(' ')
-      .map((part) => part.charAt(0).toUpperCase())
-      .slice(0, 2)
-      .join('');
-
     return (
-      <View style={[styles.avatar, styles.avatarFallback]}>
-        <Text style={styles.avatarFallbackText}>{initials}</Text>
-      </View>
+      <Avatar
+        user={friend}
+        avatarConfig={friend.avatar_config || friend.avatarConfig || null}
+        name={friend.name || friend.username || 'Korisnik'}
+        variant="avatar-friendlist"
+        zoomModal={false}
+      />
     );
   };
 
@@ -163,14 +142,10 @@ const createStyles = (colors) =>
       gap: 12,
     },
     avatar: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       backgroundColor: colors.secondary,
-    },
-    avatarFallback: {
-      justifyContent: 'center',
-      alignItems: 'center',
     },
     roomAvatar: {
       backgroundColor: colors.background,
@@ -179,11 +154,6 @@ const createStyles = (colors) =>
       borderWidth: 1,
       borderColor: colors.primary,
       borderRadius: 5,
-    },
-    avatarFallbackText: {
-      color: colors.textLight,
-      fontWeight: '800',
-      fontSize: 18,
     },
     info: {
       flex: 1,

@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Image,
   ActivityIndicator,
   Animated,
   StyleSheet,
@@ -14,7 +13,8 @@ import { useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchFriendSuggestions, addFriend, baseURL } from '../api';
+import { fetchFriendSuggestions, addFriend } from '../api';
+import Avatar from './Avatar';
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 
 export default function SuggestionSlider({
@@ -42,35 +42,6 @@ export default function SuggestionSlider({
   const tapTriggeredRef = useRef(false);
   const draggingRef = useRef(false);
   const connectSoundRef = useRef(null);
-
-  const resolveAvatar = (photo) => {
-    if (!photo) return null;
-    if (/^https?:\/\//i.test(photo)) return photo;
-    const cleanBase = (baseURL || '').replace(/\/+$/, '');
-    const cleanPath = photo.replace(/^\/+/, '');
-    return `${cleanBase}/${cleanPath}`;
-  };
-
-  const pickAvatarField = (item) =>
-    item.profile_photo || item.photo || item.avatar || item.image || null;
-
-  const renderAvatar = (item) => {
-    const uri = resolveAvatar(pickAvatarField(item));
-    if (uri) {
-      return <Image source={{ uri }} style={styles.cardAvatar} />;
-    }
-    const label = item.name || item.username || 'Korisnik';
-    const initials = label
-      .split(' ')
-      .map((part) => part.charAt(0).toUpperCase())
-      .slice(0, 2)
-      .join('');
-    return (
-      <View style={[styles.cardAvatar, styles.avatarFallback]}>
-        <Text style={styles.avatarFallbackText}>{initials}</Text>
-      </View>
-    );
-  };
 
   const loadSuggestions = useCallback(async () => {
     setLoading(true);
@@ -226,7 +197,15 @@ export default function SuggestionSlider({
               onPress={() => handleCardPress(item)}
             >
               <Animated.View style={[styles.card, fadeValues[item.id] && { opacity: fadeValues[item.id] }]}>
-                <View style={styles.cardHeader}>{renderAvatar(item)}</View>
+                <View style={styles.cardHeader}>
+                  <Avatar
+                    user={item}
+                    avatarConfig={item.avatar_config || item.avatarConfig || null}
+                    name={item.name || item.username || 'Korisnik'}
+                    variant="suggestionSlider"
+                    zoomModal={false}
+                  />
+                </View>
                 <Text style={styles.cardName}>{item.name || item.username}</Text>
                 {item.username ? <Text style={styles.cardSubtitle}>@{item.username}</Text> : null}
                 <Text style={styles.cardMutual}>Predloženi prijatelj</Text>
@@ -312,21 +291,6 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       alignItems: 'center',
     },
-    cardAvatar: {
-      width: 64,
-      height: 64,
-      borderRadius: 32,
-      backgroundColor: colors.secondary,
-    },
-    avatarFallback: {
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    avatarFallbackText: {
-      color: colors.textLight,
-      fontWeight: '800',
-      fontSize: 18,
-    },
     cardName: {
       fontWeight: '800',
       color: colors.text_primary,
@@ -334,6 +298,7 @@ const createStyles = (colors) =>
     },
     cardSubtitle: {
       color: colors.text_secondary,
+      marginTop: -7,
     },
     cardMutual: {
       color: colors.text_secondary,
