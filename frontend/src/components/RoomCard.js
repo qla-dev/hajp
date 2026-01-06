@@ -11,7 +11,7 @@ const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 const FALLBACK_COVER =
   'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1440&q=80';
 
-export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
+export default function RoomCard({ room = {}, onPress, onJoin, joining, connectButtonHide = 0 }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const connectSoundRef = useRef(null);
@@ -129,8 +129,14 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
     onJoin?.(room);
   };
 
+  const handleCardPress = useCallback(() => {
+    if (!onPress) return;
+    Haptics.selectionAsync().catch(() => {});
+    onPress();
+  }, [onPress]);
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.92}>
+    <TouchableOpacity style={styles.card} onPress={handleCardPress} activeOpacity={0.92}>
       <ImageBackground source={{ uri: coverUri }} style={styles.cover} imageStyle={styles.coverImage}>
         <View style={styles.overlay} />
         {room.is_18_over ? (
@@ -151,7 +157,8 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
       </ImageBackground>
 
       <View style={styles.infoBlock}>
-        <View style={styles.infoHeader}>
+        {!connectButtonHide && (
+          <View style={styles.infoHeader}>
           <View style={styles.infoHeaderSpacer} />
           <TouchableOpacity
             style={styles.joinButton}
@@ -164,7 +171,8 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining }) {
               <Text style={styles.joinButtonText}>{joining ? 'Pridruživanje' : 'Pridruži se'}</Text>
             </View>
           </TouchableOpacity>
-        </View>
+          </View>
+        )}
         <Text style={styles.title}>{room.name}</Text>
         {!!room.tagline && <Text style={styles.tagline}>{room.tagline}</Text>}
       </View>

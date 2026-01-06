@@ -1,30 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { baseURL } from '../api';
+import Avatar from './Avatar';
+import * as Haptics from 'expo-haptics';
 
 export default function ActivityItem({ activity, isLast, navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
 
-  const resolveAvatar = (photo) => {
-    if (!photo) return null;
-    if (/^https?:\/\//i.test(photo)) return photo;
-    const cleanBase = (baseURL || '').replace(/\/+$/, '');
-    const cleanPath = photo.replace(/^\/+/, '');
-    return `${cleanBase}/${cleanPath}`;
-  };
-
   const selectedTarget = activity.selected_user || activity.selectedUser;
   const isCasterAction = activity.action === 'ishajpao';
   const relevantUser = isCasterAction ? activity.user : selectedTarget || activity.user;
-  const initials = (relevantUser?.name || relevantUser?.username || 'Korisnik')
-    .split(' ')
-    .map((part) => part.charAt(0).toUpperCase())
-    .slice(0, 2)
-    .join('');
-  const avatarUri = resolveAvatar(relevantUser?.profile_photo);
   const actionLabel = formatActionLabel(activity.action);
 
   const otherUserSex = isCasterAction
@@ -35,6 +22,7 @@ export default function ActivityItem({ activity, isLast, navigation }) {
   const handlePress = () => {
     const targetId = relevantUser?.id;
     if (!targetId) return;
+    Haptics.selectionAsync().catch(() => {});
     navigation?.navigate('LiveFriendProfile', {
       isMine: false,
       userId: targetId,
@@ -43,13 +31,14 @@ export default function ActivityItem({ activity, isLast, navigation }) {
 
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.7} style={[styles.card, isLast && styles.cardLast]}>
-      {avatarUri ? (
-        <Image source={{ uri: avatarUri }} style={styles.avatar} />
-      ) : (
-        <View style={styles.avatarFallback}>
-          <Text style={styles.avatarFallbackText}>{initials}</Text>
-        </View>
-      )}
+      <Avatar
+        user={relevantUser}
+        avatarConfig={relevantUser?.avatar_config || relevantUser?.avatarConfig || null}
+        name={relevantUser?.name || relevantUser?.username || 'Korisnik'}
+        variant="friendlist"
+        zoomModal={false}
+        style={styles.avatar}
+      />
       <View style={styles.content}>
         <View style={styles.headerRow}>
           <Text style={styles.name}>{relevantUser?.name || relevantUser?.username || 'Korisnik'}</Text>
@@ -114,25 +103,7 @@ const createStyles = (colors) =>
       borderBottomWidth: 0,
     },
     avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
       marginRight: 12,
-      backgroundColor: colors.secondary,
-    },
-    avatarFallback: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      marginRight: 12,
-      backgroundColor: colors.secondary,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    avatarFallbackText: {
-      color: '#fff',
-      fontSize: 18,
-      fontWeight: '700',
     },
     content: {
       flex: 1,

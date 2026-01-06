@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   FlatList,
   StyleSheet,
   ActivityIndicator,
@@ -10,6 +9,7 @@ import {
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRooms } from '../api';
+import RoomCard from '../components/RoomCard';
 
 export default function RankRoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
@@ -33,13 +33,11 @@ export default function RankRoomsScreen({ navigation }) {
   };
 
   const renderRoom = ({ item }) => (
-    <TouchableOpacity
-      style={styles.roomCard}
+    <RoomCard
+      room={item}
+      connectButtonHide={1}
       onPress={() => navigation.navigate('Ranking', { roomId: item.id, roomName: item.name })}
-    >
-      <Text style={styles.roomName}>{item.name}</Text>
-      {item.is_18_over ? <Text style={styles.roomBadge}>18+</Text> : null}
-    </TouchableOpacity>
+    />
   );
 
   return (
@@ -89,29 +87,5 @@ const createStyles = (colors) =>
       paddingTop: 0,
       paddingBottom: 8,
       paddingHorizontal: 16,
-    },
-    roomCard: {
-      backgroundColor: colors.surface,
-      padding: 16,
-      borderRadius: 12,
-      marginVertical: 6,
-      borderWidth: 1,
-      borderColor: colors.border,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.08,
-      shadowRadius: 2,
-      elevation: 1,
-    },
-    roomName: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: colors.text_primary,
-    },
-    roomBadge: {
-      marginTop: 4,
-      fontSize: 12,
-      color: colors.error,
-      fontWeight: '700',
     },
   });

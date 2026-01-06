@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   FlatList,
   ActivityIndicator,
   RefreshControl,
@@ -11,6 +10,7 @@ import {
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRoomRanking, getCurrentUser } from '../api';
+import MenuTab from '../components/MenuTab';
 
 const PERIODS = [
   { key: 'day', label: 'Danas' },
@@ -287,24 +287,15 @@ export default function RankingScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.tabs}>
-        {PERIODS.map((period) => (
-          <TouchableOpacity
-            key={period.key}
-            style={[
-              styles.tabButton,
-              activePeriod === period.key && styles.tabButtonActive,
-              activePeriod === period.key && { borderColor: colors.primary },
-            ]}
-            onPress={() => setActivePeriod(period.key)}
-            activeOpacity={0.75}
-          >
-            <Text style={[styles.tabText, activePeriod === period.key && styles.tabTextActive]}>
-              {period.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <MenuTab
+        items={PERIODS}
+        activeKey={activePeriod}
+        onChange={setActivePeriod}
+        topPadding={100}
+        horizontalPadding={16}
+        variant="menu-tab-s"
+        color="secondary"
+      />
       {loading ? (
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -354,33 +345,6 @@ const createStyles = (colors, isDark) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-      padding: 16,
-    },
-    tabs: {
-      flexDirection: 'row',
-      gap: 8,
-      paddingBottom: 16,
-      paddingTop: 90,
-    },
-    tabButton: {
-      flex: 1,
-      paddingVertical: 10,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: 'transparent',
-      alignItems: 'center',
-      backgroundColor: colors.surface,
-    },
-    tabButtonActive: {
-      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#eef4ff',
-    },
-    tabText: {
-      fontSize: 14,
-      fontWeight: '700',
-      color: colors.text_secondary,
-    },
-    tabTextActive: {
-      color: colors.primary,
     },
     centerContent: {
       flex: 1,
@@ -394,6 +358,7 @@ const createStyles = (colors, isDark) =>
       fontSize: 16,
     },
     list: {
+      paddingHorizontal: 16,
       paddingBottom: BOTTOM_CARD_EXTRA + 8,
     },
     listEmptyContainer: {
@@ -410,10 +375,6 @@ const createStyles = (colors, isDark) =>
       paddingVertical: 16,
       paddingHorizontal: 12,
       marginBottom: 12,
-      shadowColor: colors.shadowSecondary ?? '#000',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.08,
-      shadowRadius: 12,
       elevation: 4,
     },
     heroWrapper: {
@@ -505,16 +466,13 @@ const createStyles = (colors, isDark) =>
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.surface,
+      backgroundColor: colors.transparent,
       borderRadius: 16,
       padding: 12,
       marginBottom: 10,
       borderWidth: 1,
       borderColor: colors.border,
-      shadowColor: colors.shadowSecondary ?? '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.07,
-      shadowRadius: 10,
+
       elevation: 2,
     },
     rankCircle: {
@@ -598,16 +556,13 @@ const createStyles = (colors, isDark) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: colors.surface,
+      backgroundColor: colors.background,
       borderRadius: 24,
       paddingVertical: 16,
       paddingHorizontal: 20,
       borderWidth: 1,
       borderColor: colors.border,
-      shadowColor: colors.shadowSecondary ?? '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.08,
-      shadowRadius: 12,
+ 
       elevation: 3,
     },
     myRankNumber: {
