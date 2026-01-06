@@ -29,6 +29,7 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining, connectB
   }, [room.type]);
 
   const previewMembers = room.preview_members || [];
+  const hasPreviewMembers = previewMembers.length > 0;
   const mutualMember = room.mutual_member;
 
   const getMemberDisplayName = (member) => {
@@ -178,9 +179,11 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining, connectB
       </View>
       <View style={styles.bottomRow}>
         <View style={styles.memberRow}>
-          <View style={styles.avatarStack}>
-            {previewMembers.map((member, idx) => renderAvatar(member, idx))}
-          </View>
+          {hasPreviewMembers && (
+            <View style={styles.avatarStack}>
+              {previewMembers.map((member, idx) => renderAvatar(member, idx))}
+            </View>
+          )}
           <Text style={styles.memberText}>{memberLabel}</Text>
         </View>
       </View>

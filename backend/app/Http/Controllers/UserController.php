@@ -272,6 +272,7 @@ class UserController extends Controller
                     'name' => $visitor?->name,
                     'username' => $visitor?->username,
                     'profile_photo' => $visitor?->profile_photo,
+                    'avatar' => $visitor?->avatar,
                     'sex' => $visitor?->sex,
                     'viewed_at' => $view->updated_at,
                     'room_name' => $firstRoom?->room?->name,

@@ -58,7 +58,7 @@ export default function RankingScreen({ route, navigation }) {
   const scrollY = useRef(new Animated.Value(0)).current;
   const heroScale = scrollY.interpolate({
     inputRange: [0, 80],
-    outputRange: [1, 0.94],
+    outputRange: [1, 0.88],
     extrapolate: 'clamp',
   });
   const heroTranslateY = scrollY.interpolate({
@@ -69,6 +69,11 @@ export default function RankingScreen({ route, navigation }) {
   const heroOpacity = scrollY.interpolate({
     inputRange: [0, 80],
     outputRange: [1, 0.92],
+    extrapolate: 'clamp',
+  });
+  const heroMargin = scrollY.interpolate({
+    inputRange: [0, 80],
+    outputRange: [12, 0],
     extrapolate: 'clamp',
   });
 
@@ -188,77 +193,86 @@ export default function RankingScreen({ route, navigation }) {
   const renderHeroSection = () => {
     if (!heroData.length) return null;
     return (
-      <Animated.View
-        style={[
-          styles.heroSection,
-          {
-            transform: [{ scale: heroScale }, { translateY: heroTranslateY }],
-            opacity: heroOpacity,
-          },
-        ]}
-      >
-        <View style={styles.heroWrapper}>
-          {heroData.map((person) => (
-            <View
-              key={`hero-${person.rank}`}
-              style={[
-                styles.heroItem,
-                person.position === 'center' && styles.heroItemCenter,
-              ]}
-            >
-              <View style={styles.heroAvatarWrapper}>
+      <View style={styles.heroShellWrapper}>
+        <Animated.View
+          style={[
+            styles.heroShell,
+            {
+              transform: [{ scaleY: heroScale }, { translateY: heroTranslateY }],
+              marginBottom: heroMargin,
+            },
+          ]}
+        >
+          <Animated.View
+            style={[
+              styles.heroSection,
+              { transform: [{ scaleX: heroScale }], opacity: heroOpacity },
+            ]}
+          >
+            <View style={styles.heroWrapper}>
+              {heroData.map((person) => (
                 <View
+                  key={`hero-${person.rank}`}
                   style={[
-                    styles.heroAvatar,
-                    person.position === 'center' && styles.heroAvatarPrimary,
+                    styles.heroItem,
+                    person.position === 'center' && styles.heroItemCenter,
                   ]}
                 >
+                  <View style={styles.heroAvatarWrapper}>
+                    <View
+                      style={[
+                        styles.heroAvatar,
+                        person.position === 'center' && styles.heroAvatarPrimary,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.heroAvatarText,
+                          person.position === 'center' && styles.heroAvatarPrimaryText,
+                        ]}
+                      >
+                        {getInitials(person.name)}
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.heroRankBadge,
+                        person.position === 'center' && styles.heroRankBadgePrimary,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.heroRankBadgeText,
+                          person.position === 'center' && styles.heroRankBadgeTextPrimary,
+                        ]}
+                      >
+                        {person.rank}
+                      </Text>
+                    </View>
+                  </View>
                   <Text
                     style={[
-                      styles.heroAvatarText,
-                      person.position === 'center' && styles.heroAvatarPrimaryText,
+                      styles.heroName,
+                      person.position === 'center' && styles.heroNamePrimary,
                     ]}
+                    numberOfLines={1}
                   >
-                    {getInitials(person.name)}
+                    {person.name}
                   </Text>
-                </View>
-                <View
-                  style={[
-                    styles.heroRankBadge,
-                    person.position === 'center' && styles.heroRankBadgePrimary,
-                  ]}
-                >
                   <Text
                     style={[
-                      styles.heroRankBadgeText,
-                      person.position === 'center' && styles.heroRankBadgeTextPrimary,
+                      styles.heroScore,
+                      person.position === 'center' && styles.heroScorePrimary,
                     ]}
                   >
-                    {person.rank}
+                    {formatHajps(person.hajps ?? 0)}
                   </Text>
                 </View>
-              </View>
-              <Text
-                style={[
-                  styles.heroName,
-                  person.position === 'center' && styles.heroNamePrimary,
-                ]}
-                numberOfLines={1}
-              >
-                {person.name}
-              </Text>
-              <Text
-                style={[
-                  styles.heroScore,
-                  person.position === 'center' && styles.heroScorePrimary,
-                ]}
-              >
-                {formatHajps(person.hajps ?? 0)}
-              </Text>
+              ))}
             </View>
-          ))}
-        </View>
-      </Animated.View>
+          </Animated.View>
+        </Animated.View>
+      </View>
     );
   };
 
@@ -366,16 +380,30 @@ const createStyles = (colors, isDark) =>
       justifyContent: 'center',
     },
     heroHeaderContainer: {
-      paddingBottom: 12,
+    },
+    heroShellWrapper: {
+      width: '100%',
+      backgroundColor: colors.background,
+      borderRadius: 0,
+    },
+    heroShell: {
+      width: '100%',
+      borderRadius: 20,
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 0,
+      elevation: 4,
+      overflow: 'hidden',
     },
     heroSection: {
       width: '100%',
       borderRadius: 20,
-      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : colors.surface,
+      backgroundColor: colors.background,
       paddingVertical: 16,
       paddingHorizontal: 12,
-      marginBottom: 12,
-      elevation: 4,
+      paddingBottom: 24,
+
     },
     heroWrapper: {
       flexDirection: 'row',

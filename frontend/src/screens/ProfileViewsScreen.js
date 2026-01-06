@@ -6,14 +6,14 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
-  Image,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { baseURL, fetchProfileViews, getCurrentUser } from '../api';
+import { fetchProfileViews, getCurrentUser } from '../api';
 import BottomCTA from '../components/BottomCTA';
+import Avatar from '../components/Avatar';
 
 export default function ProfileViewsScreen() {
   const { colors } = useTheme();
@@ -52,14 +52,6 @@ export default function ProfileViewsScreen() {
     setRefreshing(false);
   }, [loadViews]);
 
-  const resolveAvatar = (photo) => {
-    if (!photo) return null;
-    if (/^https?:\/\//i.test(photo)) return photo;
-    const cleanBase = (baseURL || '').replace(/\/+$/, '');
-    const cleanPath = photo.replace(/^\/+/, '');
-    return `${cleanBase}/${cleanPath}`;
-  };
-
   const formatViewedAt = (value) => {
     if (!value) return null;
     const parsed = new Date(value);
@@ -76,12 +68,6 @@ export default function ProfileViewsScreen() {
     const isHidden = index > 2;
     const label = item.name || item.username || 'Korisnik';
     const username = item.username ? `@${item.username}` : null;
-    const avatarUri = resolveAvatar(item.profile_photo);
-    const initials = (label || 'Korisnik')
-      .split(' ')
-      .map((part) => part.charAt(0).toUpperCase())
-      .slice(0, 2)
-      .join('');
     const viewedAt = formatViewedAt(item.viewed_at);
     const genderLabel = item.sex
       ? item.sex.toLowerCase().includes('female')
@@ -96,13 +82,12 @@ export default function ProfileViewsScreen() {
     return (
       <View style={styles.visitorRow}>
         <View style={styles.avatarWrapper}>
-          {avatarUri ? (
-            <Image source={{ uri: avatarUri }} style={styles.visitorAvatar} />
-          ) : (
-            <View style={[styles.visitorAvatar, styles.avatarFallback]}>
-              <Text style={styles.avatarFallbackText}>{initials}</Text>
-            </View>
-          )}
+          <Avatar
+            user={item}
+            name={label}
+            variant="friendlist"
+            zoomModal={false}
+          />
           {isHidden && (
             <BlurView intensity={15} tint="default" style={styles.avatarBlur} pointerEvents="none" />
           )}
@@ -214,34 +199,17 @@ const createStyles = (colors) =>
       borderWidth: 1,
       borderColor: colors.border,
     },
-    visitorAvatar: {
-      width: 54,
-      height: 54,
-      borderRadius: 27,
-      backgroundColor: colors.secondary,
-    },
     avatarWrapper: {
       position: 'relative',
-      width: 54,
-      height: 54,
-      borderRadius: 27,
+      borderRadius: 999,
       overflow: 'hidden',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    avatarFallback: {
       justifyContent: 'center',
       alignItems: 'center',
     },
     avatarBlur: {
       ...StyleSheet.absoluteFillObject,
-      borderRadius: 27,
+      borderRadius: 999,
       backgroundColor: 'transparent',
-    },
-    avatarFallbackText: {
-      fontWeight: '800',
-      color: colors.textLight,
-      fontSize: 20,
     },
     visitorInfo: {
       flex: 1,

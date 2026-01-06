@@ -14,6 +14,7 @@ import { useMenuRefresh } from '../context/menuRefreshContext';
 import { fetchUserRooms } from '../api';
 import { useRoomSheet } from '../context/roomSheetContext';
 import MenuTab from '../components/MenuTab';
+import RoomCard from '../components/RoomCard';
 
 const TAB_MEMBER_ROOMS = 'member';
 const TAB_ADMIN_ROOMS = 'admin';
@@ -171,17 +172,11 @@ export default function UserRoomsScreen({ navigation }) {
     );
   };
   const renderRoom = ({ item }) => (
-    <TouchableOpacity
-      style={styles.roomCard}
-      activeOpacity={0.8}
+    <RoomCard
+      room={item}
+      connectButtonHide={1}
       onPress={() => handleRoomPress(item)}
-    >
-      <Text style={styles.roomName}>{item.name}</Text>
-      {!!item.tagline && <Text style={styles.roomTagline}>{item.tagline}</Text>}
-      <Text style={styles.roomMeta}>
-        {item.is_private ? 'Privatna' : 'Javna'} - {(item.members ?? item.members_count ?? 0)} clanova
-      </Text>
-    </TouchableOpacity>
+    />
   );
 
   const renderEmpty = () => {
@@ -273,29 +268,6 @@ const createStyles = (colors, isDark) =>
       flexGrow: 1,
       paddingHorizontal: 16,
       paddingBottom: 16,
-    },
-    roomCard: {
-      backgroundColor: colors.transparent,
-      padding: 16,
-      borderRadius: 14,
-      marginBottom: 10,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    roomName: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: colors.text_primary,
-      marginBottom: 4,
-    },
-    roomTagline: {
-      fontSize: 13,
-      color: colors.text_secondary,
-      marginBottom: 6,
-    },
-    roomMeta: {
-      fontSize: 12,
-      color: colors.text_secondary,
     },
     loadingText: {
       color: colors.text_secondary,

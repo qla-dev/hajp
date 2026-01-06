@@ -406,8 +406,63 @@ class RoomController extends Controller
                 'code',
             ]);
 
-        $rooms = $rooms->map(function ($room) {
+        $roomIds = $rooms->pluck('id');
+
+        $roomMembers = RoomMember::with(['user:id,name,username,profile_photo'])
+            ->whereIn('room_id', $roomIds)
+            ->orderBy('id')
+            ->get()
+            ->groupBy('room_id');
+
+        $friendIds = collect();
+        if ($authUser) {
+            $friendIds = Friendship::query()
+                ->where('approved', 1)
+                ->where(function ($query) use ($authUser) {
+                    $query->where('auth_user_id', $authUser->id)->orWhere('user_id', $authUser->id);
+                })
+                ->get(['auth_user_id', 'user_id'])
+                ->flatMap(function ($row) use ($authUser) {
+                    return [$row->auth_user_id, $row->user_id];
+                })
+                ->reject(function ($id) use ($authUser) {
+                    return (int) $id === (int) $authUser->id;
+                })
+                ->unique()
+                ->values();
+        }
+
+        $rooms = $rooms->map(function ($room) use ($roomMembers, $friendIds) {
+            /** @var Collection $members */
+            $members = $roomMembers->get($room->id, collect());
+
+            $previewMembers = $members->take(3)->map(function ($member) {
+                return [
+                    'id' => $member->user?->id,
+                    'name' => $member->user?->name,
+                    'username' => $member->user?->username,
+                    'profile_photo' => $member->user?->profile_photo,
+                ];
+            })->values();
+
+            $mutualMember = null;
+            if ($friendIds->isNotEmpty()) {
+                $mutual = $members->first(function ($member) use ($friendIds) {
+                    return $friendIds->contains($member->user_id);
+                });
+                if ($mutual) {
+                    $mutualMember = [
+                        'id' => $mutual->user?->id,
+                        'name' => $mutual->user?->name,
+                        'username' => $mutual->user?->username,
+                        'profile_photo' => $mutual->user?->profile_photo,
+                    ];
+                }
+            }
+
             $room->role = $room->members->first()?->role ?? 'user';
+            $room->preview_members = $previewMembers;
+            $room->mutual_member = $mutualMember;
             $room->setRelation('members', null);
             return $room;
         });
