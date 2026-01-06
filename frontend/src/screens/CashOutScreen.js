@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ScrollView,
   View,
@@ -34,6 +34,7 @@ export default function CashOutScreen({ route, navigation }) {
   const [coinBalance, setCoinBalance] = useState(getCachedCoinBalance() ?? null);
   const pulse = useRef(new Animated.Value(1)).current;
   const buttonRef = useRef(null);
+  const coinAssetPromiseRef = useRef(null);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const [coinSvgUri, setCoinSvgUri] = useState(null);
@@ -55,16 +56,36 @@ export default function CashOutScreen({ route, navigation }) {
     return unsubscribe;
   }, [navigation]);
 
+  const preloadCoinAsset = useCallback(async () => {
+    if (coinSvgUri) return coinSvgUri;
+    if (!coinAssetPromiseRef.current) {
+      coinAssetPromiseRef.current = (async () => {
+        const coinAsset = Asset.fromModule(require('../../assets/svg/coin.svg'));
+        await coinAsset.downloadAsync();
+        const uri = coinAsset.localUri || coinAsset.uri;
+        setCoinSvgUri((prev) => prev || uri);
+        return uri;
+      })().catch((error) => {
+        coinAssetPromiseRef.current = null;
+        throw error;
+      });
+    }
+    try {
+      return await coinAssetPromiseRef.current;
+    } catch {
+      return null;
+    }
+  }, [coinSvgUri]);
+
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
         const { sound } = await Audio.Sound.createAsync(coinSoundAsset, { shouldPlay: false });
         const { sound: applause } = await Audio.Sound.createAsync(applauseSoundAsset, { shouldPlay: false });
-        const coinAsset = Asset.fromModule(require('../../assets/svg/coin.svg'));
-        await coinAsset.downloadAsync();
-        if (isMounted) {
-          setCoinSvgUri(coinAsset.localUri || coinAsset.uri);
+        const coinUri = await preloadCoinAsset();
+        if (isMounted && coinUri) {
+          setCoinSvgUri((prev) => prev || coinUri);
         }
         if (isMounted) {
           coinSoundRef.current = sound;
@@ -88,7 +109,7 @@ export default function CashOutScreen({ route, navigation }) {
       coinSoundRef.current = null;
       applauseSoundRef.current = null;
     };
-  }, []);
+  }, [preloadCoinAsset]);
 
   useEffect(() => {
     // Ensure header coin indicator shows current balance on entry
@@ -178,6 +199,10 @@ export default function CashOutScreen({ route, navigation }) {
     });
 
   const animateCoinTransfer = async () => {
+    const readyUri = await preloadCoinAsset();
+    if (readyUri && !coinSvgUri) {
+      setCoinSvgUri(readyUri);
+    }
     const buttonLayout = await measureButton();
     if (!buttonLayout) return;
     const coinSize = 26;
@@ -199,6 +224,7 @@ export default function CashOutScreen({ route, navigation }) {
     }));
     setTransferCoins(coins);
     setShowTransfer(true);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
     await Promise.all(
       coins.map(
         ({ anim, fade, target }, index) =>
