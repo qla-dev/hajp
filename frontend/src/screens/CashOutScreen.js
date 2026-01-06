@@ -23,6 +23,8 @@ import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 const coinSoundAsset = require('../../assets/sounds/coins.mp3');
 const applauseSoundAsset = require('../../assets/sounds/applause.mp3');
+const coinAsset = require('../../assets/svg/coin.svg');
+const coinAssetDefaultUri = Asset.fromModule(coinAsset).uri;
 
 export default function CashOutScreen({ route, navigation }) {
   const { roomId } = route.params || {};
@@ -35,9 +37,10 @@ export default function CashOutScreen({ route, navigation }) {
   const pulse = useRef(new Animated.Value(1)).current;
   const buttonRef = useRef(null);
   const coinAssetPromiseRef = useRef(null);
+  const preloadedCoinUriRef = useRef(coinAssetDefaultUri || null);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
-  const [coinSvgUri, setCoinSvgUri] = useState(null);
+  const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
   const confettiTimer = useRef(null);
   const confettiRef = useRef(null);
   const coinSoundRef = useRef(null);
@@ -60,9 +63,10 @@ export default function CashOutScreen({ route, navigation }) {
     if (coinSvgUri) return coinSvgUri;
     if (!coinAssetPromiseRef.current) {
       coinAssetPromiseRef.current = (async () => {
-        const coinAsset = Asset.fromModule(require('../../assets/svg/coin.svg'));
-        await coinAsset.downloadAsync();
-        const uri = coinAsset.localUri || coinAsset.uri;
+        const asset = Asset.fromModule(coinAsset);
+        await asset.downloadAsync();
+        const uri = asset.localUri || asset.uri;
+        preloadedCoinUriRef.current = uri;
         setCoinSvgUri((prev) => prev || uri);
         return uri;
       })().catch((error) => {
@@ -84,9 +88,8 @@ export default function CashOutScreen({ route, navigation }) {
         const { sound } = await Audio.Sound.createAsync(coinSoundAsset, { shouldPlay: false });
         const { sound: applause } = await Audio.Sound.createAsync(applauseSoundAsset, { shouldPlay: false });
         const coinUri = await preloadCoinAsset();
-        if (isMounted && coinUri) {
-          setCoinSvgUri((prev) => prev || coinUri);
-        }
+        if (coinUri) preloadedCoinUriRef.current = coinUri;
+        if (isMounted && coinUri) setCoinSvgUri((prev) => prev || coinUri);
         if (isMounted) {
           coinSoundRef.current = sound;
           applauseSoundRef.current = applause;
@@ -200,9 +203,9 @@ export default function CashOutScreen({ route, navigation }) {
 
   const animateCoinTransfer = async () => {
     const readyUri = await preloadCoinAsset();
-    if (readyUri && !coinSvgUri) {
-      setCoinSvgUri(readyUri);
-    }
+    const coinUriForAnimation = readyUri || preloadedCoinUriRef.current || coinSvgUri;
+    if (coinUriForAnimation && !coinSvgUri) setCoinSvgUri(coinUriForAnimation);
+    preloadedCoinUriRef.current = coinUriForAnimation || preloadedCoinUriRef.current;
     const buttonLayout = await measureButton();
     if (!buttonLayout) return;
     const coinSize = 26;
@@ -217,6 +220,7 @@ export default function CashOutScreen({ route, navigation }) {
       id: `${Date.now()}-${index}`,
       anim: new Animated.ValueXY({ x: startX, y: startY }),
       fade: new Animated.Value(1),
+      uri: coinUriForAnimation,
       target: {
         x: endX + (index % 2 === 0 ? 4 : -4) * (index / 2),
         y: endY - index * 1.5,
@@ -327,8 +331,8 @@ export default function CashOutScreen({ route, navigation }) {
             ]}
             pointerEvents="none"
           >
-            {coinSvgUri ? (
-              <SvgUri width={24} height={24} uri={coinSvgUri} />
+            {coin.uri || coinSvgUri ? (
+              <SvgUri width={24} height={24} uri={coin.uri || coinSvgUri} />
             ) : (
               <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ color: colors.primary, fontWeight: '800' }}>₵</Text>
@@ -466,19 +470,19 @@ const createStyles = (colors) =>
       position: 'absolute',
       left: 0,
       top: 0,
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
+      width: 24,
+      height: 24,
+      borderRadius: 0,
+      backgroundColor: 'transparent',
+      borderWidth: 0,
+      borderColor: 'transparent',
       alignItems: 'center',
       justifyContent: 'center',
-      shadowColor: colors.primary,
-      shadowOpacity: 0.35,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 6 },
-      elevation: 6,
+      shadowColor: 'transparent',
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      shadowOffset: { width: 0, height: 0 },
+      elevation: 0,
       zIndex: 35,
     },
   });
