@@ -31,6 +31,7 @@ export default function CashOutScreen({ route, navigation }) {
   const [celebrating, setCelebrating] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferCoins, setTransferCoins] = useState([]);
+  const [coinBalance, setCoinBalance] = useState(null);
   const pulse = useRef(new Animated.Value(1)).current;
   const buttonRef = useRef(null);
   const { colors } = useTheme();
@@ -92,8 +93,14 @@ export default function CashOutScreen({ route, navigation }) {
   useEffect(() => {
     // Ensure header coin indicator shows current balance on entry
     fetchCoinBalance()
-      .then(({ data }) => updateCoinBalance(data?.coins ?? 0))
-      .catch(() => {});
+      .then(({ data }) => {
+        const coins = data?.coins ?? 0;
+        setCoinBalance(coins);
+        updateCoinBalance(coins);
+      })
+      .catch(() => {
+        setCoinBalance(null);
+      });
   }, []);
 
   const playCoinSound = () => {
@@ -249,7 +256,19 @@ export default function CashOutScreen({ route, navigation }) {
         </View>
         <View style={styles.card}>
           <Text style={styles.title}>Čestitamo!</Text>
-          <Text style={styles.subtitle}>Možete podići 10 coinova za zadnju anketu.</Text>
+      <Text style={styles.subtitle}>Možete podići 10 coinova za zadnju anketu.</Text>
+      <View style={styles.balanceRow}>
+        {coinSvgUri ? (
+          <SvgUri width={28} height={28} uri={coinSvgUri} />
+        ) : (
+          <View style={styles.balanceIconFallback}>
+                <Text style={styles.balanceIconFallbackText}>ƒ,æ</Text>
+              </View>
+            )}
+            <Text style={styles.balanceLabel}>
+              Trenutno stanje: {coinBalance !== null ? coinBalance : '...'}
+            </Text>
+          </View>
           {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
           <Animated.View style={[styles.buttonWrapper, { transform: [{ scale: pulse }] }]}>
             <TouchableOpacity
@@ -281,9 +300,9 @@ export default function CashOutScreen({ route, navigation }) {
             pointerEvents="none"
           >
             {coinSvgUri ? (
-              <SvgUri width={18} height={18} uri={coinSvgUri} />
+              <SvgUri width={24} height={24} uri={coinSvgUri} />
             ) : (
-              <View style={{ width: 18, height: 18, alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ color: colors.primary, fontWeight: '800' }}>₵</Text>
               </View>
             )}
@@ -364,6 +383,30 @@ const createStyles = (colors) =>
     buttonWrapper: {
       marginTop: 12,
     },
+    balanceRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginTop: 10,
+      marginBottom: 6,
+    },
+    balanceLabel: {
+      fontSize: 14,
+      color: colors.text_primary,
+      fontWeight: '700',
+    },
+    balanceIconFallback: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: colors.secondary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    balanceIconFallbackText: {
+      color: colors.textLight,
+      fontWeight: '800',
+    },
     button: {
       backgroundColor: colors.primary,
       borderRadius: 30,
@@ -395,9 +438,9 @@ const createStyles = (colors) =>
       position: 'absolute',
       left: 0,
       top: 0,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       backgroundColor: colors.surface,
       borderWidth: 1,
       borderColor: colors.border,
