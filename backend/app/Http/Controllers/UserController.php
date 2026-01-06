@@ -203,6 +203,32 @@ class UserController extends Controller
         return response()->json(['data' => $all]);
     }
 
+    public function blockedFriends(Request $request)
+    {
+        $authId = $request->user()->id;
+
+        $blocked = Friendship::query()
+            ->where('auth_user_id', $authId)
+            ->where('blocked', 1)
+            ->with(['friend:id,name,username,profile_photo'])
+            ->orderByDesc('updated_at')
+            ->get()
+            ->map(function ($friendship) {
+                $friend = $friendship->friend;
+                return (object) [
+                    'id' => $friend?->id,
+                    'friend_id' => $friend?->id,
+                    'name' => $friend?->name,
+                    'username' => $friend?->username,
+                    'profile_photo' => $friend?->profile_photo,
+                    'blocked_at' => $friendship->updated_at,
+                ];
+            })
+            ->filter(fn ($f) => $f->id);
+
+        return response()->json(['data' => $blocked->values()]);
+    }
+
     public function showPublic(User $user)
     {
         return response()->json([
@@ -482,6 +508,27 @@ class UserController extends Controller
             ->delete();
 
         return response()->json(['message' => 'Prijatelj uklonjen.'], 200);
+    }
+
+    public function unblockUser(Request $request, User $user)
+    {
+        $authId = $request->user()->id;
+
+        $friendship = Friendship::query()
+            ->where('auth_user_id', $authId)
+            ->where('user_id', $user->id)
+            ->where('blocked', 1)
+            ->first();
+
+        if (!$friendship) {
+            return response()->json(['message' => 'Korisnik nije na blok listi.'], 404);
+        }
+
+        $friendship->blocked = 0;
+        $friendship->reported = '0';
+        $friendship->save();
+
+        return response()->json(['message' => 'Korisnik je odblokiran.']);
     }
 
     public function blockUser(Request $request, User $user)

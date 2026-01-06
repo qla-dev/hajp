@@ -17,7 +17,6 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
 import AvatarGeneratorScreen from './src/screens/AvatarGeneratorScreen';
 import SetupProfileScreen from './src/screens/SetupProfileScreen';
-import SettingsScreen from './src/screens/SettingsScreen';
 import ShareScreen from './src/screens/ShareScreen';
 import SendAnonymousMessageScreen from './src/screens/SendAnonymousMessageScreen';
 import ShareLinkScreen from './src/screens/ShareLinkScreen';
@@ -151,13 +150,6 @@ function MainStackNavigator() {
         component={AvatarGeneratorScreen}
         options={{
           title: 'Kreiraj avatar',
-        }}
-      />
-      <MainStack.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{
-          title: 'Podešavanja',
         }}
       />
       <MainStack.Screen

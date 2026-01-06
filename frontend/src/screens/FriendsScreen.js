@@ -7,6 +7,7 @@ import {
   TextInput,
   RefreshControl,
   ActivityIndicator,
+  TouchableOpacity,
   Alert,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -16,6 +17,8 @@ import {
   fetchUserFriends,
   fetchFriendRequests,
   approveFriendRequest,
+  fetchBlockedFriends,
+  unblockUser,
   inviteToRoom,
   acceptRoomInvite,
   approveRoomMember,
@@ -34,12 +37,14 @@ export default function FriendsScreen({ navigation, route }) {
   const [search, setSearch] = useState('');
   const [approvingFriendId, setApprovingFriendId] = useState(null);
   const [invitingFriendId, setInvitingFriendId] = useState(null);
+  const [unblockingId, setUnblockingId] = useState(null);
   const mode = route?.params?.mode || 'friends';
   const roomId = route?.params?.roomId || null;
   const targetUserId = route?.params?.userId || null;
   const fromProfile = route?.params?.fromProfile;
   const isRequestList = mode === 'requests';
   const isGroupInvite = mode === 'group-invite';
+  const isBlockedList = mode === 'blocked';
   const connectSoundRef = React.useRef(null);
 
   useEffect(() => {
@@ -74,6 +79,8 @@ export default function FriendsScreen({ navigation, route }) {
       let response;
       if (isRequestList) {
         response = await fetchFriendRequests();
+      } else if (isBlockedList) {
+        response = await fetchBlockedFriends();
       } else if (targetUserId && !isGroupInvite) {
         response = await fetchUserFriends(targetUserId);
       } else {
@@ -161,11 +168,17 @@ export default function FriendsScreen({ navigation, route }) {
       ) : filteredFriends.length === 0 ? (
         <View style={styles.centerContent}>
           <Text style={styles.emptyText}>
-            {isRequestList ? 'Nema zahtjeva za povezivanje' : 'Još nemaš prijatelja'}
+            {isRequestList
+              ? 'Nema zahtjeva za povezivanje'
+              : isBlockedList
+              ? 'Nema blokiranih korisnika'
+              : 'Još nemaš prijatelja'}
           </Text>
           <Text style={styles.emptySubtext}>
             {isRequestList
               ? 'Osvježi listu da proveriš nove zahtjeve.'
+              : isBlockedList
+              ? 'Blokiraj korisnike sa njihovog profila pa će se pojaviti ovde.'
               : isGroupInvite
               ? 'Pozovi prijatelje da uđu u ovu sobu.'
               : 'Poveži se sa preporukama na ekranu Mreža.'}
@@ -197,6 +210,46 @@ export default function FriendsScreen({ navigation, route }) {
             const username = item.username ? `@${item.username}` : null;
             const fromProfile = route?.params?.fromProfile;
             const profileRouteName = route?.params?.profileRouteName || 'ProfileFriends';
+
+            const handleUnblock = async () => {
+              if (!friendId) return;
+              setUnblockingId(friendId);
+              try {
+                await unblockUser(friendId);
+                await loadFriends();
+              } catch {
+                Alert.alert('Greška', 'Nije moguće odblokirati korisnika.');
+              } finally {
+                setUnblockingId(null);
+              }
+            };
+
+            if (isBlockedList) {
+              const actionNode = (
+                <TouchableOpacity
+                  style={styles.unblockButton}
+                  onPress={handleUnblock}
+                  disabled={unblockingId === friendId}
+                >
+                  {unblockingId === friendId ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Text style={styles.unblockButtonText}>Odblokiraj</Text>
+                  )}
+                </TouchableOpacity>
+              );
+
+              return (
+                <FriendListItem
+                  friend={item}
+                  refType="blocked"
+                  username={username}
+                  statusLabel={statusLabel || 'Blokiran'}
+                  hideStatus
+                  renderAction={actionNode}
+                />
+              );
+            }
 
             const handlePress =
               !isGroupInvite &&
@@ -390,6 +443,19 @@ const createStyles = (colors) =>
       fontSize: 14,
       color: colors.text_secondary,
       textAlign: 'center',
+    },
+    unblockButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    unblockButtonText: {
+      color: colors.primary,
+      fontWeight: '700',
     },
   });
 

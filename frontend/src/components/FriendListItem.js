@@ -27,6 +27,7 @@ export default function FriendListItem({
   onApprove,
   onInvite,
   hideStatus = false,
+  renderAction = null,
 }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -143,9 +144,11 @@ export default function FriendListItem({
           )}
         </TouchableOpacity>
       ) : (
-        <View style={styles.rowAction}>
-          <Ionicons name="chevron-forward" size={20} color={colors.text_secondary} />
-        </View>
+        renderAction ?? (
+          <View style={styles.rowAction}>
+            <Ionicons name="chevron-forward" size={20} color={colors.text_secondary} />
+          </View>
+        )
       )}
     </TouchableOpacity>
   );

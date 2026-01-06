@@ -128,11 +128,11 @@ export default function SettingsScreen({ navigation }) {
 
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Prijatelji</Text>
-        <TouchableOpacity style={styles.listRow}>
-          <Text style={styles.listRowText}>Resetuj blok listu</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.listRow}>
-          <Text style={styles.listRowText}>Resetuj hide listu</Text>
+        <TouchableOpacity
+          style={styles.listRow}
+          onPress={() => navigation.navigate('Friends', { screen: 'FriendsList', params: { mode: 'blocked' } })}
+        >
+          <Text style={styles.listRowText}>Blok lista</Text>
         </TouchableOpacity>
       </View>
 
@@ -207,6 +207,7 @@ const createStyles = (colors) =>
       color: colors.text_secondary,
       fontWeight: '700',
       marginBottom: 8,
+      marginTop: 8,
     },
     settingRow: {
       flexDirection: 'row',

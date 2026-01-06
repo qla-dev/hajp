@@ -17,6 +17,7 @@ import RankingScreen from '../screens/RankingScreen';
 import LiveScreen from '../screens/LiveScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ProfileViewsScreen from '../screens/ProfileViewsScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import SuggestionsScreen from '../screens/SuggestionsScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import CashOutScreen from '../screens/CashOutScreen';
@@ -385,6 +386,14 @@ function ProfileStackNavigator() {
         }}
       />
       <ProfileStack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          title: 'Podešavanja',
+          headerBackTitle: 'Nazad',
+        }}
+      />
+      <ProfileStack.Screen
         name="ProfileFriendsList"
         component={FriendsScreen}
         options={profileFriendsListOptions}
@@ -606,9 +615,9 @@ function MainTabsContent() {
         }
         if (
           route.name === 'Profile' &&
-        (focused === 'ProfileFriends' || focused === 'ProfileFriendsList' || focused === 'ProfileViews' || focused === 'CreateRoom' || focused === 'RoomVibeSelection')
-        ) {
-          hideTabBar = true;
+        (focused === 'ProfileFriends' || focused === 'ProfileFriendsList' || focused === 'ProfileViews' || focused === 'CreateRoom' || focused === 'RoomVibeSelection' || focused === 'Settings')
+      ) {
+        hideTabBar = true;
         }
         if (route.name === 'Friends' && (focused === 'FriendProfile' || focused === 'ProfileFriendsList')) {
           hideTabBar = true;

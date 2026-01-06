@@ -93,10 +93,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/suggestions', [UserController::class, 'friendSuggestions']);
         Route::get('/', [UserController::class, 'friends']);
         Route::get('/requests', [UserController::class, 'friendRequests']);
+        Route::get('/blocked', [UserController::class, 'blockedFriends']);
         Route::post('/{user}/add', [UserController::class, 'addFriend'])->middleware('isPrivate');
         Route::post('/{user}/approve', [UserController::class, 'approveFriend']);
         Route::post('/{user}/block', [UserController::class, 'blockUser']);
         Route::post('/{user}/report', [UserController::class, 'reportUser']);
+        Route::post('/{user}/unblock', [UserController::class, 'unblockUser']);
         Route::delete('/{user}/remove', [UserController::class, 'removeFriend']);
     });
 
