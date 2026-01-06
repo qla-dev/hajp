@@ -516,6 +516,7 @@ class RoomController extends Controller
         if ($user) {
             $hasCashout = CashoutHistory::where('user_id', $user->id)
                 ->where('poll_id', $poll->id)
+                ->where('room_id', $room->id)
                 ->exists();
         }
         $cashoutAmount = $this->calculateCashoutAmount($room, $poll, $user);
