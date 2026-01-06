@@ -91,9 +91,10 @@ export default function CoinHeaderIndicator({ onPress }) {
       onPress={onPress}
       onLayout={measureLayout}
       activeOpacity={0.8}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
       {coinSvgUri ? (
-        <SvgUri width={26} height={26} uri={coinSvgUri} />
+        <SvgUri width={24} height={24} uri={coinSvgUri} />
       ) : (
         <View style={[styles.fallbackIcon, { borderColor: colors.border, backgroundColor: colors.surface }]}>
           <Text style={{ color: colors.primary, fontWeight: '800' }}>₵</Text>
@@ -113,9 +114,9 @@ const createStyles = (colors) =>
       paddingHorizontal: 4,
     },
     fallbackIcon: {
-      width: 26,
-      height: 26,
-      borderRadius: 13,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
       borderWidth: 1,
       alignItems: 'center',
       justifyContent: 'center',
@@ -123,6 +124,7 @@ const createStyles = (colors) =>
     label: {
       color: colors.text_primary,
       fontWeight: '600',
-      fontSize: 14,
+      fontSize: 13,
+      minWidth: 10,
     },
   });

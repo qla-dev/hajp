@@ -16,7 +16,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { postRoomCashout, fetchCoinBalance } from '../api';
 import LottieView from 'lottie-react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
-import { updateCoinBalance } from '../utils/coinHeaderTracker';
+import { updateCoinBalance, getCachedCoinBalance } from '../utils/coinHeaderTracker';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import { SvgUri } from 'react-native-svg';
@@ -31,7 +31,7 @@ export default function CashOutScreen({ route, navigation }) {
   const [celebrating, setCelebrating] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferCoins, setTransferCoins] = useState([]);
-  const [coinBalance, setCoinBalance] = useState(null);
+  const [coinBalance, setCoinBalance] = useState(getCachedCoinBalance() ?? null);
   const pulse = useRef(new Animated.Value(1)).current;
   const buttonRef = useRef(null);
   const { colors } = useTheme();
@@ -232,7 +232,9 @@ export default function CashOutScreen({ route, navigation }) {
   const refreshCoinTotals = async () => {
     try {
       const { data } = await fetchCoinBalance();
-      updateCoinBalance(data?.coins ?? 0);
+      const coins = data?.coins ?? 0;
+      setCoinBalance(coins);
+      updateCoinBalance(coins);
     } catch (refreshErr) {
       console.warn('Failed to refresh coins after cashout', refreshErr);
     }
