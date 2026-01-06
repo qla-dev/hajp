@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CashoutHistory extends Model
 {
     protected $table = 'cashout_history';
-    protected $fillable = ['user_id', 'poll_id'];
+    protected $fillable = ['user_id', 'poll_id', 'room_id'];
 
     public function user(): BelongsTo
     {
@@ -18,5 +18,10 @@ class CashoutHistory extends Model
     public function poll(): BelongsTo
     {
         return $this->belongsTo(Poll::class);
+    }
+
+    public function room(): BelongsTo
+    {
+        return $this->belongsTo(Room::class);
     }
 }

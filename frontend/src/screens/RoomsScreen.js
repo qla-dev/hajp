@@ -121,7 +121,12 @@ export default function RoomsScreen({ navigation, route }) {
     const answeredWithSkips = highlight?.answered ?? fallbackAnswered;
     const answeredNormalized = Math.max(0, answeredWithSkips - skipped);
     const answered = total > 0 ? Math.min(answeredNormalized, total) : answeredNormalized;
+    const cashoutDone = !!highlight?.cashout_done;
     const isComplete = total > 0 && answered >= total;
+    let badgeLabel = 'U progresu';
+    if (isComplete) {
+      badgeLabel = cashoutDone ? 'Isplaćeno' : 'ISPLATI ODMAH';
+    }
     const emoji = highlight?.emoji || (item.type === 'Za žene' ? '🌸' : '⚡️');
 
     const accentColor = isComplete
@@ -137,6 +142,7 @@ export default function RoomsScreen({ navigation, route }) {
         answered={answered}
         total={total}
         emoji={emoji}
+        badgeLabel={badgeLabel}
         onCardPress={() =>
           navigation.navigate('Polling', { roomId: item.id, roomName: item.name })
         }

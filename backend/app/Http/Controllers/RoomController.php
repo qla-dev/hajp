@@ -443,6 +443,31 @@ class RoomController extends Controller
 
         $payload = $rooms->map(function ($room) use ($user) {
             $highlight = null;
+            $poll = $room->polls()->where('status', 'active')->latest()->first();
+            $pollId = $poll?->id;
+            $totalQuestions = $poll ? $poll->questions()->count() : 0;
+            $answeredRaw = 0;
+            $skipped = 0;
+            $cashoutDone = false;
+            if ($user && $poll) {
+                $answeredRaw = $poll->questions()
+                    ->whereHas('votes', fn($q) => $q->where('user_id', $user->id)->where('room_id', $room->id))
+                    ->count();
+
+                $questionIds = $poll->questions()->select('id');
+                $skipped = Vote::query()
+                    ->whereNull('selected_user_id')
+                    ->where('room_id', $room->id)
+                    ->where('user_id', $user->id)
+                    ->whereIn('question_id', $questionIds)
+                    ->count();
+
+                $cashoutDone = CashoutHistory::where('user_id', $user->id)
+                    ->where('poll_id', $pollId)
+                    ->where('room_id', $room->id)
+                    ->exists();
+            }
+
             $result = $this->buildActiveQuestionData($room, $user);
             if (!isset($result['error'])) {
                 $highlight = [
@@ -451,6 +476,18 @@ class RoomController extends Controller
                     'total' => $result['total'],
                     'answered' => $result['answered'],
                     'skipped' => $result['skipped'] ?? 0,
+                    'poll_id' => $result['poll_id'],
+                    'cashout_done' => $cashoutDone,
+                ];
+            } elseif ($poll) {
+                $highlight = [
+                    'question' => null,
+                    'emoji' => null,
+                    'total' => $totalQuestions,
+                    'answered' => $answeredRaw,
+                    'skipped' => $skipped,
+                    'poll_id' => $pollId,
+                    'cashout_done' => $cashoutDone,
                 ];
             }
 
@@ -512,6 +549,7 @@ class RoomController extends Controller
 
         $existing = CashoutHistory::where('user_id', $user->id)
             ->where('poll_id', $poll->id)
+            ->where('room_id', $room->id)
             ->exists();
         if ($existing) {
             return response()->json(['message' => 'Već si podigao ovu isplatu'], 422);
@@ -519,10 +557,11 @@ class RoomController extends Controller
 
         /** @var CashoutHistory|null $history */
         $history = null;
-        DB::transaction(function () use ($user, $poll, &$history, $cashoutAmount) {
+        DB::transaction(function () use ($user, $poll, $room, &$history, $cashoutAmount) {
             $history = CashoutHistory::create([
                 'user_id' => $user->id,
                 'poll_id' => $poll->id,
+                'room_id' => $room->id,
             ]);
             $user->increment('hajp_coins', $cashoutAmount);
         });

@@ -20,6 +20,7 @@ export default function PollItem({
   accentColor,
   onCardPress,
   style,
+  badgeLabel,
 }) {
   const { colors } = useTheme();
   const completion = total ? Math.min(Math.max(answered / total, 0), 1) : 0;
@@ -29,6 +30,7 @@ export default function PollItem({
   const containerProps = interactive ? { activeOpacity: 0.9, onPress: onCardPress } : {};
   const progressLabel = total ? `${answered}/${total}` : '0/0';
   const coinUri = coinAssetUri;
+  const labelText = badgeLabel || 'U progresu';
 
   return (
     <Container
@@ -44,7 +46,7 @@ export default function PollItem({
             <Text style={[styles.badgeValue, { color: accent }]}>{progressLabel}</Text>
             {coinUri ? <SvgUri width={12} height={12} uri={coinUri} /> : null}
           </View>
-          <Text style={[styles.badgeLabel, { color: colors.text_secondary }]}>U progresu</Text>
+          <Text style={[styles.badgeLabel, { color: colors.text_secondary }]}>{labelText}</Text>
         </View>
       </View>
 
