@@ -27,7 +27,7 @@ const coinAsset = require('../../assets/svg/coin.svg');
 const coinAssetDefaultUri = Asset.fromModule(coinAsset).uri;
 
 export default function CashOutScreen({ route, navigation }) {
-  const { roomId } = route.params || {};
+  const { roomId, coinsEarned, cashoutAmount } = route.params || {};
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [celebrating, setCelebrating] = useState(false);
@@ -46,6 +46,11 @@ export default function CashOutScreen({ route, navigation }) {
   const coinSoundRef = useRef(null);
   const applauseSoundRef = useRef(null);
   const handleConfettiComplete = () => setCelebrating(false);
+  const payoutCoins = Number.isFinite(coinsEarned)
+    ? Math.max(0, Math.floor(coinsEarned))
+    : Number.isFinite(cashoutAmount)
+    ? Math.max(0, Math.floor(cashoutAmount))
+    : 0;
 
   useEffect(() => () => clearTimeout(confettiTimer.current), []);
 
@@ -206,6 +211,8 @@ export default function CashOutScreen({ route, navigation }) {
     const coinUriForAnimation = readyUri || preloadedCoinUriRef.current || coinSvgUri;
     if (coinUriForAnimation && !coinSvgUri) setCoinSvgUri(coinUriForAnimation);
     preloadedCoinUriRef.current = coinUriForAnimation || preloadedCoinUriRef.current;
+    const coinsToAnimate = Math.max(0, Math.min(payoutCoins || 0, 25));
+    if (coinsToAnimate <= 0) return;
     const buttonLayout = await measureButton();
     if (!buttonLayout) return;
     const coinSize = 26;
@@ -216,7 +223,7 @@ export default function CashOutScreen({ route, navigation }) {
     const screenWidth = Dimensions.get('window').width;
     const endX = screenWidth - coinSize - horizontalInset;
     const endY = verticalInset;
-    const coins = Array.from({ length: 10 }, (_, index) => ({
+    const coins = Array.from({ length: coinsToAnimate }, (_, index) => ({
       id: `${Date.now()}-${index}`,
       anim: new Animated.ValueXY({ x: startX, y: startY }),
       fade: new Animated.Value(1),
@@ -288,7 +295,7 @@ export default function CashOutScreen({ route, navigation }) {
         </View>
         <View style={styles.card}>
           <Text style={styles.title}>Čestitamo!</Text>
-      <Text style={styles.subtitle}>Možete podići 10 coinova za zadnju anketu.</Text>
+      <Text style={styles.subtitle}>Možete podići {payoutCoins ?? '...'} coinova za ovu anketu.</Text>
       <View style={styles.balanceRow}>
         {coinSvgUri ? (
           <SvgUri width={28} height={28} uri={coinSvgUri} />
@@ -312,7 +319,7 @@ export default function CashOutScreen({ route, navigation }) {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Isplata · 10 coinova</Text>
+                <Text style={styles.buttonText}>Isplata · {payoutCoins ?? '...'} coinova</Text>
               )}
             </TouchableOpacity>
           </Animated.View>

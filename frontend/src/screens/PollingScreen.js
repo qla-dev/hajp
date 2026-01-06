@@ -3,11 +3,13 @@ import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator
 import { Ionicons } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SvgUri } from 'react-native-svg';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL, fetchActiveQuestion, fetchRoomCashoutStatus, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
 import { Audio } from 'expo-av';
 import Avatar from '../components/Avatar';
 import { BlurView } from 'expo-blur';
+import { Asset } from 'expo-asset';
 
 const { width } = Dimensions.get('window');
 let Haptics;
@@ -18,6 +20,8 @@ if (Platform.OS !== 'android') {
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 const skipSoundAsset = require('../../assets/sounds/skip.mp3');
 const shuffleSoundAsset = require('../../assets/sounds/shuffle.mp3');
+const coinAsset = require('../../assets/svg/coin.svg');
+const coinAssetUri = Asset.fromModule(coinAsset).uri;
 
 
 
@@ -26,8 +30,12 @@ export default function PollingScreen({ route, navigation }) {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
   const headerHeight = useHeaderHeight();
+  const hasInitializedProgressRef = useRef(false);
+  const [coinSvgUri, setCoinSvgUri] = useState(coinAssetUri);
   const [question, setQuestion] = useState(null);
   const [total, setTotal] = useState(0);
+  const [effectiveTotal, setEffectiveTotal] = useState(null);
+  const [answeredCount, setAnsweredCount] = useState(0);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshingQuestion, setRefreshingQuestion] = useState(false);
@@ -91,6 +99,30 @@ export default function PollingScreen({ route, navigation }) {
   }, [navigation]);
 
   useEffect(() => {
+    const asset = Asset.fromModule(coinAsset);
+    let cancelled = false;
+    (async () => {
+      try {
+        await asset.downloadAsync();
+        const uri = asset.localUri || asset.uri;
+        if (!cancelled) setCoinSvgUri(uri);
+      } catch {
+        // ignore asset load errors; fallback to initial uri
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    hasInitializedProgressRef.current = false;
+    setAnsweredCount(0);
+    setEffectiveTotal(null);
+    setIndex(0);
+  }, [roomId]);
+
+  useEffect(() => {
     let mounted = true;
     (async () => {
       try {
@@ -132,11 +164,12 @@ export default function PollingScreen({ route, navigation }) {
         pollId: data?.poll_id,
         nextPollAt: data?.next_poll_at,
         cashoutAmount: data?.cashout_amount,
+        coinsEarned: answeredCount,
       });
     } catch (transitionError) {
       console.error('Failed to determine next screen', transitionError);
     }
-  }, [navigation, roomId]);
+  }, [navigation, roomId, answeredCount]);
 
   useEffect(() => {
     loadQuestion();
@@ -160,6 +193,16 @@ export default function PollingScreen({ route, navigation }) {
         setQuestion(data.question);
         setFinished(false);
         setTotal(incomingTotal);
+        setEffectiveTotal((prev) => {
+          if (prev == null) return incomingTotal;
+          if (incomingTotal && incomingTotal < prev) return incomingTotal;
+          return prev;
+        });
+        const incomingAnswered = Math.max(0, (incomingIndex || 1) - 1);
+        if (!hasInitializedProgressRef.current) {
+          setAnsweredCount(incomingAnswered);
+          hasInitializedProgressRef.current = true;
+        }
         setIndex(incomingIndex || (incomingTotal ? 1 : 0));
         const idx = Math.max(0, (incomingIndex || 1) - 1);
         const palette = backgrounds.length ? backgrounds[idx % backgrounds.length] : null;
@@ -191,6 +234,10 @@ export default function PollingScreen({ route, navigation }) {
     connectSoundRef.current?.replayAsync().catch(() => {});
     try {
       await voteQuestion(question.id, option, roomId);
+      setAnsweredCount((prev) => {
+        const maxTotal = (effectiveTotal ?? total ?? (prev + 1));
+        return Math.min(prev + 1, maxTotal);
+      });
       await loadQuestion();
     } catch (error) {
       console.error('Error voting:', error);
@@ -223,6 +270,10 @@ export default function PollingScreen({ route, navigation }) {
     try {
       await skipQuestion(question.id, roomId);
     } catch {}
+    const baseTotal = (effectiveTotal ?? total ?? 0);
+    const nextTotal = Math.max(0, baseTotal - 1);
+    setEffectiveTotal(nextTotal);
+    setAnsweredCount((answered) => Math.min(answered, nextTotal));
     await loadQuestion();
   };
 
@@ -326,14 +377,25 @@ export default function PollingScreen({ route, navigation }) {
     }).start(() => setZoomVisible(false));
   };
 
+  const displayTotal = effectiveTotal ?? total ?? 0;
+  const displayIndex = Math.min(answeredCount + 1, displayTotal || answeredCount + 1);
+  const progressRatio = displayTotal ? Math.min(Math.max(displayIndex / displayTotal, 0), 1) : 0;
+
   return (
     <LinearGradient colors={gradientProps.colors} start={gradientProps.start} end={gradientProps.end} style={styles.container}>
       <View style={[styles.progressTrack, { top: headerHeight }]}>
-        <View style={[styles.progressFill, { width: `${total ? Math.min(Math.max((index || 0) / (total || 1), 0), 1) * 100 : 0}%` }]} />
+        <View style={[styles.progressFill, { width: `${progressRatio * 100}%` }]} />
       </View>
-      <Text style={styles.counter}>
-        {index || 1} od {total || 0}
-      </Text>
+      <View style={styles.counterRow}>
+        <Text style={styles.counter}>
+          {displayIndex || 1} od {displayTotal || 0}
+        </Text>
+        {coinSvgUri ? (
+          <SvgUri width={16} height={16} uri={coinSvgUri} />
+        ) : (
+          <Text style={styles.counterFallback}>ƒ,æ</Text>
+        )}
+      </View>
 
       <View style={styles.pollContent}>
         {refreshingQuestion ? (
@@ -453,7 +515,9 @@ const createStyles = (colors, isDark) =>
       backgroundColor: '#FFFFFF',
     },
     center: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
-    counter: { color: colors.textLight, fontSize: 16, fontWeight: '600', textAlign: 'center', marginTop: 120 },
+    counterRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 120 },
+    counter: { color: colors.textLight, fontSize: 16, fontWeight: '600', textAlign: 'center' },
+    counterFallback: { color: colors.textLight, fontSize: 14, fontWeight: '700' },
     pollContent: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
     emoji: { fontSize: 80, marginBottom: 20 },
     question: { color: colors.textLight, fontSize: 24, fontWeight: '600', textAlign: 'center', lineHeight: 32 },
