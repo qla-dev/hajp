@@ -30,11 +30,10 @@ export default function PollingScreen({ route, navigation }) {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
   const headerHeight = useHeaderHeight();
-  const hasInitializedProgressRef = useRef(false);
   const [coinSvgUri, setCoinSvgUri] = useState(coinAssetUri);
   const [question, setQuestion] = useState(null);
   const [total, setTotal] = useState(0);
-  const [effectiveTotal, setEffectiveTotal] = useState(null);
+  const [skippedCount, setSkippedCount] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -116,9 +115,9 @@ export default function PollingScreen({ route, navigation }) {
   }, []);
 
   useEffect(() => {
-    hasInitializedProgressRef.current = false;
+    setSkippedCount(0);
     setAnsweredCount(0);
-    setEffectiveTotal(null);
+    setTotal(0);
     setIndex(0);
   }, [roomId]);
 
@@ -188,21 +187,18 @@ export default function PollingScreen({ route, navigation }) {
       const { data } = await fetchActiveQuestion(roomId);
       const incomingTotal = data?.total ?? 0;
       const incomingIndex = data?.index ?? 0;
+      const incomingSkipped = data?.skipped ?? 0;
+      const rawIncomingAnswered = data?.answered ?? Math.max(0, (incomingIndex || 1) - 1);
+      const adjustedTotal = Math.max(incomingTotal - incomingSkipped, 0);
+      const answeredWithoutSkips = Math.max(0, rawIncomingAnswered - incomingSkipped);
+      const normalizedAnswered = Math.min(answeredWithoutSkips, adjustedTotal);
 
       if (data?.question) {
         setQuestion(data.question);
         setFinished(false);
         setTotal(incomingTotal);
-        setEffectiveTotal((prev) => {
-          if (prev == null) return incomingTotal;
-          if (incomingTotal && incomingTotal < prev) return incomingTotal;
-          return prev;
-        });
-        const incomingAnswered = Math.max(0, (incomingIndex || 1) - 1);
-        if (!hasInitializedProgressRef.current) {
-          setAnsweredCount(incomingAnswered);
-          hasInitializedProgressRef.current = true;
-        }
+        setSkippedCount(incomingSkipped);
+        setAnsweredCount(normalizedAnswered);
         setIndex(incomingIndex || (incomingTotal ? 1 : 0));
         const idx = Math.max(0, (incomingIndex || 1) - 1);
         const palette = backgrounds.length ? backgrounds[idx % backgrounds.length] : null;
@@ -235,7 +231,8 @@ export default function PollingScreen({ route, navigation }) {
     try {
       await voteQuestion(question.id, option, roomId);
       setAnsweredCount((prev) => {
-        const maxTotal = (effectiveTotal ?? total ?? (prev + 1));
+        const adjustedTotal = Math.max((total || 0) - (skippedCount || 0), 0);
+        const maxTotal = adjustedTotal || (prev + 1);
         return Math.min(prev + 1, maxTotal);
       });
       await loadQuestion();
@@ -270,10 +267,12 @@ export default function PollingScreen({ route, navigation }) {
     try {
       await skipQuestion(question.id, roomId);
     } catch {}
-    const baseTotal = (effectiveTotal ?? total ?? 0);
-    const nextTotal = Math.max(0, baseTotal - 1);
-    setEffectiveTotal(nextTotal);
-    setAnsweredCount((answered) => Math.min(answered, nextTotal));
+    setSkippedCount((prevSkipped) => {
+      const nextSkipped = prevSkipped + 1;
+      const adjustedTotal = Math.max((total || 0) - nextSkipped, 0);
+      setAnsweredCount((answered) => Math.min(answered, adjustedTotal));
+      return nextSkipped;
+    });
     await loadQuestion();
   };
 
@@ -377,8 +376,9 @@ export default function PollingScreen({ route, navigation }) {
     }).start(() => setZoomVisible(false));
   };
 
-  const displayTotal = effectiveTotal ?? total ?? 0;
-  const displayIndex = Math.min(answeredCount + 1, displayTotal || answeredCount + 1);
+  const displayTotal = Math.max((total || 0) - (skippedCount || 0), 0);
+  const displayIndexBase = answeredCount + 1;
+  const displayIndex = displayTotal ? Math.min(displayIndexBase, displayTotal) : displayIndexBase;
   const progressRatio = displayTotal ? Math.min(Math.max(displayIndex / displayTotal, 0), 1) : 0;
 
   return (

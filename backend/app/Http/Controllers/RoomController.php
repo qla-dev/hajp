@@ -599,6 +599,8 @@ class RoomController extends Controller
             'total' => $result['total'],
             'index' => $result['index'],
             'poll_id' => $result['poll_id'],
+            'answered' => $result['answered'],
+            'skipped' => $result['skipped'],
         ]);
     }
 
@@ -665,9 +667,17 @@ class RoomController extends Controller
         $question->setAttribute('options', $options);
 
         $answeredCount = 0;
+        $skipped = 0;
         if ($user) {
             $answeredCount = $poll->questions()
                 ->whereHas('votes', fn($q) => $q->where('user_id', $user->id)->where('room_id', $room->id))
+                ->count();
+
+            $skipped = Vote::query()
+                ->whereNull('selected_user_id')
+                ->where('room_id', $room->id)
+                ->where('user_id', $user->id)
+                ->whereIn('question_id', $poll->questions()->select('id'))
                 ->count();
         }
         $index = $user ? min($total, $answeredCount + 1) : 1;
@@ -679,6 +689,7 @@ class RoomController extends Controller
             'index' => $index,
             'poll_id' => $poll->id,
             'answered' => $answered,
+            'skipped' => $skipped,
         ];
     }
 
