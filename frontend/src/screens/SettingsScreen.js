@@ -130,7 +130,13 @@ export default function SettingsScreen({ navigation }) {
         <Text style={styles.sectionLabel}>Prijatelji</Text>
         <TouchableOpacity
           style={styles.listRow}
-          onPress={() => navigation.navigate('Friends', { screen: 'FriendsList', params: { mode: 'blocked' } })}
+          onPress={() =>
+            navigation.navigate('ProfileFriendsList', {
+              mode: 'blocked',
+              fromProfile: true,
+              profileRouteName: 'ProfileFriends',
+            })
+          }
         >
           <Text style={styles.listRowText}>Blok lista</Text>
         </TouchableOpacity>

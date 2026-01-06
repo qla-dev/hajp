@@ -211,17 +211,26 @@ export default function FriendsScreen({ navigation, route }) {
             const fromProfile = route?.params?.fromProfile;
             const profileRouteName = route?.params?.profileRouteName || 'ProfileFriends';
 
-            const handleUnblock = async () => {
+            const doUnblock = async () => {
               if (!friendId) return;
               setUnblockingId(friendId);
               try {
                 await unblockUser(friendId);
                 await loadFriends();
+                Alert.alert('Odblokirano', 'Korisnik je uklonjen sa blok liste.');
               } catch {
                 Alert.alert('Greška', 'Nije moguće odblokirati korisnika.');
               } finally {
                 setUnblockingId(null);
               }
+            };
+
+            const handleUnblock = () => {
+              Haptics.selectionAsync().catch(() => {});
+              Alert.alert('Odblokiraj korisnika?', 'Ponovo će moći da te kontaktira.', [
+                { text: 'Otkaži', style: 'cancel' },
+                { text: 'Odblokiraj', style: 'destructive', onPress: doUnblock },
+              ]);
             };
 
             if (isBlockedList) {

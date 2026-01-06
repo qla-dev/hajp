@@ -104,7 +104,12 @@ const iconMap = {
 
 const profileFriendsListOptions = ({ route }) => {
   const mode = route?.params?.mode;
-  const title = mode === 'group-invite' ? 'Pozovi prijatelja' : 'Prijatelji';
+  const title =
+    mode === 'group-invite'
+      ? 'Pozovi prijatelja'
+      : mode === 'blocked'
+      ? 'Blokirani kontakti'
+      : 'Prijatelji';
   return {
     title,
     headerBackTitle: 'Nazad',
@@ -470,6 +475,8 @@ function FriendsStackNavigator() {
               ? 'Zahtjevi za povezivanje'
               : mode === 'group-invite'
               ? 'Pozovi prijatelje u grupu'
+              : mode === 'blocked'
+              ? 'Blokirani kontakti'
               : 'Prijatelji';
           const onBack = () => {
             console.log('[FriendsList back] mode:', mode, 'canGoBack:', navigation.canGoBack());
@@ -620,6 +627,9 @@ function MainTabsContent() {
         hideTabBar = true;
         }
         if (route.name === 'Friends' && (focused === 'FriendProfile' || focused === 'ProfileFriendsList')) {
+          hideTabBar = true;
+        }
+        if (route.name === 'Friends' && focused === 'FriendsList') {
           hideTabBar = true;
         }
         if (route.name === 'Rank' && (focused === 'ProfileFriendsList' || focused === 'LiveFriendProfile')) {
