@@ -11,6 +11,8 @@ import Avatar from '../components/Avatar';
 import { BlurView } from 'expo-blur';
 import { Asset } from 'expo-asset';
 
+const SKIP_LIMIT = 3;
+
 const { width } = Dimensions.get('window');
 let Haptics;
 if (Platform.OS !== 'android') {
@@ -187,7 +189,7 @@ export default function PollingScreen({ route, navigation }) {
       const { data } = await fetchActiveQuestion(roomId);
       const incomingTotal = data?.total ?? 0;
       const incomingIndex = data?.index ?? 0;
-      const incomingSkipped = data?.skipped ?? 0;
+      const incomingSkipped = Math.min(data?.skipped ?? 0, SKIP_LIMIT);
       const rawIncomingAnswered = data?.answered ?? Math.max(0, (incomingIndex || 1) - 1);
       const adjustedTotal = Math.max(incomingTotal - incomingSkipped, 0);
       const answeredWithoutSkips = Math.max(0, rawIncomingAnswered - incomingSkipped);
@@ -231,7 +233,7 @@ export default function PollingScreen({ route, navigation }) {
     try {
       await voteQuestion(question.id, option, roomId);
       setAnsweredCount((prev) => {
-        const adjustedTotal = Math.max((total || 0) - (skippedCount || 0), 0);
+        const adjustedTotal = Math.max((total || 0) - Math.min(skippedCount || 0, SKIP_LIMIT), 0);
         const maxTotal = adjustedTotal || (prev + 1);
         return Math.min(prev + 1, maxTotal);
       });
@@ -255,6 +257,8 @@ export default function PollingScreen({ route, navigation }) {
   };
 
   const handleSkip = async () => {
+    const skipRemaining = Math.max(SKIP_LIMIT - (skippedCount || 0), 0);
+    if (skipRemaining <= 0) return;
     if (!question) {
       setInteractionLocked(true);
       await loadQuestion();
@@ -268,7 +272,7 @@ export default function PollingScreen({ route, navigation }) {
       await skipQuestion(question.id, roomId);
     } catch {}
     setSkippedCount((prevSkipped) => {
-      const nextSkipped = prevSkipped + 1;
+      const nextSkipped = Math.min(SKIP_LIMIT, prevSkipped + 1);
       const adjustedTotal = Math.max((total || 0) - nextSkipped, 0);
       setAnsweredCount((answered) => Math.min(answered, adjustedTotal));
       return nextSkipped;
@@ -376,10 +380,13 @@ export default function PollingScreen({ route, navigation }) {
     }).start(() => setZoomVisible(false));
   };
 
-  const displayTotal = Math.max((total || 0) - (skippedCount || 0), 0);
+  const effectiveSkipped = Math.min(skippedCount || 0, SKIP_LIMIT);
+  const displayTotal = Math.max((total || 0) - effectiveSkipped, 0);
   const displayIndexBase = answeredCount + 1;
   const displayIndex = displayTotal ? Math.min(displayIndexBase, displayTotal) : displayIndexBase;
   const progressRatio = displayTotal ? Math.min(Math.max(displayIndex / displayTotal, 0), 1) : 0;
+  const skipRemaining = Math.max(SKIP_LIMIT - effectiveSkipped, 0);
+  const skipDisabled = refreshingQuestion || interactionLocked || skipRemaining <= 0;
 
   return (
     <LinearGradient colors={gradientProps.colors} start={gradientProps.start} end={gradientProps.end} style={styles.container}>
@@ -487,9 +494,16 @@ export default function PollingScreen({ route, navigation }) {
           <Text style={styles.actionText}>Novi odgovori</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleSkip} style={styles.actionButton} disabled={refreshingQuestion || interactionLocked}>
-          <View style={styles.iconWrapperSmall}>
+        <TouchableOpacity
+          onPress={handleSkip}
+          style={[styles.actionButton, skipDisabled && styles.disabledAction]}
+          disabled={skipDisabled}
+        >
+          <View style={[styles.iconWrapperSmall, styles.skipIconWrapper]}>
             <Ionicons name="play-skip-forward-outline" size={24} color={colors.textLight} />
+            <Text style={styles.skipCount}>
+              {skipRemaining}/{SKIP_LIMIT}
+            </Text>
           </View>
           <Text style={styles.actionText}>Preskoči pitanje</Text>
         </TouchableOpacity>
@@ -584,7 +598,10 @@ const createStyles = (colors, isDark) =>
     bottomActions: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 40, paddingBottom: 40 },
     actionButton: { alignItems: 'center' },
     iconWrapperSmall: { height: 28, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+    skipIconWrapper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+    skipCount: { color: colors.textLight, fontSize: 12, fontWeight: '700', marginLeft: 6 },
     actionText: { color: colors.textLight, fontSize: 14, fontWeight: '600' },
+    disabledAction: { opacity: 0.5 },
     loadingText: { color: colors.textLight, fontSize: 18, textAlign: 'center', marginTop: 12 },
     congratsEmoji: { fontSize: 72, marginBottom: 12 },
     congratsTitle: { color: colors.textLight, fontSize: 26, fontWeight: '700', textAlign: 'center' },
