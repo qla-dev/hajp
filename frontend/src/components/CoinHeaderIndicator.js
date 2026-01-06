@@ -117,9 +117,13 @@ const createStyles = (colors) =>
     button: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      paddingHorizontal: 2,
-      paddingVertical: 0,
+      justifyContent: 'center',
+      flexShrink: 0,
+      minHeight: 32,
+      minWidth: 54,
+      paddingHorizontal: 5,
+      paddingVertical: 6,
+      borderRadius: 18,
       borderWidth: 0,
       backgroundColor: 'transparent',
     },
@@ -137,5 +141,6 @@ const createStyles = (colors) =>
       fontWeight: '600',
       fontSize: 13,
       minWidth: 12,
+      marginLeft: 8,
     },
   });
