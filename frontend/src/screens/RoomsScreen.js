@@ -13,6 +13,7 @@ import PollItem from '../components/PollItem';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 
 const ITEM_HEIGHT = 300;
+const SKIP_LIMIT = 3;
 
 export default function RoomsScreen({ navigation, route }) {
   const [rooms, setRooms] = useState([]);
@@ -114,8 +115,12 @@ export default function RoomsScreen({ navigation, route }) {
     const baseTotal = item.polls_count ?? 20;
     const fallbackAnswered = Math.min(item.completed_polls ?? baseTotal, baseTotal);
 
-    const total = highlight?.total ?? baseTotal;
-    const answered = highlight?.answered ?? fallbackAnswered;
+    const skipped = Math.min(highlight?.skipped ?? 0, SKIP_LIMIT);
+    const totalBase = highlight?.total ?? baseTotal;
+    const total = Math.max((totalBase || 0) - skipped, 0);
+    const answeredWithSkips = highlight?.answered ?? fallbackAnswered;
+    const answeredNormalized = Math.max(0, answeredWithSkips - skipped);
+    const answered = total > 0 ? Math.min(answeredNormalized, total) : answeredNormalized;
     const isComplete = total > 0 && answered >= total;
     const emoji = highlight?.emoji || (item.type === 'Za žene' ? '🌸' : '⚡️');
 

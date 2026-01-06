@@ -450,6 +450,7 @@ class RoomController extends Controller
                     'emoji' => $result['question']->emoji,
                     'total' => $result['total'],
                     'answered' => $result['answered'],
+                    'skipped' => $result['skipped'] ?? 0,
                 ];
             }
 
@@ -627,6 +628,7 @@ class RoomController extends Controller
                 'emoji' => $result['question']->emoji,
                 'total' => $result['total'],
                 'answered' => $result['answered'],
+                'skipped' => $result['skipped'],
             ];
         }
 

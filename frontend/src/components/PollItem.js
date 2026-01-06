@@ -1,6 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { SvgUri } from 'react-native-svg';
+import { Asset } from 'expo-asset';
 import { useTheme } from '../theme/darkMode';
+
+const coinAsset = require('../../assets/svg/coin.svg');
+const coinAssetUri = Asset.fromModule(coinAsset).uri;
 
 export default function PollItem({
   roomName,
@@ -23,6 +28,7 @@ export default function PollItem({
   const Container = interactive ? TouchableOpacity : View;
   const containerProps = interactive ? { activeOpacity: 0.9, onPress: onCardPress } : {};
   const progressLabel = total ? `${answered}/${total}` : '0/0';
+  const coinUri = coinAssetUri;
 
   return (
     <Container
@@ -34,10 +40,11 @@ export default function PollItem({
           {roomName || 'Neimenovana soba'}
         </Text>
         <View style={styles.badge}>
-          <Text style={[styles.badgeValue, { color: accent }]}>{progressLabel}</Text>
-          <Text style={[styles.badgeLabel, { color: colors.text_secondary }]}>
-            {total && total === answered ? 'Završeno' : 'Odgovoreno'}
-          </Text>
+          <View style={styles.badgeCountRow}>
+            <Text style={[styles.badgeValue, { color: accent }]}>{progressLabel}</Text>
+            {coinUri ? <SvgUri width={12} height={12} uri={coinUri} /> : null}
+          </View>
+          <Text style={[styles.badgeLabel, { color: colors.text_secondary }]}>U progresu</Text>
         </View>
       </View>
 
@@ -46,7 +53,7 @@ export default function PollItem({
       </Text>
 
       <View style={styles.detailRow}>
-        <Text style={[styles.emoji, { color: accent }]}>{emoji || '❔'}</Text>
+        <Text style={[styles.emoji, { color: accent }]}>{emoji || '😊'}</Text>
         <View style={styles.progressTrack}>
           <View style={[styles.progressFill, { width: `${completion * 100}%`, backgroundColor: accent }]} />
         </View>
@@ -106,6 +113,11 @@ const styles = StyleSheet.create({
   },
   badge: {
     alignItems: 'flex-end',
+  },
+  badgeCountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   badgeValue: {
     fontSize: 14,
