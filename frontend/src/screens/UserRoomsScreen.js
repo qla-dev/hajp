@@ -13,6 +13,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 import { fetchUserRooms } from '../api';
 import { useRoomSheet } from '../context/roomSheetContext';
+import MenuTab from '../components/MenuTab';
 
 const TAB_MEMBER_ROOMS = 'member';
 const TAB_ADMIN_ROOMS = 'admin';
@@ -197,8 +198,22 @@ export default function UserRoomsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.tabs}>
-        {[TAB_MEMBER_ROOMS, TAB_ADMIN_ROOMS].map((tab) => (
+      <MenuTab
+        items={[
+          { key: TAB_MEMBER_ROOMS, label: 'Sobe gdje sam član' },
+          { key: TAB_ADMIN_ROOMS, label: 'Sobe gdje sam admin' },
+        ]}
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        topPadding={100}
+        horizontalPadding={16}
+        variant="menu-tab-s"
+        color="secondary"
+      />
+
+      {false && (
+        <View style={styles.tabs}>
+          {[TAB_MEMBER_ROOMS, TAB_ADMIN_ROOMS].map((tab) => (
           <TouchableOpacity
             key={tab}
             style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
@@ -209,8 +224,9 @@ export default function UserRoomsScreen({ navigation }) {
               {tab === TAB_MEMBER_ROOMS ? 'Sobe gdje sam član' : 'Sobe gdje sam admin'}
             </Text>
           </TouchableOpacity>
-        ))}
-      </View>
+          ))}
+        </View>
+      )}
 
       {renderContent()}
     </View>
@@ -231,7 +247,7 @@ const createStyles = (colors, isDark) =>
     },
     tabButton: {
       flex: 1,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.transparent,
       paddingVertical: 10,
       borderRadius: 12,
       borderWidth: 1,
@@ -259,7 +275,7 @@ const createStyles = (colors, isDark) =>
       paddingBottom: 16,
     },
     roomCard: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.transparent,
       padding: 16,
       borderRadius: 14,
       marginBottom: 10,

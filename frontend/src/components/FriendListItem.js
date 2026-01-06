@@ -171,6 +171,7 @@ const createStyles = (colors) =>
     subtitleMuted: {
       color: colors.text_secondary,
       fontSize: 12,
+      marginTop: -4,
     },
     meta: {
       color: colors.text_secondary,
