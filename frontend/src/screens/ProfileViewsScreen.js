@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchProfileViews, getCurrentUser } from '../api';
 import BottomCTA from '../components/BottomCTA';
 import Avatar from '../components/Avatar';
+import PayBottomSheet from '../components/PayBottomSheet';
 
 export default function ProfileViewsScreen() {
   const { colors } = useTheme();
@@ -22,6 +23,9 @@ export default function ProfileViewsScreen() {
   const [views, setViews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [hasFullAccess, setHasFullAccess] = useState(false);
+  const paySheetRef = useRef(null);
+  const revealPrice = 50;
 
   const loadViews = useCallback(async () => {
     setLoading(true);
@@ -52,6 +56,20 @@ export default function ProfileViewsScreen() {
     setRefreshing(false);
   }, [loadViews]);
 
+  const handleOpenPaySheet = useCallback(() => {
+    paySheetRef.current?.open();
+  }, []);
+
+  const handlePayWithCoins = useCallback(() => {
+    setHasFullAccess(true);
+    paySheetRef.current?.close();
+  }, []);
+
+  const handleActivatePremium = useCallback(() => {
+    paySheetRef.current?.close();
+    navigation.navigate('Subscription');
+  }, [navigation]);
+
   const formatViewedAt = (value) => {
     if (!value) return null;
     const parsed = new Date(value);
@@ -65,7 +83,7 @@ export default function ProfileViewsScreen() {
   };
 
   const renderVisitor = ({ item, index }) => {
-    const isHidden = index > 2;
+    const isHidden = !hasFullAccess && index > 2;
     const label = item.name || item.username || 'Korisnik';
     const username = item.username ? `@${item.username}` : null;
     const viewedAt = formatViewedAt(item.viewed_at);
@@ -155,15 +173,23 @@ export default function ProfileViewsScreen() {
         contentInsetAdjustmentBehavior="always"
         ListEmptyComponent={listEmptyComponent}
       />
-      {views.length > 3 && (
+      {!hasFullAccess && views.length > 3 && (
         <BottomCTA
           label="Vidi ko ti gleda profil"
-          onPress={() => navigation.navigate('Subscription')}
+          onPress={handleOpenPaySheet}
           iconName="eye-outline"
           fixed
           style={styles.bottomCta}
         />
       )}
+      <PayBottomSheet
+        ref={paySheetRef}
+        title="Vidi ko ti gleda profil"
+        subtitle="Izaberi nacin otkljucavanja"
+        coinPrice={revealPrice}
+        onPayWithCoins={handlePayWithCoins}
+        onActivatePremium={handleActivatePremium}
+      />
     </View>
   );
 }
