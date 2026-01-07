@@ -78,7 +78,7 @@ const applyAvatarRules = (cfg = {}) =>
 export default function AvatarHeroAnimated({
   children,
   style,
-  height = 340,
+  height = 200,
   fixed = false,
   colorsOverride,
 }) {

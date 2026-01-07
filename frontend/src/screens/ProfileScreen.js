@@ -620,7 +620,7 @@ export default function ProfileScreen({ navigation, route }) {
       >
           {isMine && (
             <View style={styles.coinRow}>
-              <TouchableOpacity style={styles.coinCard} onPress={() => navigation.navigate('Subscription')}>
+              <TouchableOpacity style={styles.coinCard} onPress={() => navigation.navigate('BuyCoins')}>
             <View style={styles.coinStack}>
                 {coinSvgUri ? (
                   <SvgUri width={64} height={64} uri={coinSvgUri} />

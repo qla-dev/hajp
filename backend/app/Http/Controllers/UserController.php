@@ -91,6 +91,24 @@ class UserController extends Controller
         return response()->json(['coins' => $user->coins ?? 0]);
     }
 
+    public function addCoins(Request $request)
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'amount' => 'required|integer|min:1',
+        ]);
+
+        $amount = (int) $data['amount'];
+        $user->coins = ($user->coins ?? 0) + $amount;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Coini su dodani.',
+            'coins' => $user->coins ?? 0,
+        ]);
+    }
+
     public function friendSuggestions(Request $request)
     {
         $user = $request->user();

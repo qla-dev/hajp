@@ -65,6 +65,7 @@ export const uploadProfilePhoto = (formData) =>
 export const removeProfilePhoto = () => api.delete('/user/photo');
 export const logout = () => api.post('/logout');
 export const fetchCoinBalance = () => api.get('/user/coins');
+export const addCoins = (payload) => api.post('/user/coins/add', payload);
 export const fetchFriendSuggestions = () => api.get('/friends/suggestions');
 export const fetchFriends = (roomId) =>
   api.get('/friends', { params: roomId ? { room_id: roomId } : undefined });

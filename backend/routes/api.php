@@ -45,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('user')->group(function () {
         Route::get('/', fn (Request $request) => $request->user());
         Route::get('/coins', [UserController::class, 'coins']);
+        Route::post('/coins/add', [UserController::class, 'addCoins']);
         Route::get('/rooms', [RoomController::class, 'userRooms']);
         Route::match(['put', 'patch'], '/', [UserController::class, 'update']);
         Route::post('/photo', [UserController::class, 'uploadPhoto']);

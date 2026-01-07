@@ -12,6 +12,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import PollDetailScreen from './src/screens/PollDetailScreen';
 import SubscriptionScreen from './src/screens/SubscriptionScreen';
+import BuyCoinsScreen from './src/screens/BuyCoinsScreen';
 import CreatePollScreen from './src/screens/CreatePollScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
@@ -151,6 +152,17 @@ function MainStackNavigator() {
         component={AvatarGeneratorScreen}
         options={{
           title: 'Kreiraj avatar',
+        }}
+      />
+      <MainStack.Screen
+        name="BuyCoins"
+        component={BuyCoinsScreen}
+        options={{
+          title: 'Kupi coine',
+          headerTransparent: true,
+          headerStyle: { backgroundColor: 'transparent' },
+          headerTintColor: '#fff',
+          headerTitleStyle: { color: '#fff' },
         }}
       />
       <MainStack.Screen

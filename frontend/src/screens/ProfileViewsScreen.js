@@ -130,11 +130,17 @@ export default function ProfileViewsScreen() {
       closePaySheet();
     } catch (error) {
       const message = error?.response?.data?.message || 'Nismo mogli otkriti profil.';
+      const status = error?.response?.status;
+      if (status === 422 && typeof message === 'string' && message.toLowerCase().includes('coin')) {
+        closePaySheet();
+        navigation.navigate('BuyCoins');
+        return;
+      }
       Alert.alert('Greska', message);
     } finally {
       setPaying(false);
     }
-  }, [closePaySheet, currentUserId, paying, playRevealSound, revealPrice, selectedView]);
+  }, [closePaySheet, currentUserId, navigation, paying, playRevealSound, revealPrice, selectedView]);
 
   const handleActivatePremium = useCallback(() => {
     closePaySheet();
