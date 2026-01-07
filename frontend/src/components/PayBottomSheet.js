@@ -13,12 +13,12 @@ const PayBottomSheet = React.forwardRef(
   (
     {
       title = 'Otkrij ko ti gleda profil',
-      subtitle = 'Izaberi nacin otkljucavanja',
+      subtitle = 'Izaberi način otključavanja željenog korisnika',
       coinPrice = 50,
       onPayWithCoins,
       onActivatePremium,
       onClose,
-      modalHeight = 420,
+      modalHeight = 360,
       defaultOption = 'coins',
     },
     ref,
@@ -70,7 +70,7 @@ const PayBottomSheet = React.forwardRef(
     }, [defaultOption, onClose]);
 
     const isCoins = selectedOption !== 'premium';
-    const actionLabel = isCoins ? `Plati ${priceLabel} coinova` : 'Aktiviraj Premium';
+    const actionLabel = isCoins ? 'Otkrij ko je' : 'Aktiviraj Premium';
     const coinUri = coinSvgUri || coinAssetDefaultUri;
 
     return (
@@ -112,7 +112,7 @@ const PayBottomSheet = React.forwardRef(
                 </View>
                 <View style={styles.optionText}>
                   <Text style={styles.optionTitle}>Plati HAJP COINIMA</Text>
-                  <Text style={styles.optionMeta}>{`${priceLabel} coinova`}</Text>
+                  <Text style={styles.optionMeta}>{`${priceLabel} coina`}</Text>
                 </View>
                 <Ionicons
                   name={isCoins ? 'checkmark-circle' : 'ellipse-outline'}
@@ -133,7 +133,7 @@ const PayBottomSheet = React.forwardRef(
                 </View>
                 <View style={styles.optionText}>
                   <Text style={styles.optionTitle}>Aktiviraj Premium</Text>
-                  <Text style={styles.optionMeta}>Otkljucaj sve profile</Text>
+                  <Text style={styles.optionMeta}>Otključaj sve profile</Text>
                 </View>
                 <Ionicons
                   name={!isCoins ? 'checkmark-circle' : 'ellipse-outline'}
@@ -145,7 +145,12 @@ const PayBottomSheet = React.forwardRef(
           </View>
 
           <TouchableOpacity style={styles.submit} onPress={handleConfirm}>
-            <Text style={styles.submitText}>{actionLabel}</Text>
+            <View style={styles.submitContent}>
+              {isCoins ? (
+                <Ionicons name="eye-outline" size={20} color={colors.textLight} style={styles.submitIcon} />
+              ) : null}
+              <Text style={styles.submitText}>{actionLabel}</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </Modalize>
@@ -289,6 +294,14 @@ const createStyles = (colors, isDark) =>
       shadowRadius: 10,
       shadowOffset: { width: 0, height: 8 },
       elevation: 8,
+    },
+    submitContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    submitIcon: {
+      marginRight: 8,
     },
     submitText: {
       color: colors.textLight,

@@ -385,10 +385,13 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen
         name="ProfileViews"
         component={ProfileViewsScreen}
-        options={{
+        options={({ navigation }) => ({
           title: 'Pregledi profila',
           headerBackTitle: 'Nazad',
-        }}
+          headerRight: () => (
+            <CoinHeaderIndicator onPress={() => navigation.navigate('ProfileHome')} />
+          ),
+        })}
       />
       <ProfileStack.Screen
         name="Settings"

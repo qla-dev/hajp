@@ -18,7 +18,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchProfileViews, getCurrentUser, payProfileView } from '../api';
 import BottomCTA from '../components/BottomCTA';
 import Avatar from '../components/Avatar';
-import PayBottomSheet from '../components/PayBottomSheet';
+import { usePaySheet } from '../context/paySheetContext';
 import { updateCoinBalance } from '../utils/coinHeaderTracker';
 
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
@@ -27,10 +27,10 @@ export default function ProfileViewsScreen() {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const navigation = useNavigation();
+  const { openPaySheet, closePaySheet } = usePaySheet();
   const [views, setViews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const paySheetRef = useRef(null);
   const [selectedView, setSelectedView] = useState(null);
   const [paying, setPaying] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -96,8 +96,15 @@ export default function ProfileViewsScreen() {
   const handleOpenPaySheet = useCallback((view) => {
     setSelectedView(view || null);
     Haptics.selectionAsync().catch(() => {});
-    paySheetRef.current?.open();
-  }, []);
+    openPaySheet({
+      title: 'Otkrij ko ti gleda profil',
+      subtitle: 'Izaberi način otključavanja željenog korisnika',
+      coinPrice: revealPrice,
+      onPayWithCoins: handlePayWithCoins,
+      onActivatePremium: handleActivatePremium,
+      onClose: () => setSelectedView(null),
+    });
+  }, [handleActivatePremium, handlePayWithCoins, openPaySheet, revealPrice]);
 
   const handlePayWithCoins = useCallback(async (priceOverride) => {
     if (!selectedView?.visitor_id || !currentUserId || paying) return;
@@ -120,19 +127,19 @@ export default function ProfileViewsScreen() {
         updateCoinBalance(data.coins);
       }
       playRevealSound();
-      paySheetRef.current?.close();
+      closePaySheet();
     } catch (error) {
       const message = error?.response?.data?.message || 'Nismo mogli otkriti profil.';
       Alert.alert('Greska', message);
     } finally {
       setPaying(false);
     }
-  }, [currentUserId, paying, playRevealSound, revealPrice, selectedView]);
+  }, [closePaySheet, currentUserId, paying, playRevealSound, revealPrice, selectedView]);
 
   const handleActivatePremium = useCallback(() => {
-    paySheetRef.current?.close();
+    closePaySheet();
     navigation.navigate('Subscription');
-  }, [navigation]);
+  }, [closePaySheet, navigation]);
 
   const formatViewedAt = (value) => {
     if (!value) return null;
@@ -259,14 +266,6 @@ export default function ProfileViewsScreen() {
           style={styles.bottomCta}
         />
       )}
-      <PayBottomSheet
-        ref={paySheetRef}
-        title="Vidi ko ti gleda profil"
-        subtitle="Izaberi nacin otkljucavanja"
-        coinPrice={revealPrice}
-        onPayWithCoins={handlePayWithCoins}
-        onActivatePremium={handleActivatePremium}
-      />
     </View>
   );
 }
