@@ -53,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/activities', [QuestionController::class, 'activities']);
         Route::get('/{user}/views', [UserController::class, 'profileViews']);
         Route::post('/{user}/views', [UserController::class, 'recordProfileView']);
+        Route::post('/{user}/pay', [UserController::class, 'payWithCoins']);
         Route::get('/{user}', [UserController::class, 'showPublic']);
         Route::get('/{user}/rooms', [UserController::class, 'roomsForUser']);
         Route::get('/{user}/friends', [UserController::class, 'friendsForUser']);

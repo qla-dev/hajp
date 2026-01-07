@@ -15,6 +15,7 @@ class ProfileView extends Model
     protected $fillable = [
         'auth_user_id',
         'visitor_id',
+        'seen',
     ];
 
     public function visitor(): BelongsTo

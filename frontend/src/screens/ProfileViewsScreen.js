@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,22 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { Audio } from 'expo-av';
+import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchProfileViews, getCurrentUser } from '../api';
+import { fetchProfileViews, getCurrentUser, payProfileView } from '../api';
 import BottomCTA from '../components/BottomCTA';
 import Avatar from '../components/Avatar';
 import PayBottomSheet from '../components/PayBottomSheet';
+import { updateCoinBalance } from '../utils/coinHeaderTracker';
+
+const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 
 export default function ProfileViewsScreen() {
   const { colors } = useTheme();
@@ -23,9 +30,37 @@ export default function ProfileViewsScreen() {
   const [views, setViews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [hasFullAccess, setHasFullAccess] = useState(false);
   const paySheetRef = useRef(null);
+  const [selectedView, setSelectedView] = useState(null);
+  const [paying, setPaying] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const revealPrice = 50;
+  const revealSoundRef = useRef(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
+        if (mounted) {
+          revealSoundRef.current = sound;
+        } else {
+          await sound.unloadAsync();
+        }
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      mounted = false;
+      revealSoundRef.current?.unloadAsync();
+      revealSoundRef.current = null;
+    };
+  }, []);
+
+  const playRevealSound = useCallback(() => {
+    revealSoundRef.current?.replayAsync().catch(() => {});
+  }, []);
 
   const loadViews = useCallback(async () => {
     setLoading(true);
@@ -33,8 +68,10 @@ export default function ProfileViewsScreen() {
       const current = await getCurrentUser();
       if (!current?.id) {
         setViews([]);
+        setCurrentUserId(null);
         return;
       }
+      setCurrentUserId(current.id);
       const { data } = await fetchProfileViews(current.id);
       setViews(data?.data || data || []);
     } catch {
@@ -56,14 +93,41 @@ export default function ProfileViewsScreen() {
     setRefreshing(false);
   }, [loadViews]);
 
-  const handleOpenPaySheet = useCallback(() => {
+  const handleOpenPaySheet = useCallback((view) => {
+    setSelectedView(view || null);
+    Haptics.selectionAsync().catch(() => {});
     paySheetRef.current?.open();
   }, []);
 
-  const handlePayWithCoins = useCallback(() => {
-    setHasFullAccess(true);
-    paySheetRef.current?.close();
-  }, []);
+  const handlePayWithCoins = useCallback(async (priceOverride) => {
+    if (!selectedView?.visitor_id || !currentUserId || paying) return;
+    const normalizedPrice = Number(priceOverride);
+    const amount = Number.isFinite(normalizedPrice)
+      ? Math.max(1, Math.floor(normalizedPrice))
+      : revealPrice;
+    setPaying(true);
+    try {
+      const { data } = await payProfileView(currentUserId, {
+        visitor_id: selectedView.visitor_id,
+        amount,
+      });
+      setViews((prev) =>
+        prev.map((view) =>
+          view.visitor_id === selectedView.visitor_id ? { ...view, seen: 1 } : view,
+        ),
+      );
+      if (typeof data?.coins === 'number') {
+        updateCoinBalance(data.coins);
+      }
+      playRevealSound();
+      paySheetRef.current?.close();
+    } catch (error) {
+      const message = error?.response?.data?.message || 'Nismo mogli otkriti profil.';
+      Alert.alert('Greska', message);
+    } finally {
+      setPaying(false);
+    }
+  }, [currentUserId, paying, playRevealSound, revealPrice, selectedView]);
 
   const handleActivatePremium = useCallback(() => {
     paySheetRef.current?.close();
@@ -82,8 +146,8 @@ export default function ProfileViewsScreen() {
     return `${day}.${month}.${year} · ${hours}:${minutes}`;
   };
 
-  const renderVisitor = ({ item, index }) => {
-    const isHidden = !hasFullAccess && index > 2;
+  const renderVisitor = ({ item }) => {
+    const isHidden = Number(item?.seen ?? 0) === 0;
     const label = item.name || item.username || 'Korisnik';
     const username = item.username ? `@${item.username}` : null;
     const viewedAt = formatViewedAt(item.viewed_at);
@@ -133,6 +197,19 @@ export default function ProfileViewsScreen() {
           {!isHidden && username ? <Text style={styles.visitorUsername}>{username}</Text> : null}
           {viewedAt ? <Text style={styles.visitorMeta}>{`Pregledano ${viewedAt}`}</Text> : null}
         </View>
+        {isHidden ? (
+          <TouchableOpacity
+            style={styles.revealButton}
+            onPress={() => handleOpenPaySheet(item)}
+            disabled={paying && selectedView?.visitor_id === item.visitor_id}
+          >
+            {paying && selectedView?.visitor_id === item.visitor_id ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Text style={styles.revealButtonText}>Otkrij</Text>
+            )}
+          </TouchableOpacity>
+        ) : null}
       </View>
     );
   };
@@ -173,10 +250,10 @@ export default function ProfileViewsScreen() {
         contentInsetAdjustmentBehavior="always"
         ListEmptyComponent={listEmptyComponent}
       />
-      {!hasFullAccess && views.length > 3 && (
+      {views.some((item) => Number(item?.seen ?? 0) === 0) && (
         <BottomCTA
           label="Vidi ko ti gleda profil"
-          onPress={handleOpenPaySheet}
+          onPress={() => navigation.navigate('Subscription')}
           iconName="eye-outline"
           fixed
           style={styles.bottomCta}
@@ -262,6 +339,19 @@ const createStyles = (colors) =>
     visitorMeta: {
       fontSize: 12,
       color: colors.text_secondary,
+    },
+    revealButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 6,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    revealButtonText: {
+      color: colors.primary,
+      fontWeight: '700',
     },
     emptyRow: {
       flex: 1,

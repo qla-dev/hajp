@@ -274,6 +274,7 @@ class UserController extends Controller
                     'profile_photo' => $visitor?->profile_photo,
                     'avatar' => $visitor?->avatar,
                     'sex' => $visitor?->sex,
+                    'seen' => (int) ($view->seen ?? 0),
                     'viewed_at' => $view->updated_at,
                     'room_name' => $firstRoom?->room?->name,
                 ];
@@ -299,6 +300,59 @@ class UserController extends Controller
         );
 
         return response()->json(['message' => 'Profile view recorded.'], 201);
+    }
+
+    public function payWithCoins(Request $request, User $user)
+    {
+        $authUser = $request->user();
+
+        if (!$authUser || $authUser->id !== $user->id) {
+            return response()->json(['message' => 'Nemate dozvolu.'], 403);
+        }
+
+        $data = $request->validate([
+            'visitor_id' => 'required|integer',
+            'amount' => 'sometimes|integer|min:1',
+        ]);
+
+        $amount = (int) ($data['amount'] ?? 50);
+        $view = ProfileView::query()
+            ->where('auth_user_id', $user->id)
+            ->where('visitor_id', $data['visitor_id'])
+            ->first();
+
+        if (!$view) {
+            return response()->json(['message' => 'Pregled nije pronadjen.'], 404);
+        }
+
+        if ((int) ($view->seen ?? 0) === 1) {
+            return response()->json([
+                'message' => 'Pregled je vec otkriven.',
+                'coins' => $authUser->coins ?? 0,
+                'seen' => 1,
+                'visitor_id' => (int) $data['visitor_id'],
+            ]);
+        }
+
+        $coins = (int) ($authUser->coins ?? 0);
+        if ($coins < $amount) {
+            return response()->json(['message' => 'Nemate dovoljno coinova.'], 422);
+        }
+
+        $authUser->coins = $coins - $amount;
+        $authUser->save();
+
+        DB::table('profile_views')
+            ->where('auth_user_id', $user->id)
+            ->where('visitor_id', $data['visitor_id'])
+            ->update(['seen' => 1]);
+
+        return response()->json([
+            'message' => 'Uspjesno otkriveno.',
+            'coins' => $authUser->coins,
+            'seen' => 1,
+            'visitor_id' => (int) $data['visitor_id'],
+        ]);
     }
 
     public function roomsForUser(User $user)

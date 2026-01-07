@@ -162,6 +162,8 @@ const createStyles = (colors, isDark) =>
       borderTopRightRadius: 24,
       backgroundColor: colors.surface,
       paddingBottom: 24,
+      zIndex: 999999,
+      elevation: 30,
     },
     overlay: {
       backgroundColor: 'rgba(0,0,0,0.35)',
