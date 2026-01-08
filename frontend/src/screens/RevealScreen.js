@@ -12,6 +12,7 @@ import { updateCoinBalance } from '../utils/coinHeaderTracker';
 import Avatar from '../components/Avatar';
 import BottomCTA from '../components/BottomCTA';
 import { generateRandomConfig } from '../utils/bigHeadAvatar';
+import { useMenuRefresh } from '../context/menuRefreshContext';
 
 const shuffleSoundAsset = require('../../assets/sounds/shuffle.mp3');
 const drumsSoundAsset = require('../../assets/sounds/drums.mp3');
@@ -108,6 +109,7 @@ export default function RevealScreen({ route, navigation }) {
   const isMountedRef = useRef(true);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const { triggerMenuRefresh } = useMenuRefresh();
 
   const titleText = params.title || (revealType === 'profile_view' ? 'Otkrij ko ti gleda profil' : 'Otkrij ko te hajpa');
   const subtitleText = params.subtitle || 'Potvrdi otkrivanje korisnika.';
@@ -290,6 +292,7 @@ export default function RevealScreen({ route, navigation }) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       redirectTimerRef.current = setTimeout(() => {
         if (navigation.canGoBack()) {
+          triggerMenuRefresh('Inbox');
           navigation.goBack();
         }
       }, 6000);
@@ -317,6 +320,7 @@ export default function RevealScreen({ route, navigation }) {
     targetUserId,
     visitorId,
     voteId,
+    triggerMenuRefresh,
   ]);
 
   const displayRandom = isShuffling || !revealedUser;

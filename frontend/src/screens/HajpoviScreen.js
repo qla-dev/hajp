@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -185,13 +185,53 @@ export default function HajpoviScreen({ navigation }) {
     loadCurrentTab();
   }, [loadCurrentTab]);
 
+  const votesListRef = useRef(null);
+  const messagesListRef = useRef(null);
+  const scrollVotesToTop = useCallback(() => {
+    const list = votesListRef.current;
+    if (!list) return;
+    try {
+      list.scrollToOffset({ offset: 0, animated: true });
+    } catch {
+      list.scrollToOffset?.({ offset: 0, animated: true });
+    }
+  }, []);
+  const scrollMessagesToTop = useCallback(() => {
+    const list = messagesListRef.current;
+    if (!list) return;
+    try {
+      list.scrollToOffset({ offset: 0, animated: true });
+    } catch {
+      list.scrollToOffset?.({ offset: 0, animated: true });
+    }
+  }, []);
+
   const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
+    let scheduled;
     const unsubscribe = registerMenuRefresh('Inbox', () => {
-      loadCurrentTab();
+      if (activeTab === TAB_ANKETE) {
+        scrollVotesToTop();
+      } else {
+        scrollMessagesToTop();
+      }
+
+      if (scheduled) {
+        clearTimeout(scheduled);
+      }
+      scheduled = setTimeout(() => {
+        loadCurrentTab();
+        scheduled = null;
+      }, 260);
     });
-    return unsubscribe;
-  }, [loadCurrentTab, registerMenuRefresh]);
+
+    return () => {
+      if (scheduled) {
+        clearTimeout(scheduled);
+      }
+      unsubscribe();
+    };
+  }, [activeTab, loadCurrentTab, registerMenuRefresh, scrollVotesToTop, scrollMessagesToTop]);
 
   const handlePayWithCoins = useCallback(
     (priceOverride, voteOverride) => {
@@ -349,8 +389,9 @@ export default function HajpoviScreen({ navigation }) {
       }
 
       return (
-        <FlatList
-          data={votes}
+      <FlatList
+        data={votes}
+        ref={votesListRef}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderVote}
           contentContainerStyle={[styles.messagesList, styles.anketeListPadding]}
@@ -395,8 +436,9 @@ export default function HajpoviScreen({ navigation }) {
     }
 
     return (
-        <FlatList
-          data={messages}
+      <FlatList
+        data={messages}
+        ref={messagesListRef}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderMessage}
           contentContainerStyle={[
