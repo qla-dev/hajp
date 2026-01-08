@@ -295,7 +295,7 @@ const createStyles = (colors) =>
     card: {
       width: '100%',
       backgroundColor: colors.surface,
-      borderRadius: 10,
+      borderRadius: 15,
       paddingHorizontal: 14,
       paddingVertical: 12,
       borderWidth: 1,
@@ -328,12 +328,12 @@ const createStyles = (colors) =>
       },
       cardBlurLayer: {
         ...StyleSheet.absoluteFillObject,
-        borderRadius: 10,
+        borderRadius: 15,
         backgroundColor: 'transparent',
       },
       avatarOverlay: {
         ...StyleSheet.absoluteFillObject,
-        borderRadius: 10,
+        borderRadius: 15,
       },
     cardOffsetTop: {
       marginTop: -4,
