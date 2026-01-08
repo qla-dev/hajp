@@ -845,9 +845,12 @@ function MainTabsContent() {
         name="Inbox"
         component={HajpoviStackNavigator}
         options={{ headerShown: false }}
-        listeners={({ navigation }) => ({
+        listeners={({ navigation, route }) => ({
           tabPress: (e) => {
-            if (navigation.isFocused()) {
+            const isFocused = navigation.isFocused();
+            const isRootRoute =
+              route?.state?.index == null || route.state.index <= 0;
+            if (isFocused && isRootRoute) {
               e.preventDefault();
               triggerMenuRefresh('Inbox');
             }

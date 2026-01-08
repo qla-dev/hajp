@@ -185,12 +185,6 @@ export default function HajpoviScreen({ navigation }) {
     loadCurrentTab();
   }, [loadCurrentTab]);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadCurrentTab();
-    }, [loadCurrentTab]),
-  );
-
   const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
     const unsubscribe = registerMenuRefresh('Inbox', () => {
