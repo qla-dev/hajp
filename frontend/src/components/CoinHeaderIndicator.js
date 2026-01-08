@@ -1,12 +1,11 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, findNodeHandle, UIManager, Platform, Dimensions, InteractionManager } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchCoinBalance } from '../api';
 import {
-  setCoinHeaderLayout,
   subscribeToCoinBalance,
   updateCoinBalance,
   getCachedCoinBalance,
@@ -19,9 +18,7 @@ export default function CoinHeaderIndicator({ onPress }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const [coins, setCoins] = useState(getCachedCoinBalance());
-  const containerRef = useRef(null);
   const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
-  const hasValidLayoutRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
@@ -68,38 +65,10 @@ export default function CoinHeaderIndicator({ onPress }) {
 
   useEffect(() => subscribeToCoinBalance(setCoins), []);
 
-  const measureLayout = useCallback(() => {
-    if (!containerRef.current) return;
-    const handle = findNodeHandle(containerRef.current);
-    if (!handle) return;
-    InteractionManager.runAfterInteractions(() => {
-      UIManager.measureInWindow(handle, (pageX, pageY, width, height) => {
-        if (height <= 0 || width <= 0) return;
-        if (pageY < 0 && hasValidLayoutRef.current) return;
-        if (pageY >= 0) {
-          hasValidLayoutRef.current = true;
-        }
-        setCoinHeaderLayout({ x: pageX, y: pageY, width, height });
-      });
-    });
-  }, []);
-
-  useEffect(() => {
-    measureLayout();
-    const pending = setTimeout(measureLayout, 400);
-    const listener = Platform.OS === 'web' ? null : Dimensions.addEventListener?.('change', measureLayout);
-    return () => {
-      clearTimeout(pending);
-      listener?.remove?.();
-    };
-  }, [measureLayout]);
-
   return (
     <TouchableOpacity
-      ref={containerRef}
       style={styles.button}
       onPress={onPress}
-      onLayout={measureLayout}
       activeOpacity={0.8}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
@@ -123,7 +92,6 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       flexShrink: 0,
       minHeight: 32,
-      minWidth: 54,
       paddingHorizontal: 8,
       borderRadius: 18,
       borderWidth: 0,

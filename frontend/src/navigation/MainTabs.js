@@ -389,7 +389,11 @@ function ProfileStackNavigator() {
           title: 'Pregledi profila',
           headerBackTitle: 'Nazad',
           headerRight: () => (
-            <CoinHeaderIndicator onPress={() => navigation.navigate('ProfileHome')} />
+            <View style={styles.headerRightSlot}>
+              <CoinHeaderIndicator
+                onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+              />
+            </View>
           ),
         })}
       />
@@ -910,6 +914,10 @@ const createStyles = (colors, isDark) =>
       flexDirection: 'row',
       alignItems: 'center',
       columnGap: 6,
+    },
+    headerRightSlot: {
+      minWidth: 80,
+      alignItems: 'flex-end',
     },
     eyeButton: {
       paddingHorizontal: 10,
