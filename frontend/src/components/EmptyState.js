@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, RefreshControl } 
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { SvgUri } from 'react-native-svg';
+import { Asset } from 'expo-asset';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import Avatar from './Avatar';
 import { buildAvatarSvg, generateRandomConfig } from '../utils/bigHeadAvatar';
@@ -16,12 +17,15 @@ const BODY_FEMALE_VALUE = 'breasts';
 const BODY_MALE_VALUE = 'chest';
 
 const SAMPLE_QUESTIONS = [
-  'Ko ti se svida?',
-  'Ko te najvise spominje?',
-  'Ko ti se najcesce javlja?',
+  'Ko ti se sviđa?',
+  'Ko te najviše spominje?',
+  'Ko ti se najčešće javlja?',
 ];
-const SAMPLE_NAMES = ['Luka', 'Mia', 'Sara', 'Marko'];
+const SAMPLE_NAMES = ['Dino', 'Mia', 'Sara', 'Marko'];
 const SAMPLE_TIMES = ['08:38', '08:21', '07:58'];
+
+const hajpoviActiveIcon = require('../../assets/svg/nav-icons/hajpovi.svg');
+const hajpoviActiveIconUri = Asset.fromModule(hajpoviActiveIcon).uri;
 
 const sanitizeHairHatForHat = (cfg = {}) => {
   if (cfg.hat === 'hijab') {
@@ -150,8 +154,9 @@ export default function EmptyState({ title, subtitle, onRefresh, coinUri, coinPr
                 ? styles.cardOffsetMiddle
                 : styles.cardOffsetBottom;
             const isPrimary = index === 1;
-            const fakeGender = index % 2 === 0 ? 'žena' : 'muškarac';
-            const fakeLabel = `Od: Neko ${fakeGender} iz grupe`;
+            const genderColor = index === 0 ? '#60a5fa' : '#f472b6';
+            const genderIcon = index === 0 ? 'male-outline' : 'female-outline';
+            const genderLabel = index === 0 ? 'muškarac' : 'žena';
             return (
               <View key={card.id} style={[styles.cardStack, cardStyle]}>
                 <View
@@ -175,9 +180,29 @@ export default function EmptyState({ title, subtitle, onRefresh, coinUri, coinPr
                       <Text style={styles.cardTitle} numberOfLines={1}>
                         {card.question}
                       </Text>
-                      <Text style={styles.cardMeta} numberOfLines={1}>
-                        {isPrimary ? card.from : fakeLabel}
-                      </Text>
+                      <View style={styles.cardMetaRow}>
+                        {!isPrimary && (
+                          <>
+                            <Text style={styles.cardMeta} numberOfLines={1}>
+                              Od:
+                            </Text>
+                            <Ionicons
+                              name={genderIcon}
+                              size={18}
+                              color={genderColor}
+                              style={styles.metaIcon}
+                            />
+                            <Text style={styles.cardMeta} numberOfLines={1}>
+                              iz grupe
+                            </Text>
+                          </>
+                        )}
+                        {isPrimary && (
+                          <Text style={styles.cardMeta} numberOfLines={1}>
+                            {card.from}
+                          </Text>
+                        )}
+                      </View>
                     </View>
                     <View style={styles.cardRight}>
                       <Text style={styles.cardTime}>{card.time}</Text>
@@ -334,10 +359,18 @@ const createStyles = (colors) =>
       fontWeight: '700',
       color: colors.text_primary,
     },
+    cardMetaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: 2,
+    },
+    metaIcon: {
+      marginRight: 0,
+    },
     cardMeta: {
       fontSize: 11,
       color: colors.text_secondary,
-      marginTop: 2,
     },
     cardRight: {
       alignItems: 'flex-end',
