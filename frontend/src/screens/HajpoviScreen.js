@@ -15,19 +15,35 @@ import MenuTab from '../components/MenuTab';
 
 const TAB_ANKETE = 'ankete';
 const TAB_LINK = 'link';
+const PAGE_LIMIT = 10;
 const coinAsset = require('../../assets/svg/coin.svg');
 const hajpoviActiveIcon = require('../../assets/svg/nav-icons/hajpovi.svg');
 const coinAssetDefaultUri = Asset.fromModule(coinAsset).uri;
 const hajpoviActiveIconUri = Asset.fromModule(hajpoviActiveIcon).uri;
+const resolveHasMore = (payload, items) => {
+  const meta = payload?.meta || payload?.pagination || payload?.paging || {};
+  if (typeof meta?.has_more === 'boolean') return meta.has_more;
+  if (typeof meta?.hasMore === 'boolean') return meta.hasMore;
+  if (typeof meta?.next_page_url === 'string') return Boolean(meta.next_page_url);
+  return items.length >= PAGE_LIMIT;
+};
 
 export default function HajpoviScreen({ navigation }) {
   const { openPaySheet, closePaySheet } = usePaySheet();
   const [activeTab, setActiveTab] = useState(TAB_ANKETE);
-  const [loading, setLoading] = useState(true);
+  const [loadingVotes, setLoadingVotes] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(true);
+  const [loadingMoreVotes, setLoadingMoreVotes] = useState(false);
+  const [loadingMoreMessages, setLoadingMoreMessages] = useState(false);
   const [votes, setVotes] = useState([]);
+  const [votesPage, setVotesPage] = useState(1);
+  const [votesHasMore, setVotesHasMore] = useState(true);
   const [messages, setMessages] = useState([]);
+  const [messagesPage, setMessagesPage] = useState(1);
+  const [messagesHasMore, setMessagesHasMore] = useState(true);
   const [selectedVote, setSelectedVote] = useState(null);
   const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
+  const [currentUser, setCurrentUser] = useState(null);
   const revealPrice = 50;
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -45,56 +61,107 @@ export default function HajpoviScreen({ navigation }) {
   );
 
   const loadUser = useCallback(async () => {
+    if (currentUser?.id) return currentUser;
     try {
       const current = await getCurrentUser();
+      setCurrentUser(current);
       return current;
     } catch (error) {
-      console.error('Greška pri učitavanju korisnika:', error);
+      console.error('Greska pri ucitavanju korisnika:', error);
       return null;
     }
-  }, []);
+  }, [currentUser]);
 
-  const loadVotes = useCallback(async () => {
+  const loadVotesPage = useCallback(async (page = 1, append = false) => {
+    if (append) {
+      setLoadingMoreVotes(true);
+    } else {
+      setLoadingVotes(true);
+      setVotesHasMore(true);
+    }
     try {
-      const { data } = await fetchMyVotes();
-      setVotes(data || []);
+      const { data: payload } = await fetchMyVotes(null, { page, limit: PAGE_LIMIT });
+      const list = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
+      const hasMore = resolveHasMore(payload, list);
+      setVotes((prev) => (append ? [...prev, ...list] : list));
+      setVotesPage(page);
+      setVotesHasMore(hasMore);
     } catch (error) {
-      setVotes([]);
-      console.error('Greška pri učitavanju hajpova:', error);
+      if (!append) {
+        setVotes([]);
+        setVotesHasMore(false);
+      }
+      console.error('Greska pri ucitavanju hajpova:', error);
+    } finally {
+      if (append) {
+        setLoadingMoreVotes(false);
+      } else {
+        setLoadingVotes(false);
+      }
     }
   }, []);
 
-  const loadMessages = useCallback(
-    async (targetUser) => {
+  const loadMessagesPage = useCallback(
+    async (page = 1, append = false, targetUser) => {
+      if (append) {
+        setLoadingMoreMessages(true);
+      } else {
+        setLoadingMessages(true);
+        setMessagesHasMore(true);
+      }
       try {
         const resolvedUser = targetUser || (await loadUser());
-        if (resolvedUser) {
-          const { data } = await fetchShareMessages(resolvedUser.id);
-          setMessages(data?.messages || []);
-        } else {
-          setMessages([]);
+        if (!resolvedUser?.id) {
+          if (!append) setMessages([]);
+          setMessagesHasMore(false);
+          return;
         }
+        const { data: payload } = await fetchShareMessages(resolvedUser.id, { page, limit: PAGE_LIMIT });
+        const list = Array.isArray(payload?.messages)
+          ? payload.messages
+          : Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload)
+          ? payload
+          : [];
+        const hasMore = resolveHasMore(payload, list);
+        setMessages((prev) => (append ? [...prev, ...list] : list));
+        setMessagesPage(page);
+        setMessagesHasMore(hasMore);
       } catch (error) {
-        setMessages([]);
-        console.error('Greška pri učitavanju poruka:', error);
+        if (!append) {
+          setMessages([]);
+          setMessagesHasMore(false);
+        }
+        console.error('Greska pri ucitavanju poruka:', error);
+      } finally {
+        if (append) {
+          setLoadingMoreMessages(false);
+        } else {
+          setLoadingMessages(false);
+        }
       }
     },
     [loadUser],
   );
 
   const loadCurrentTab = useCallback(async () => {
-    setLoading(true);
-    try {
-      if (activeTab === TAB_ANKETE) {
-        await loadVotes();
-      } else {
-        await loadMessages();
-      }
-    } finally {
-      setLoading(false);
+    if (activeTab === TAB_ANKETE) {
+      await loadVotesPage(1, false);
+    } else {
+      await loadMessagesPage(1, false);
     }
-  }, [activeTab, loadMessages, loadVotes]);
+  }, [activeTab, loadMessagesPage, loadVotesPage]);
 
+  const handleLoadMoreVotes = useCallback(() => {
+    if (loadingVotes || loadingMoreVotes || !votesHasMore) return;
+    loadVotesPage(votesPage + 1, true);
+  }, [loadingMoreVotes, loadingVotes, loadVotesPage, votesHasMore, votesPage]);
+
+  const handleLoadMoreMessages = useCallback(() => {
+    if (loadingMessages || loadingMoreMessages || !messagesHasMore) return;
+    loadMessagesPage(messagesPage + 1, true);
+  }, [loadingMessages, loadingMoreMessages, loadMessagesPage, messagesHasMore, messagesPage]);
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -263,21 +330,21 @@ export default function HajpoviScreen({ navigation }) {
   };
 
   const renderContent = () => {
-    if (loading) {
-      return (
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Učitavanje</Text>
-        </View>
-      );
-    }
-
     if (activeTab === TAB_ANKETE) {
+      if (loadingVotes) {
+        return (
+          <View style={styles.centerContent}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>U??itavanje</Text>
+          </View>
+        );
+      }
+
       if (!votes.length) {
         return (
           <View style={styles.centerContent}>
-            <Text style={styles.emptyText}>Još uvijek nemaš hajpova kroz ankete</Text>
-            <Text style={styles.emptySubtext}>Kad god te neko izhajpa u anketi, pojaviće se ovdje.</Text>
+            <Text style={styles.emptyText}>Jo?? uvijek nema?? hajpova kroz ankete</Text>
+            <Text style={styles.emptySubtext}>Kad god te neko izhajpa u anketi, pojavi??e se ovdje.</Text>
           </View>
         );
       }
@@ -288,23 +355,39 @@ export default function HajpoviScreen({ navigation }) {
           keyExtractor={(item) => String(item.id)}
           renderItem={renderVote}
           contentContainerStyle={styles.messagesList}
+          onEndReached={handleLoadMoreVotes}
+          onEndReachedThreshold={0.5}
           refreshControl={
             <RefreshControl
-              refreshing={loading}
-              onRefresh={loadCurrentTab}
+              refreshing={loadingVotes}
+              onRefresh={() => loadVotesPage(1, false)}
               tintColor={colors.primary}
               colors={[colors.primary]}
             />
           }
+          ListFooterComponent={
+            loadingMoreVotes ? (
+              <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 12 }} />
+            ) : null
+          }
         />
+      );
+    }
+
+    if (loadingMessages) {
+      return (
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>U??itavanje</Text>
+        </View>
       );
     }
 
     if (!messages.length) {
       return (
         <View style={styles.centerContent}>
-          <Text style={styles.emptyText}>Još uvijek nemaš hajpova kroz share link</Text>
-          <Text style={styles.emptySubtext}>Podijeli svoj link da dobiješ hajpove!</Text>
+          <Text style={styles.emptyText}>Jo?? uvijek nema?? hajpova kroz share link</Text>
+          <Text style={styles.emptySubtext}>Podijeli svoj link da dobije?? hajpove!</Text>
         </View>
       );
     }
@@ -315,17 +398,25 @@ export default function HajpoviScreen({ navigation }) {
         keyExtractor={(item) => String(item.id)}
         renderItem={renderMessage}
         contentContainerStyle={styles.messagesList}
+        onEndReached={handleLoadMoreMessages}
+        onEndReachedThreshold={0.5}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
-            onRefresh={loadCurrentTab}
+            refreshing={loadingMessages}
+            onRefresh={() => loadMessagesPage(1, false)}
             tintColor={colors.primary}
             colors={[colors.primary]}
           />
         }
+        ListFooterComponent={
+          loadingMoreMessages ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 12 }} />
+          ) : null
+        }
       />
     );
   };
+
 
   return (
     <View style={styles.container}>

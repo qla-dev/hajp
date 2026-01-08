@@ -41,10 +41,13 @@ export const fetchQuestionDetail = (id) => api.get(`/questions/${id}`);
 export const voteQuestion = (id, selected_option, room_id) => api.post(`/questions/${id}/vote`, { selected_option, room_id });
 export const refreshQuestionOptions = (id) => api.post(`/questions/${id}/refresh`);
 export const skipQuestion = (id, room_id) => api.post(`/questions/${id}/skip`, { room_id });
-export const fetchMyVotes = (selectedUserId) =>
-  api.get('/user/votes', {
-    params: selectedUserId ? { selected_user_id: selectedUserId } : undefined,
-  });
+export const fetchMyVotes = (selectedUserId, options = {}) => {
+  const params = {
+    ...(selectedUserId ? { selected_user_id: selectedUserId } : {}),
+    ...(options || {}),
+  };
+  return api.get('/user/votes', { params: Object.keys(params).length ? params : undefined });
+};
 export const fetchFriendActivities = (page = 1, limit = 10) =>
   api.get('/user/activities', { params: { page, limit } });
 export const subscriptionStatus = () => api.get('/subscription/status');
@@ -52,7 +55,10 @@ export const subscribe = () => api.post('/subscription/subscribe');
 export const getInbox = (userId) => api.get(`/anonymous/inbox/${userId}`);
 export const sendAnonMessage = (inbox_id, message, metadata) => api.post('/anonymous/message', { inbox_id, message, metadata });
 export const fetchShareStyles = () => api.get('/share/styles');
-export const fetchShareMessages = (userId) => api.get(`/share/${userId}/messages`);
+export const fetchShareMessages = (userId, options = {}) => {
+  const params = { ...(options || {}) };
+  return api.get(`/share/${userId}/messages`, { params: Object.keys(params).length ? params : undefined });
+};
 const buildUserRoomsPath = (userId, role = 'user') => `/user/${userId}/rooms/${role}`;
 export const fetchUserRooms = (role = 'user') => api.get(buildUserRoomsPath('me', role));
 export const getCurrentUser = async () => {
