@@ -67,6 +67,18 @@ export default function ProfileViewsScreen() {
     revealSoundRef.current?.replayAsync().catch(() => {});
   }, []);
 
+  const handleOpenProfile = useCallback(
+    (targetUserId) => {
+      if (!targetUserId) return;
+      Haptics.selectionAsync().catch(() => {});
+      navigation.navigate('ProfileFriends', {
+        isMine: false,
+        userId: targetUserId,
+      });
+    },
+    [navigation],
+  );
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -219,9 +231,14 @@ export default function ProfileViewsScreen() {
     const genderColor = genderLabel === 'žena' ? '#f472b6' : '#60a5fa';
 
     const coinUri = coinSvgUri || coinAssetDefaultUri;
+    const canOpenProfile = !isHidden && Boolean(item?.visitor_id);
+    const RowComponent = canOpenProfile ? TouchableOpacity : View;
+    const rowProps = canOpenProfile
+      ? { onPress: () => handleOpenProfile(item.visitor_id), activeOpacity: 0.7 }
+      : {};
 
     return (
-      <View style={styles.visitorRow}>
+      <RowComponent style={styles.visitorRow} {...rowProps}>
         <View style={styles.avatarWrapper}>
           <Avatar
             user={item}
@@ -276,7 +293,7 @@ export default function ProfileViewsScreen() {
             )}
           </TouchableOpacity>
         ) : null}
-      </View>
+      </RowComponent>
     );
   };
 
