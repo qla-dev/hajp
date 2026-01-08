@@ -140,13 +140,36 @@ class QuestionController extends Controller
         }
 
         $targetUserId = $request->query('selected_user_id') ?: $user->id;
+        $pageParam = $request->query('page');
+        $limitParam = $request->query('limit');
 
-        $votes = Vote::with(['question', 'user'])
+        $query = Vote::with(['question', 'user'])
             ->where('selected_user_id', $targetUserId)
-            ->latest()
-            ->get();
+            ->orderByDesc('created_at');
 
-        return $votes;
+        if ($pageParam !== null || $limitParam !== null) {
+            $limit = max(1, (int) ($limitParam ?? 10));
+            $page = max(1, (int) ($pageParam ?? 1));
+            $offset = ($page - 1) * $limit;
+
+            $votes = (clone $query)
+                ->skip($offset)
+                ->take($limit)
+                ->get();
+
+            $total = (clone $query)->count();
+
+            return response()->json([
+                'data' => $votes,
+                'meta' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'has_more' => $offset + $limit < $total,
+                ],
+            ]);
+        }
+
+        return $query->get();
     }
 
     public function payVote(Request $request, User $user)

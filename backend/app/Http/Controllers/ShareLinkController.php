@@ -62,24 +62,53 @@ class ShareLinkController extends Controller
         ];
     }
 
-    public function messages(User $user)
+    public function messages(Request $request, User $user)
     {
-        $messages = AnonymousMessage::where('user_id', $user->id)
+        $pageParam = $request->query('page');
+        $limitParam = $request->query('limit');
+
+        $query = AnonymousMessage::where('user_id', $user->id)
             ->with('style:id,slug,question,color,bg')
-            ->latest()
-            ->get();
+            ->orderByDesc('created_at');
+
+        $mapMessage = static function (AnonymousMessage $message) {
+            return [
+                'id' => $message->id,
+                'message' => $message->message,
+                'question' => $message->style?->question,
+                'slug' => $message->style?->slug,
+                'style' => $message->style?->only(['question', 'slug', 'color', 'bg']),
+                'created_at' => $message->created_at,
+            ];
+        };
+
+        if ($pageParam !== null || $limitParam !== null) {
+            $limit = max(1, (int) ($limitParam ?? 10));
+            $page = max(1, (int) ($pageParam ?? 1));
+            $offset = ($page - 1) * $limit;
+
+            $messages = (clone $query)
+                ->skip($offset)
+                ->take($limit)
+                ->get()
+                ->map($mapMessage);
+
+            $total = (clone $query)->count();
+
+            return response()->json([
+                'messages' => $messages,
+                'meta' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'has_more' => $offset + $limit < $total,
+                ],
+            ]);
+        }
+
+        $messages = $query->get()->map($mapMessage);
 
         return [
-            'messages' => $messages->map(function (AnonymousMessage $message) {
-                return [
-                    'id' => $message->id,
-                    'message' => $message->message,
-                    'question' => $message->style?->question,
-                    'slug' => $message->style?->slug,
-                    'style' => $message->style?->only(['question', 'slug', 'color', 'bg']),
-                    'created_at' => $message->created_at,
-                ];
-            }),
+            'messages' => $messages,
         ];
     }
 }
