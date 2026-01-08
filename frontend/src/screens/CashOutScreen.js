@@ -289,7 +289,7 @@ export default function CashOutScreen({ route, navigation }) {
   };
 
   const coinUri = coinSvgUri || coinAssetDefaultUri;
-  const ctaLabel = loading ? 'Obrada...' : `Isplata · ${payoutCoins ?? '...'} coinova`;
+  const ctaLabel = loading ? 'Isplaćivanje...' : `Isplata · ${payoutCoins ?? '...'} coinova`;
   const coinStackNode = (
     <View style={[styles.coinStack, styles.coinStackCta]}>
       {coinUri ? (
@@ -468,6 +468,8 @@ const createStyles = (colors) =>
     bottomCta: {
       paddingHorizontal: 24,
       paddingBottom: 24,
+      zIndex: 5,
+      elevation: 5,
     },
     coinStack: {
       width: 40,

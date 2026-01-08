@@ -118,7 +118,7 @@ export default function RevealScreen({ route, navigation }) {
   }, [coinPrice]);
   const coinUri = coinSvgUri || coinAssetDefaultUri;
   const ctaLabel =
-    loading || isShuffling ? 'Obrada...' : `Otkrij za ${priceLabel} HAJP TOKENA`;
+    loading || isShuffling ? 'Otkrivanje...' : `Otkrij za ${priceLabel} HAJP TOKENA`;
   const ctaDisabled = loading || isShuffling || revealed;
   const revealedIdentity = useMemo(() => {
     const source = revealedUser || initialUser || null;
