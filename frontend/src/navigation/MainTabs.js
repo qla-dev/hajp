@@ -916,7 +916,6 @@ const createStyles = (colors, isDark) =>
       columnGap: 6,
     },
     headerRightSlot: {
-      minWidth: 80,
       alignItems: 'flex-end',
     },
     eyeButton: {

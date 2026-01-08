@@ -72,13 +72,15 @@ export default function CoinHeaderIndicator({ onPress }) {
       activeOpacity={0.8}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
-      {coinSvgUri ? (
-        <SvgUri width={24} height={24} uri={coinSvgUri} />
-      ) : (
-        <View style={[styles.fallbackIcon, { borderColor: colors.border, backgroundColor: colors.surface }]}>
-          <Text style={{ color: colors.primary, fontWeight: '800' }}></Text>
-        </View>
-      )}
+      <View style={styles.iconWrap}>
+        {coinSvgUri ? (
+          <SvgUri width={24} height={24} uri={coinSvgUri} />
+        ) : (
+          <View style={[styles.fallbackIcon, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+            <Text style={{ color: colors.primary, fontWeight: '800' }}></Text>
+          </View>
+        )}
+      </View>
       <Text style={styles.label}>{coins}</Text>
     </TouchableOpacity>
   );
@@ -105,6 +107,13 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: 'transparent',
+    },
+    iconWrap: {
+      width: 24,
+      height: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
     },
     label: {
       color: colors.text_primary,
