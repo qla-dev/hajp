@@ -12,25 +12,28 @@ import {
   getCachedCoinBalance,
 } from '../utils/coinHeaderTracker';
 
+const coinAsset = require('../../assets/svg/coin.svg');
+const coinAssetDefaultUri = Asset.fromModule(coinAsset).uri;
+
 export default function CoinHeaderIndicator({ onPress }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const [coins, setCoins] = useState(getCachedCoinBalance());
   const containerRef = useRef(null);
-  const [coinSvgUri, setCoinSvgUri] = useState(null);
+  const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
   const hasValidLayoutRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const asset = Asset.fromModule(require('../../assets/svg/coin.svg'));
+        const asset = Asset.fromModule(coinAsset);
         await asset.downloadAsync();
         if (mounted) {
-          setCoinSvgUri(asset.localUri || asset.uri);
+          setCoinSvgUri(asset.localUri || asset.uri || coinAssetDefaultUri || null);
         }
       } catch {
-        if (mounted) setCoinSvgUri(null);
+        if (mounted) setCoinSvgUri(coinAssetDefaultUri || null);
       }
     })();
     return () => {
