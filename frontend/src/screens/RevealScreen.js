@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Audio } from 'expo-av';
@@ -110,6 +110,19 @@ export default function RevealScreen({ route, navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const { triggerMenuRefresh } = useMenuRefresh();
+  const [hideHeaderBack, setHideHeaderBack] = useState(false);
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerBackVisible: !hideHeaderBack,
+      headerLeft: hideHeaderBack ? () => null : undefined,
+    });
+    return () => {
+      navigation.setOptions({
+        headerBackVisible: true,
+        headerLeft: undefined,
+      });
+    };
+  }, [navigation, hideHeaderBack]);
 
   const titleText = params.title || (revealType === 'profile_view' ? 'Otkrij ko ti gleda profil' : 'Otkrij ko te hajpa');
   const subtitleText = params.subtitle || 'Potvrdi otkrivanje korisnika.';
@@ -247,6 +260,7 @@ export default function RevealScreen({ route, navigation }) {
 
   const handleReveal = useCallback(async () => {
     if (loading || revealed || isShuffling) return;
+    setHideHeaderBack(true);
     setLoading(true);
     setErrorMessage('');
     try {
@@ -254,23 +268,24 @@ export default function RevealScreen({ route, navigation }) {
       const current = await getCurrentUser();
       const userId = current?.id;
       if (!userId) {
+        setHideHeaderBack(false);
         setErrorMessage('Nismo mogli potvrditi korisnika.');
         return;
       }
       const normalizedPrice = Number(coinPrice);
-      const amount = Number.isFinite(normalizedPrice)
-        ? Math.max(1, Math.floor(normalizedPrice))
-        : 1;
+      const amount = Number.isFinite(normalizedPrice) ? Math.max(1, Math.floor(normalizedPrice)) : 1;
       let response;
       if (revealType === 'profile_view') {
         const targetId = visitorId || targetUserId;
         if (!targetId) {
+          setHideHeaderBack(false);
           setErrorMessage('Nismo mogli pronaci profil.');
           return;
         }
         response = await payProfileView(userId, { visitor_id: targetId, amount });
       } else {
         if (!voteId) {
+          setHideHeaderBack(false);
           setErrorMessage('Nismo mogli pronaci hajp.');
           return;
         }
@@ -300,9 +315,11 @@ export default function RevealScreen({ route, navigation }) {
       const message = error?.response?.data?.message || 'Nismo mogli otkriti korisnika.';
       const status = error?.response?.status;
       if (status === 422 && typeof message === 'string' && message.toLowerCase().includes('coin')) {
+        setHideHeaderBack(false);
         navigation.navigate('BuyCoins');
         return;
       }
+      setHideHeaderBack(false);
       setErrorMessage(message);
     } finally {
       setLoading(false);
