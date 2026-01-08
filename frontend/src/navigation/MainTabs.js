@@ -870,14 +870,6 @@ function MainTabsContent() {
         name="Profile"
         component={ProfileStackNavigator}
         options={{ headerShown: false }}
-        listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            if (navigation.isFocused()) {
-              e.preventDefault();
-              triggerMenuRefresh('Profile');
-            }
-          },
-        })}
       />
     </Tab.Navigator>
   );
