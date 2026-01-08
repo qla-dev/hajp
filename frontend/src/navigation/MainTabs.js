@@ -179,9 +179,11 @@ function HajpStackNavigator() {
           title: 'Isplata',
           headerBackTitle: 'Nazad',
           headerRight: () => (
-            <CoinHeaderIndicator
-              onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
-            />
+            <View style={styles.headerRightSlot}>
+              <CoinHeaderIndicator
+                onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+              />
+            </View>
           ),
         })}
       />
