@@ -231,7 +231,7 @@ export default function HajpoviScreen({ navigation }) {
       Haptics.selectionAsync().catch(() => {});
       openPaySheet({
         title: 'Otkrij ko te hajpa',
-        subtitle: 'Izaberi nacin otkljucavanja zeljenog korisnika',
+        subtitle: 'Izaberi način otključavanja željenog korisnika',
         coinPrice: revealPrice,
         onPayWithCoins: (priceOverride) => handlePayWithCoins(priceOverride, vote),
         onActivatePremium: handleActivatePremium,
