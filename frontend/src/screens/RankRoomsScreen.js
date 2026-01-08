@@ -10,6 +10,7 @@ import {
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRooms } from '../api';
 import RoomCard from '../components/RoomCard';
+import EmptyState from '../components/EmptyState';
 
 export default function RankRoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
@@ -54,9 +55,17 @@ export default function RankRoomsScreen({ navigation }) {
           loading ? (
             <View style={styles.loader}>
               <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.loadingText}>Učitavanje</Text>
+              <Text style={styles.loadingText}>UŽ?itavanje</Text>
             </View>
-          ) : null
+          ) : (
+            <EmptyState
+              title="Još nema soba"
+              subtitle="Rank sobe će se pojaviti čim ih odaberete."
+              onRefresh={loadRooms}
+              refreshing={loading}
+              fullWidth
+            />
+          )
         }
       />
     </View>

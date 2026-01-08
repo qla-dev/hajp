@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchFriendActivities } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 import RankRoomsScreen from './RankRoomsScreen';
 import ActivityItem from '../components/ActivityItem';
 import MenuTab from '../components/MenuTab';
+import EmptyState from '../components/EmptyState';
 
 const TAB_ACTIVITY = 'activity';
 const TAB_RANK = 'rank';
@@ -93,10 +94,13 @@ export default function LiveScreen({ navigation }) {
 
     if (!activities.length) {
       return (
-        <View style={styles.centerContent}>
-          <Text style={styles.emptyText}>Još uvijek nema aktivnosti</Text>
-          <Text style={styles.emptySubtext}>Aktivnost će se pojaviti čim se nešto dogodi.</Text>
-        </View>
+        <EmptyState
+          title="Još uvijek nema aktivnosti"
+          subtitle="Aktivnost će se pojaviti čim se nešto dogodi."
+          onRefresh={() => loadActivities(1)}
+          refreshing={loadingActivities}
+          fullWidth
+        />
       );
     }
 

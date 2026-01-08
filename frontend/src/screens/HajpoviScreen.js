@@ -390,21 +390,25 @@ export default function HajpoviScreen({ navigation }) {
 
     if (!messages.length) {
       return (
-      <EmptyState
-        title="Još uvijek nemaš hajpova kroz share link"
-        subtitle="Podijeli svoj link da dobiješ hajpove!"
-        onRefresh={() => loadMessagesPage(1, false)}
-        refreshing={loadingMessages}
-      />
+        <EmptyState
+          title="Još uvijek nemaš hajpova kroz share link"
+          subtitle="Podijeli svoj link da dobiješ hajpove!"
+          onRefresh={() => loadMessagesPage(1, false)}
+          refreshing={loadingMessages}
+          fullWidth
+        />
       );
     }
 
     return (
-      <FlatList
-        data={messages}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={renderMessage}
-        contentContainerStyle={styles.messagesList}
+        <FlatList
+          data={messages}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={renderMessage}
+          contentContainerStyle={[
+            styles.messagesList,
+            !messages.length && styles.shareEmptyPadding,
+          ]}
         onEndReached={handleLoadMoreMessages}
         onEndReachedThreshold={0.5}
         refreshControl={
@@ -458,6 +462,9 @@ const createStyles = (colors, isDark) =>
     messagesList: {
       paddingHorizontal: 16,
       paddingBottom: 16,
+    },
+    shareEmptyPadding: {
+      paddingHorizontal: 0,
     },
     anketeListPadding: {
       paddingBottom: 65,
