@@ -1,30 +1,33 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Audio } from 'expo-av';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import * as Haptics from 'expo-haptics';
+import { SvgUri } from 'react-native-svg';
+import { Asset } from 'expo-asset';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchUserProfile, getCurrentUser, payProfileView, payVote } from '../api';
 import { updateCoinBalance } from '../utils/coinHeaderTracker';
 import Avatar from '../components/Avatar';
+import BottomCTA from '../components/BottomCTA';
 import { generateRandomConfig } from '../utils/bigHeadAvatar';
 
 const shuffleSoundAsset = require('../../assets/sounds/shuffle.mp3');
 const coinSoundAsset = require('../../assets/sounds/coins.mp3');
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
+const coinAsset = require('../../assets/svg/coin.svg');
+const coinAssetDefaultUri = Asset.fromModule(coinAsset).uri;
 
 const SHUFFLE_STEPS = 10;
 const SHUFFLE_START_DELAY = 240;
 const SHUFFLE_END_DELAY = 60;
 const AVATAR_SIZE = 180;
+const HAIR_BLOCKED_WITH_HAT = new Set(['long', 'bob']);
+const HAT_BLOCKING_VALUES = new Set(['beanie', 'turban']);
+const HAIR_FALLBACK = 'pixie';
+const BODY_FEMALE_VALUE = 'breasts';
+const BODY_MALE_VALUE = 'chest';
 
 const normalizeGender = (value) => {
   const normalized = String(value || '').trim().toLowerCase();
@@ -33,7 +36,51 @@ const normalizeGender = (value) => {
   return undefined;
 };
 
-const buildRandomConfig = (gender) => generateRandomConfig({ gender, circleBg: true });
+const sanitizeHairHatForHat = (cfg = {}) => {
+  if (cfg.hat === 'hijab') {
+    return { ...cfg, hair: HAIR_FALLBACK };
+  }
+  if (HAIR_BLOCKED_WITH_HAT.has(cfg.hair) && HAT_BLOCKING_VALUES.has(cfg.hat)) {
+    return { ...cfg, hair: HAIR_FALLBACK };
+  }
+  return cfg;
+};
+
+const sanitizeHairHatForHair = (cfg = {}) => {
+  if (cfg.hat === 'hijab' && cfg.hair !== HAIR_FALLBACK) {
+    return { ...cfg, hair: HAIR_FALLBACK };
+  }
+  if (HAIR_BLOCKED_WITH_HAT.has(cfg.hair) && HAT_BLOCKING_VALUES.has(cfg.hat)) {
+    return { ...cfg, hat: 'none' };
+  }
+  return cfg;
+};
+
+const applyBodyMouth = (cfg = {}) => {
+  if (cfg.body === BODY_FEMALE_VALUE && cfg.mouth !== 'lips') {
+    return { ...cfg, mouth: 'lips' };
+  }
+  if (cfg.body === BODY_MALE_VALUE && cfg.mouth !== 'openSmile') {
+    return { ...cfg, mouth: 'openSmile' };
+  }
+  return cfg;
+};
+
+const applyGenderLashes = (cfg = {}) => {
+  if (cfg.body === BODY_FEMALE_VALUE && cfg.lashes !== true) {
+    return { ...cfg, lashes: true };
+  }
+  if (cfg.body === BODY_MALE_VALUE && cfg.lashes !== false) {
+    return { ...cfg, lashes: false };
+  }
+  return cfg;
+};
+
+const applyAvatarRules = (cfg = {}) =>
+  applyGenderLashes(applyBodyMouth(sanitizeHairHatForHair(sanitizeHairHatForHat(cfg))));
+
+const buildRandomConfig = (gender) =>
+  applyAvatarRules(generateRandomConfig({ gender, circleBg: true }));
 
 export default function RevealScreen({ route, navigation }) {
   const params = route?.params || {};
@@ -51,6 +98,8 @@ export default function RevealScreen({ route, navigation }) {
   const [revealed, setRevealed] = useState(false);
   const [isShuffling, setIsShuffling] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [apiSuccess, setApiSuccess] = useState(false);
+  const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
   const [celebrating, setCelebrating] = useState(false);
   const shuffleScale = useRef(new Animated.Value(1)).current;
   const shuffleSoundRef = useRef(null);
@@ -68,6 +117,11 @@ export default function RevealScreen({ route, navigation }) {
     if (!Number.isFinite(value)) return '...';
     return String(Math.max(0, Math.floor(value)));
   }, [coinPrice]);
+  const successLabel = revealed ? 'Otkriveno!' : 'Uspesno!';
+  const coinUri = coinSvgUri || coinAssetDefaultUri;
+  const ctaLabel =
+    loading || isShuffling ? 'Obrada...' : `Otkrij za ${priceLabel} HAJP TOKENA`;
+  const ctaDisabled = loading || isShuffling || revealed;
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -105,6 +159,24 @@ export default function RevealScreen({ route, navigation }) {
       shuffleSoundRef.current = null;
       coinsSoundRef.current = null;
       connectSoundRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const asset = Asset.fromModule(coinAsset);
+        await asset.downloadAsync();
+        if (mounted) {
+          setCoinSvgUri(asset.localUri || asset.uri || coinAssetDefaultUri || null);
+        }
+      } catch {
+        if (mounted) setCoinSvgUri(coinAssetDefaultUri || null);
+      }
+    })();
+    return () => {
+      mounted = false;
     };
   }, []);
 
@@ -168,6 +240,7 @@ export default function RevealScreen({ route, navigation }) {
     if (loading || revealed || isShuffling) return;
     setLoading(true);
     setErrorMessage('');
+    setApiSuccess(false);
     try {
       Haptics.selectionAsync().catch(() => {});
       const current = await getCurrentUser();
@@ -199,6 +272,9 @@ export default function RevealScreen({ route, navigation }) {
       if (typeof data?.coins === 'number') {
         updateCoinBalance(data.coins);
       }
+      if (isMountedRef.current) {
+        setApiSuccess(true);
+      }
       const resolvedUser = await loadTargetUser();
       if (resolvedUser) {
         setRevealedUser(resolvedUser);
@@ -213,7 +289,7 @@ export default function RevealScreen({ route, navigation }) {
         if (navigation.canGoBack()) {
           navigation.goBack();
         }
-      }, 1500);
+      }, 6000);
     } catch (error) {
       const message = error?.response?.data?.message || 'Nismo mogli otkriti korisnika.';
       const status = error?.response?.status;
@@ -222,6 +298,7 @@ export default function RevealScreen({ route, navigation }) {
         return;
       }
       setErrorMessage(message);
+      setApiSuccess(false);
     } finally {
       setLoading(false);
     }
@@ -260,6 +337,19 @@ export default function RevealScreen({ route, navigation }) {
       zoomModal={false}
     />
   );
+  const coinStackNode = (
+    <View style={[styles.coinStack, styles.coinStackCta]}>
+      {coinUri ? (
+        <>
+          <SvgUri width={22} height={22} uri={coinUri} style={[styles.coin, styles.coinBack]} />
+          <SvgUri width={22} height={22} uri={coinUri} style={[styles.coin, styles.coinMid]} />
+          <SvgUri width={22} height={22} uri={coinUri} style={[styles.coin, styles.coinFront]} />
+        </>
+      ) : (
+        <View style={styles.coinFallback} />
+      )}
+    </View>
+  );
 
   return (
     <View style={styles.page}>
@@ -271,24 +361,23 @@ export default function RevealScreen({ route, navigation }) {
           ) : null}
         </Animated.View>
 
-        <View style={styles.card}>
-          <Text style={styles.title}>{titleText}</Text>
-          {subtitleText ? <Text style={styles.subtitle}>{subtitleText}</Text> : null}
-          <Text style={styles.priceText}>{`Cena: ${priceLabel} coina`}</Text>
-          {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
-          <TouchableOpacity
-            style={[styles.button, (loading || isShuffling || revealed) && styles.buttonDisabled]}
-            onPress={handleReveal}
-            disabled={loading || isShuffling || revealed}
-          >
-            {loading || isShuffling ? (
-              <ActivityIndicator color={colors.textLight} />
-            ) : (
-              <Text style={styles.buttonText}>Otkrij</Text>
-            )}
-          </TouchableOpacity>
+          <View style={styles.card}>
+            <Text style={styles.title}>{titleText}</Text>
+            {subtitleText ? <Text style={styles.subtitle}>{subtitleText}</Text> : null}
+            <Text style={styles.priceText}>{`Cena: ${priceLabel} HAJP TOKENA`}</Text>
+            {apiSuccess && !errorMessage ? <Text style={styles.success}>{successLabel}</Text> : null}
+            {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
+          </View>
         </View>
-      </View>
+
+      <BottomCTA
+        label={ctaLabel}
+        onPress={handleReveal}
+        fixed
+        disabled={ctaDisabled}
+        leading={coinStackNode}
+        style={styles.bottomCta}
+      />
 
       {celebrating && (
         <View style={styles.confettiWrapper} pointerEvents="none">
@@ -324,7 +413,7 @@ const createStyles = (colors) =>
     avatarShell: {
       width: AVATAR_SIZE,
       height: AVATAR_SIZE,
-      borderRadius: AVATAR_SIZE / 2,
+      borderRadius: 999,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: colors.surface,
@@ -334,7 +423,7 @@ const createStyles = (colors) =>
     },
     avatarBlur: {
       ...StyleSheet.absoluteFillObject,
-      borderRadius: AVATAR_SIZE / 2,
+      borderRadius: 999,
     },
     card: {
       alignItems: 'center',
@@ -368,27 +457,52 @@ const createStyles = (colors) =>
       fontWeight: '700',
       marginTop: 10,
     },
-    button: {
-      marginTop: 16,
-      backgroundColor: colors.primary,
-      borderRadius: 30,
-      paddingHorizontal: 36,
-      paddingVertical: 16,
-      minWidth: 200,
+    bottomCta: {
+      paddingHorizontal: 24,
+      paddingBottom: 24,
+    },
+    coinStack: {
+      width: 40,
+      height: 32,
+      position: 'relative',
       alignItems: 'center',
       justifyContent: 'center',
-      shadowColor: colors.primary,
-      shadowOpacity: 0.3,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 8 },
+      overflow: 'visible',
     },
-    buttonDisabled: {
-      opacity: 0.6,
+    coinStackCta: {
+      transform: [{ scale: 1.1 }],
     },
-    buttonText: {
-      fontSize: 16,
+    coin: {
+      position: 'absolute',
+    },
+    coinBack: {
+      left: 2,
+      top: 8,
+      opacity: 0.5,
+    },
+    coinMid: {
+      left: 8,
+      top: 4,
+      opacity: 0.75,
+    },
+    coinFront: {
+      left: 14,
+      top: 0,
+    },
+    coinFallback: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    success: {
+      color: colors.success,
+      fontSize: 13,
+      textAlign: 'center',
+      marginTop: 8,
       fontWeight: '700',
-      color: colors.textLight,
     },
     error: {
       color: colors.error,

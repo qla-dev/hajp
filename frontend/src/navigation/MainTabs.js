@@ -403,10 +403,17 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen
         name="Reveal"
         component={RevealScreen}
-        options={{
+        options={({ navigation }) => ({
           title: 'Otkrij',
           headerBackTitle: 'Nazad',
-        }}
+          headerRight: () => (
+            <View style={styles.headerRightSlot}>
+              <CoinHeaderIndicator
+                onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+              />
+            </View>
+          ),
+        })}
       />
       <ProfileStack.Screen
         name="Settings"
@@ -489,10 +496,17 @@ function HajpoviStackNavigator() {
       <HajpoviStack.Screen
         name="Reveal"
         component={RevealScreen}
-        options={{
+        options={({ navigation }) => ({
           title: 'Otkrij',
           headerBackTitle: 'Nazad',
-        }}
+          headerRight: () => (
+            <View style={styles.headerRightSlot}>
+              <CoinHeaderIndicator
+                onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+              />
+            </View>
+          ),
+        })}
       />
     </HajpoviStack.Navigator>
   );

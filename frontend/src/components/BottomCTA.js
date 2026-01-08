@@ -4,11 +4,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 
-export default function BottomCTA({ label, onPress, iconName, emoji, fixed = false, style }) {
+export default function BottomCTA({
+  label,
+  onPress,
+  iconName,
+  emoji,
+  fixed = false,
+  style,
+  leading,
+  disabled = false,
+}) {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
 
   const Container = fixed ? BlurView : View;
+  const leadingNode =
+    leading ??
+    (iconName ? (
+      <Ionicons name={iconName} size={20} color={colors.textLight} style={styles.icon} />
+    ) : emoji ? (
+      <Text style={styles.emoji}>{emoji}</Text>
+    ) : null);
 
   return (
     <Container
@@ -16,12 +32,12 @@ export default function BottomCTA({ label, onPress, iconName, emoji, fixed = fal
       tint={isDark ? 'dark' : 'light'}
       style={[styles.container, fixed && styles.containerFixed, style]}
     >
-      <TouchableOpacity style={styles.button} onPress={onPress}>
-        {iconName ? (
-          <Ionicons name={iconName} size={20} color={colors.textLight} style={styles.icon} />
-        ) : emoji ? (
-          <Text style={styles.emoji}>{emoji}</Text>
-        ) : null}
+      <TouchableOpacity
+        style={[styles.button, disabled && styles.buttonDisabled]}
+        onPress={onPress}
+        disabled={disabled}
+      >
+        {leadingNode ? <View style={styles.leading}>{leadingNode}</View> : null}
         <Text style={styles.label}>{label}</Text>
       </TouchableOpacity>
     </Container>
@@ -52,12 +68,17 @@ const createStyles = (colors, isDark) =>
       borderRadius: 30,
       minHeight: 56,
     },
-    icon: {
-      marginRight: 8,
+    buttonDisabled: {
+      opacity: 0.6,
     },
+    leading: {
+      marginRight: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    icon: {},
     emoji: {
       fontSize: 20,
-      marginRight: 8,
       marginBottom: 2,
       color: colors.textLight,
     },
