@@ -332,7 +332,7 @@ export default function HajpoviScreen({ navigation }) {
 
   const renderContent = () => {
     if (activeTab === TAB_ANKETE) {
-      if (loadingVotes) {
+      if (loadingVotes && !votes.length) {
         return (
           <View style={styles.centerContent}>
             <ActivityIndicator size="large" color={colors.primary} />
@@ -379,7 +379,7 @@ export default function HajpoviScreen({ navigation }) {
       );
     }
 
-    if (loadingMessages) {
+    if (loadingMessages && !messages.length) {
       return (
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color={colors.primary} />

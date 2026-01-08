@@ -15,6 +15,7 @@ import { fetchUserRooms } from '../api';
 import { useRoomSheet } from '../context/roomSheetContext';
 import MenuTab from '../components/MenuTab';
 import RoomCard from '../components/RoomCard';
+import EmptyState from '../components/EmptyState';
 
 const TAB_MEMBER_ROOMS = 'member';
 const TAB_ADMIN_ROOMS = 'admin';
@@ -149,7 +150,7 @@ export default function UserRoomsScreen({ navigation }) {
   }, [navigation]);
 
   const renderContent = () => {
-    if (loading) {
+    if (loading && !renderedRooms.length) {
       return (
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -163,7 +164,10 @@ export default function UserRoomsScreen({ navigation }) {
         data={renderedRooms}
         keyExtractor={(item, index) => String(item.id ?? item.name ?? index)}
         renderItem={renderRoom}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[
+          styles.list,
+          !renderedRooms.length && styles.emptyHorizontalPadding,
+        ]}
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
@@ -184,10 +188,13 @@ export default function UserRoomsScreen({ navigation }) {
       return null;
     }
     return (
-      <View style={styles.emptyState}>
-        <Text style={styles.emptyTitle}>Nema soba</Text>
-        <Text style={styles.emptySubtitle}>Jos nema soba u ovoj kategoriji. Pokusaj ponovo kasnije.</Text>
-      </View>
+      <EmptyState
+        title="Nema soba"
+        subtitle="Jos nema soba u ovoj kategoriji. Pokusaj ponovo kasnije."
+        onRefresh={onRefresh}
+        refreshing={loading}
+        fullWidth
+      />
     );
   };
 
@@ -268,6 +275,10 @@ const createStyles = (colors, isDark) =>
       flexGrow: 1,
       paddingHorizontal: 16,
       paddingBottom: 16,
+    },
+    emptyHorizontalPadding: {
+      paddingHorizontal: 0,
+      paddingBottom: 0,
     },
     loadingText: {
       color: colors.text_secondary,
