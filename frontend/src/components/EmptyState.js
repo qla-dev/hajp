@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { SvgUri } from 'react-native-svg';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import Avatar from './Avatar';
@@ -87,18 +88,19 @@ const buildPreviewCards = (coinPrice) => {
   return new Array(CARD_COUNT).fill(null).map((_, index) => {
     const gender = genders[index] || 'female';
     const config = buildRandomConfig(gender);
+    const price = coinPrice || 50;
     return {
       id: `hajp-card-${index}`,
       avatarUri: buildAvatarSvg(config),
       question: questions[index % questions.length],
       from: `Od: ${names[index % names.length]}`,
       time: SAMPLE_TIMES[index % SAMPLE_TIMES.length],
-      price: index === CARD_COUNT - 1 ? coinPrice : null,
+      price,
     };
   });
 };
 
-export default function EmptyState({ title, subtitle, onRefresh, coinUri, coinPrice }) {
+export default function EmptyState({ title, subtitle, onRefresh, coinUri, coinPrice, refreshing = false }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const cards = useMemo(() => buildPreviewCards(coinPrice), [coinPrice]);
@@ -111,7 +113,17 @@ export default function EmptyState({ title, subtitle, onRefresh, coinUri, coinPr
   }, [canRefresh, onRefresh]);
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefreshPress}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+        />
+      }
+    >
       <TouchableOpacity
         style={[styles.refreshButton, !canRefresh && styles.refreshButtonDisabled]}
         onPress={handleRefreshPress}
@@ -129,42 +141,65 @@ export default function EmptyState({ title, subtitle, onRefresh, coinUri, coinPr
 
       <View style={styles.graphic}>
         <View style={styles.graphicGlow} />
-        {cards.map((card, index) => {
-          const cardStyle =
-            index === 0 ? styles.cardBackLeft : index === 1 ? styles.cardBackRight : styles.cardFront;
-          return (
-            <View key={card.id} style={[styles.card, cardStyle]}>
-              <View style={styles.cardRow}>
-                <View style={styles.cardAvatar}>
-                  <Avatar uri={card.avatarUri} size={36} zoomModal={false} />
-                </View>
-                <View style={styles.cardContent}>
-                  <Text style={styles.cardTitle} numberOfLines={1}>
-                    {card.question}
-                  </Text>
-                  <Text style={styles.cardMeta} numberOfLines={1}>
-                    {card.from}
-                  </Text>
-                </View>
-                <View style={styles.cardRight}>
-                  <Text style={styles.cardTime}>{card.time}</Text>
-                  {card.price != null ? (
-                    <View style={styles.pricePill}>
-                      {coinUri ? (
-                        <SvgUri width={12} height={12} uri={coinUri} />
-                      ) : (
-                        <Ionicons name="cash-outline" size={12} color={colors.primary} />
+        <View style={styles.cardWrapper}>
+          {cards.map((card, index) => {
+            const cardStyle =
+              index === 0
+                ? styles.cardOffsetTop
+                : index === 1
+                ? styles.cardOffsetMiddle
+                : styles.cardOffsetBottom;
+            const isPrimary = index === 1;
+            const fakeGender = index % 2 === 0 ? 'žena' : 'muškarac';
+            const fakeLabel = `Od: Neko ${fakeGender} iz grupe`;
+            return (
+              <View key={card.id} style={[styles.cardStack, cardStyle]}>
+                <View
+                  style={[
+                    styles.card,
+                    isPrimary && styles.cardMiddle,
+                    !isPrimary && styles.cardFaded,
+                  ]}
+                >
+                {!isPrimary && (
+                  <BlurView intensity={40} tint="default" style={styles.cardBlurLayer} pointerEvents="none" />
+                )}
+                  <View style={styles.cardRow}>
+                    <View style={styles.cardAvatar}>
+                      <Avatar uri={card.avatarUri} size={36} zoomModal={false} />
+                      {!isPrimary && (
+                        <BlurView intensity={15} tint="default" style={styles.avatarOverlay} />
                       )}
-                      <Text style={styles.priceText}>{card.price}</Text>
                     </View>
-                  ) : null}
+                    <View style={styles.cardContent}>
+                      <Text style={styles.cardTitle} numberOfLines={1}>
+                        {card.question}
+                      </Text>
+                      <Text style={styles.cardMeta} numberOfLines={1}>
+                        {isPrimary ? card.from : fakeLabel}
+                      </Text>
+                    </View>
+                    <View style={styles.cardRight}>
+                      <Text style={styles.cardTime}>{card.time}</Text>
+                      {card.price != null ? (
+                        <View style={styles.pricePill}>
+                          {coinUri ? (
+                            <SvgUri width={12} height={12} uri={coinUri} />
+                          ) : (
+                            <Ionicons name="cash-outline" size={12} color={colors.primary} />
+                          )}
+                          <Text style={styles.priceText}>{card.price}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  </View>
                 </View>
               </View>
-            </View>
-          );
-        })}
+            );
+          })}
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -203,48 +238,82 @@ const createStyles = (colors) =>
     },
     graphic: {
       width: '100%',
-      maxWidth: 340,
-      height: 190,
+      maxWidth: 360,
+      height: 350,
+      paddingVertical: 20,
+      marginBottom: 30,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 8,
+      position: 'relative',
+    },
+    graphicBlur: {
+      ...StyleSheet.absoluteFillObject,
+      borderRadius: 24,
     },
     graphicGlow: {
       position: 'absolute',
-      width: '88%',
-      height: '70%',
-      borderRadius: 24,
+      width: '92%',
+      height: '80%',
+      borderRadius: 28,
       backgroundColor: colors.primaryOpacity2,
-      opacity: 0.35,
+      opacity: 0.3,
       transform: [{ rotate: '-2deg' }],
     },
-    card: {
-      position: 'absolute',
+    cardWrapper: {
       width: '92%',
-      backgroundColor: colors.surface,
-      borderRadius: 16,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      borderWidth: 1,
-      borderColor: colors.border,
-      shadowColor: 'rgba(0,0,0,0.18)',
-      shadowOpacity: 0.2,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+      overflow: 'visible',
     },
-    cardBackLeft: {
-      transform: [{ rotate: '-7deg' }, { translateX: -24 }, { translateY: 12 }],
-      opacity: 0.55,
+      card: {
+        width: '100%',
+        backgroundColor: colors.surface,
+        borderRadius: 20,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        borderWidth: 1,
+        borderColor: colors.border,
+        shadowColor: 'rgba(0,0,0,0.12)',
+        shadowOpacity: 0.45,
+        shadowRadius: 24,
+        shadowOffset: { width: 0, height: 14 },
+        elevation: 8,
+        overflow: 'hidden',
+      },
+      cardStack: {
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+      },
+      cardMiddle: {
+        transform: [{ scale: 1.2 }],
+        zIndex: 2,
+      },
+      cardFaded: {
+        opacity: 0.7,
+      },
+      cardBlurLayer: {
+        ...StyleSheet.absoluteFillObject,
+        borderRadius: 20,
+        backgroundColor: 'transparent',
+      },
+      avatarOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        borderRadius: 20,
+      },
+    cardOffsetTop: {
+      marginTop: -4,
+      transform: [{ translateY: -4 }],
     },
-    cardBackRight: {
-      transform: [{ rotate: '6deg' }, { translateX: 22 }, { translateY: 18 }],
-      opacity: 0.72,
+    cardOffsetMiddle: {
+      marginTop: 12,
+      transform: [{ rotate: '3deg' }],
     },
-    cardFront: {
-      transform: [{ rotate: '-1.5deg' }],
-      zIndex: 3,
-      elevation: 6,
+    cardOffsetBottom: {
+      marginTop: 26,
+      transform: [{ translateY: 6 }],
     },
     cardRow: {
       flexDirection: 'row',

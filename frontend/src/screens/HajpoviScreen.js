@@ -347,6 +347,7 @@ export default function HajpoviScreen({ navigation }) {
             title="Još uvijek nemaš hajpova kroz ankete"
             subtitle="Kad god te neko izhajpa u anketi, pojaviće se ovdje."
             onRefresh={() => loadVotesPage(1, false)}
+            refreshing={loadingVotes}
             coinUri={coinSvgUri || coinAssetDefaultUri}
             coinPrice={revealPrice}
           />
@@ -389,11 +390,12 @@ export default function HajpoviScreen({ navigation }) {
 
     if (!messages.length) {
       return (
-        <EmptyState
-          title="Još uvijek nemaš hajpova kroz share link"
-          subtitle="Podijeli svoj link da dobiješ hajpove!"
-          onRefresh={() => loadMessagesPage(1, false)}
-        />
+      <EmptyState
+        title="Još uvijek nemaš hajpova kroz share link"
+        subtitle="Podijeli svoj link da dobiješ hajpove!"
+        onRefresh={() => loadMessagesPage(1, false)}
+        refreshing={loadingMessages}
+      />
       );
     }
 

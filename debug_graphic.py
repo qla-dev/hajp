@@ -1,0 +1,1 @@
+﻿from pathlib import Path\nlines = Path('frontend/src/components/EmptyState.js').read_text(encoding='utf-8').splitlines()\nfor i,line in enumerate(lines,1):\n    if 'graphic:' in line or 'card:' in line or 'graphicGlow' in line or 'cardWrapper' in line:\n        print(i, line)\n
