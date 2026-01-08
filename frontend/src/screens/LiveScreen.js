@@ -32,6 +32,7 @@ export default function LiveScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const listRef = useRef(null);
+  const roomsListRef = useRef(null);
 
   const resolvePagination = (meta, payload) => {
     const hasMore =
@@ -101,31 +102,6 @@ export default function LiveScreen({ navigation }) {
   }, [activeTab, loadActivities, loadRooms]);
 
   const { registerMenuRefresh } = useMenuRefresh();
-  useEffect(() => {
-    let scheduled;
-    const unsubscribe = registerMenuRefresh('Rank', () => {
-      if (activeTab === TAB_ACTIVITY) {
-        scrollToTop();
-        if (scheduled) {
-          clearTimeout(scheduled);
-        }
-        scheduled = setTimeout(() => {
-          loadActivities(1);
-          scheduled = null;
-        }, 260);
-      } else {
-        loadRooms();
-      }
-    });
-
-    return () => {
-      if (scheduled) {
-        clearTimeout(scheduled);
-      }
-      unsubscribe();
-    };
-  }, [activeTab, loadActivities, loadRooms, registerMenuRefresh, scrollToTop]);
-
   const handleLoadMore = () => {
     if (loadingActivities || loadingMoreActivities || !hasMoreActivities) return;
     loadActivities(activityPage + 1, true);
@@ -140,6 +116,49 @@ export default function LiveScreen({ navigation }) {
       list.scrollToOffset?.({ offset: 0, animated: true });
     }
   }, []);
+
+  const scrollRoomsToTop = useCallback(() => {
+    const list = roomsListRef.current;
+    if (!list) return;
+    try {
+      list.scrollToOffset({ offset: 0, animated: true });
+    } catch {
+      list.scrollToOffset?.({ offset: 0, animated: true });
+    }
+  }, []);
+
+  useEffect(() => {
+    let scheduled;
+    const unsubscribe = registerMenuRefresh('Rank', () => {
+      if (activeTab === TAB_ACTIVITY) {
+        scrollToTop();
+        if (scheduled) {
+          clearTimeout(scheduled);
+        }
+        scheduled = setTimeout(() => {
+          loadActivities(1);
+          scheduled = null;
+        }, 260);
+        return;
+      }
+
+      scrollRoomsToTop();
+      if (scheduled) {
+        clearTimeout(scheduled);
+      }
+      scheduled = setTimeout(() => {
+        loadRooms();
+        scheduled = null;
+      }, 260);
+    });
+
+    return () => {
+      if (scheduled) {
+        clearTimeout(scheduled);
+      }
+      unsubscribe();
+    };
+  }, [activeTab, loadActivities, loadRooms, registerMenuRefresh, scrollToTop, scrollRoomsToTop]);
 
   const renderActivityEmpty = () => (
     <EmptyState
@@ -194,6 +213,7 @@ export default function LiveScreen({ navigation }) {
 
   const renderRooms = () => (
     <FlatList
+      ref={roomsListRef}
       data={rooms}
       keyExtractor={(item) => `${item.id}`}
       renderItem={({ item }) => (
