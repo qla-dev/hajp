@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,7 @@ export default function LiveScreen({ navigation }) {
   const [loadingRooms, setLoadingRooms] = useState(true);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const listRef = useRef(null);
 
   const resolvePagination = (meta, payload) => {
     const hasMore =
@@ -101,20 +102,44 @@ export default function LiveScreen({ navigation }) {
 
   const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
+    let scheduled;
     const unsubscribe = registerMenuRefresh('Rank', () => {
       if (activeTab === TAB_ACTIVITY) {
-        loadActivities(1);
+        scrollToTop();
+        if (scheduled) {
+          clearTimeout(scheduled);
+        }
+        scheduled = setTimeout(() => {
+          loadActivities(1);
+          scheduled = null;
+        }, 260);
       } else {
         loadRooms();
       }
     });
-    return unsubscribe;
-  }, [activeTab, loadActivities, loadRooms, registerMenuRefresh]);
+
+    return () => {
+      if (scheduled) {
+        clearTimeout(scheduled);
+      }
+      unsubscribe();
+    };
+  }, [activeTab, loadActivities, loadRooms, registerMenuRefresh, scrollToTop]);
 
   const handleLoadMore = () => {
     if (loadingActivities || loadingMoreActivities || !hasMoreActivities) return;
     loadActivities(activityPage + 1, true);
   };
+
+  const scrollToTop = useCallback(() => {
+    const list = listRef.current;
+    if (!list) return;
+    try {
+      list.scrollToOffset({ offset: 0, animated: true });
+    } catch {
+      list.scrollToOffset?.({ offset: 0, animated: true });
+    }
+  }, []);
 
   const renderActivityEmpty = () => (
     <EmptyState
@@ -138,6 +163,7 @@ export default function LiveScreen({ navigation }) {
 
   const renderActivities = () => (
     <FlatList
+      ref={listRef}
       data={activities}
       keyExtractor={(item, idx) => `${item.id || idx}-${idx}`}
       renderItem={({ item, index }) => (
