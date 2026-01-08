@@ -4,6 +4,7 @@ import { Modalize } from 'react-native-modalize';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
+import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 
 const coinAsset = require('../../assets/svg/coin.svg');
@@ -38,6 +39,7 @@ const PayBottomSheet = React.forwardRef(
       if (selectedOption === 'premium') {
         onActivatePremium?.();
       } else {
+        Haptics.selectionAsync().catch(() => {});
         onPayWithCoins?.(coinPrice);
       }
     }, [coinPrice, onActivatePremium, onPayWithCoins, selectedOption]);
