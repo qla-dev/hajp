@@ -244,9 +244,10 @@ export default function ProfileViewsScreen() {
       />
     );
   };
-const listContentStyle = [
+  const listContentStyle = [
     styles.listContent,
     views.length === 0 && styles.emptyContainer,
+    views.length === 0 && styles.emptyHorizontalPadding,
   ];
 
   return (
@@ -290,6 +291,9 @@ const createStyles = (colors) =>
       paddingHorizontal: 15,
       paddingTop: 10,
       paddingBottom: 75,
+    },
+    emptyHorizontalPadding: {
+      paddingHorizontal: 0,
     },
     bottomCta: {
       paddingHorizontal: 15,
