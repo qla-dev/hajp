@@ -698,8 +698,17 @@ function MainTabsContent() {
         }
         if (
           route.name === 'Profile' &&
-        (focused === 'ProfileFriends' || focused === 'ProfileFriendsList' || focused === 'ProfileViews' || focused === 'Reveal' || focused === 'CreateRoom' || focused === 'RoomVibeSelection' || focused === 'Settings')
-      ) {
+          [
+            'ProfileFriends',
+            'ProfileFriendsList',
+            'ProfileViews',
+            'Reveal',
+            'CreateRoom',
+            'RoomVibeSelection',
+            'Settings',
+            'UserRooms',
+          ].includes(focused)
+        ) {
         hideTabBar = true;
         }
         if (route.name === 'Friends' && (focused === 'FriendProfile' || focused === 'ProfileFriendsList')) {
