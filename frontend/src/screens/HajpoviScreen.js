@@ -335,7 +335,7 @@ export default function HajpoviScreen({ navigation }) {
         return (
           <View style={styles.centerContent}>
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>U??itavanje</Text>
+            <Text style={styles.loadingText}>Učitavanje</Text>
           </View>
         );
       }
@@ -343,8 +343,8 @@ export default function HajpoviScreen({ navigation }) {
       if (!votes.length) {
         return (
           <View style={styles.centerContent}>
-            <Text style={styles.emptyText}>Jo?? uvijek nema?? hajpova kroz ankete</Text>
-            <Text style={styles.emptySubtext}>Kad god te neko izhajpa u anketi, pojavi??e se ovdje.</Text>
+            <Text style={styles.emptyText}>Još uvijek nemaš hajpova kroz ankete</Text>
+            <Text style={styles.emptySubtext}>Kad god te neko izhajpa u anketi, pojaviće se ovdje.</Text>
           </View>
         );
       }
@@ -378,7 +378,7 @@ export default function HajpoviScreen({ navigation }) {
       return (
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>U??itavanje</Text>
+          <Text style={styles.loadingText}>Učitavanje</Text>
         </View>
       );
     }
@@ -386,8 +386,8 @@ export default function HajpoviScreen({ navigation }) {
     if (!messages.length) {
       return (
         <View style={styles.centerContent}>
-          <Text style={styles.emptyText}>Jo?? uvijek nema?? hajpova kroz share link</Text>
-          <Text style={styles.emptySubtext}>Podijeli svoj link da dobije?? hajpove!</Text>
+          <Text style={styles.emptyText}>Još uvijek nemaš hajpova kroz share link</Text>
+          <Text style={styles.emptySubtext}>Podijeli svoj link da dobiješ hajpove!</Text>
         </View>
       );
     }
