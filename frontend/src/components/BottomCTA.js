@@ -13,6 +13,7 @@ export default function BottomCTA({
   style,
   leading,
   disabled = false,
+  buttonRef,
 }) {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -36,6 +37,7 @@ export default function BottomCTA({
         style={[styles.button, disabled && styles.buttonDisabled]}
         onPress={onPress}
         disabled={disabled}
+        ref={buttonRef}
       >
         {leadingNode ? <View style={styles.leading}>{leadingNode}</View> : null}
         <Text style={styles.label}>{label}</Text>

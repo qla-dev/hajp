@@ -14,7 +14,7 @@ import BottomCTA from '../components/BottomCTA';
 import { generateRandomConfig } from '../utils/bigHeadAvatar';
 
 const shuffleSoundAsset = require('../../assets/sounds/shuffle.mp3');
-const coinSoundAsset = require('../../assets/sounds/coins.mp3');
+const drumsSoundAsset = require('../../assets/sounds/drums.mp3');
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 const coinAsset = require('../../assets/svg/coin.svg');
 const coinAssetDefaultUri = Asset.fromModule(coinAsset).uri;
@@ -98,12 +98,11 @@ export default function RevealScreen({ route, navigation }) {
   const [revealed, setRevealed] = useState(false);
   const [isShuffling, setIsShuffling] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [apiSuccess, setApiSuccess] = useState(false);
   const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
   const [celebrating, setCelebrating] = useState(false);
   const shuffleScale = useRef(new Animated.Value(1)).current;
   const shuffleSoundRef = useRef(null);
-  const coinsSoundRef = useRef(null);
+  const drumsSoundRef = useRef(null);
   const connectSoundRef = useRef(null);
   const redirectTimerRef = useRef(null);
   const isMountedRef = useRef(true);
@@ -117,11 +116,19 @@ export default function RevealScreen({ route, navigation }) {
     if (!Number.isFinite(value)) return '...';
     return String(Math.max(0, Math.floor(value)));
   }, [coinPrice]);
-  const successLabel = revealed ? 'Otkriveno!' : 'Uspesno!';
   const coinUri = coinSvgUri || coinAssetDefaultUri;
   const ctaLabel =
     loading || isShuffling ? 'Obrada...' : `Otkrij za ${priceLabel} HAJP TOKENA`;
   const ctaDisabled = loading || isShuffling || revealed;
+  const revealedIdentity = useMemo(() => {
+    const source = revealedUser || initialUser || null;
+    const name = source?.name || 'Korisnik';
+    const rawUsername = source?.username || null;
+    return {
+      name,
+      username: rawUsername ? `@${rawUsername}` : null,
+    };
+  }, [initialUser, revealedUser]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -136,15 +143,15 @@ export default function RevealScreen({ route, navigation }) {
     (async () => {
       try {
         const { sound: shuffleSound } = await Audio.Sound.createAsync(shuffleSoundAsset, { shouldPlay: false });
-        const { sound: coinsSound } = await Audio.Sound.createAsync(coinSoundAsset, { shouldPlay: false });
+        const { sound: drumsSound } = await Audio.Sound.createAsync(drumsSoundAsset, { shouldPlay: false });
         const { sound: connectSound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
         if (mounted) {
           shuffleSoundRef.current = shuffleSound;
-          coinsSoundRef.current = coinsSound;
+          drumsSoundRef.current = drumsSound;
           connectSoundRef.current = connectSound;
         } else {
           await shuffleSound.unloadAsync();
-          await coinsSound.unloadAsync();
+          await drumsSound.unloadAsync();
           await connectSound.unloadAsync();
         }
       } catch {
@@ -154,10 +161,10 @@ export default function RevealScreen({ route, navigation }) {
     return () => {
       mounted = false;
       shuffleSoundRef.current?.unloadAsync();
-      coinsSoundRef.current?.unloadAsync();
+      drumsSoundRef.current?.unloadAsync();
       connectSoundRef.current?.unloadAsync();
       shuffleSoundRef.current = null;
-      coinsSoundRef.current = null;
+      drumsSoundRef.current = null;
       connectSoundRef.current = null;
     };
   }, []);
@@ -184,8 +191,8 @@ export default function RevealScreen({ route, navigation }) {
     shuffleSoundRef.current?.replayAsync().catch(() => {});
   }, []);
 
-  const playCoinsSound = useCallback(() => {
-    coinsSoundRef.current?.replayAsync().catch(() => {});
+  const playDrumsSound = useCallback(() => {
+    drumsSoundRef.current?.replayAsync().catch(() => {});
   }, []);
 
   const playConnectSound = useCallback(() => {
@@ -219,11 +226,11 @@ export default function RevealScreen({ route, navigation }) {
     const delayStep =
       SHUFFLE_STEPS > 1 ? (SHUFFLE_START_DELAY - SHUFFLE_END_DELAY) / (SHUFFLE_STEPS - 1) : 0;
     setIsShuffling(true);
+    playDrumsSound();
     for (let index = 0; index < SHUFFLE_STEPS; index += 1) {
       if (!isMountedRef.current) return;
       setRandomConfig(buildRandomConfig(resolvedGender));
       playShuffleSound();
-      playCoinsSound();
       bumpAvatar();
       const delay = Math.max(
         SHUFFLE_END_DELAY,
@@ -234,13 +241,12 @@ export default function RevealScreen({ route, navigation }) {
     if (isMountedRef.current) {
       setIsShuffling(false);
     }
-  }, [bumpAvatar, initialUser?.sex, params.targetGender, playCoinsSound, playShuffleSound, revealedUser?.sex]);
+  }, [bumpAvatar, initialUser?.sex, params.targetGender, playDrumsSound, playShuffleSound, revealedUser?.sex]);
 
   const handleReveal = useCallback(async () => {
     if (loading || revealed || isShuffling) return;
     setLoading(true);
     setErrorMessage('');
-    setApiSuccess(false);
     try {
       Haptics.selectionAsync().catch(() => {});
       const current = await getCurrentUser();
@@ -272,9 +278,6 @@ export default function RevealScreen({ route, navigation }) {
       if (typeof data?.coins === 'number') {
         updateCoinBalance(data.coins);
       }
-      if (isMountedRef.current) {
-        setApiSuccess(true);
-      }
       const resolvedUser = await loadTargetUser();
       if (resolvedUser) {
         setRevealedUser(resolvedUser);
@@ -298,7 +301,6 @@ export default function RevealScreen({ route, navigation }) {
         return;
       }
       setErrorMessage(message);
-      setApiSuccess(false);
     } finally {
       setLoading(false);
     }
@@ -354,6 +356,14 @@ export default function RevealScreen({ route, navigation }) {
   return (
     <View style={styles.page}>
       <View style={styles.container}>
+        {revealed ? (
+          <View style={styles.revealIdentity}>
+            <Text style={styles.revealName}>{revealedIdentity.name}</Text>
+            {revealedIdentity.username ? (
+              <Text style={styles.revealUsername}>{revealedIdentity.username}</Text>
+            ) : null}
+          </View>
+        ) : null}
         <Animated.View style={[styles.avatarShell, { transform: [{ scale: shuffleScale }] }]}>
           {avatarNode}
           {showBlur ? (
@@ -361,14 +371,12 @@ export default function RevealScreen({ route, navigation }) {
           ) : null}
         </Animated.View>
 
-          <View style={styles.card}>
-            <Text style={styles.title}>{titleText}</Text>
-            {subtitleText ? <Text style={styles.subtitle}>{subtitleText}</Text> : null}
-            <Text style={styles.priceText}>{`Cena: ${priceLabel} HAJP TOKENA`}</Text>
-            {apiSuccess && !errorMessage ? <Text style={styles.success}>{successLabel}</Text> : null}
-            {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
-          </View>
+        <View style={styles.card}>
+          <Text style={styles.title}>{titleText}</Text>
+          {subtitleText ? <Text style={styles.subtitle}>{subtitleText}</Text> : null}
+          {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
         </View>
+      </View>
 
       <BottomCTA
         label={ctaLabel}
@@ -451,12 +459,6 @@ const createStyles = (colors) =>
       textAlign: 'center',
       marginTop: 6,
     },
-    priceText: {
-      fontSize: 14,
-      color: colors.text_primary,
-      fontWeight: '700',
-      marginTop: 10,
-    },
     bottomCta: {
       paddingHorizontal: 24,
       paddingBottom: 24,
@@ -497,12 +499,19 @@ const createStyles = (colors) =>
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
-    success: {
-      color: colors.success,
-      fontSize: 13,
-      textAlign: 'center',
-      marginTop: 8,
-      fontWeight: '700',
+    revealIdentity: {
+      alignItems: 'center',
+      gap: 2,
+    },
+    revealName: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: colors.text_primary,
+    },
+    revealUsername: {
+      fontSize: 14,
+      color: colors.text_secondary,
+      fontWeight: '600',
     },
     error: {
       color: colors.error,

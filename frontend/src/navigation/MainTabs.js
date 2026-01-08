@@ -127,6 +127,7 @@ const PROFILE_ICON_SIZE = 26;
 
 function HajpStackNavigator() {
   const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   return (
     <HajpStack.Navigator

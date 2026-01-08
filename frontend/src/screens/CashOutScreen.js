@@ -4,9 +4,7 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Animated,
-  ActivityIndicator,
   UIManager,
   findNodeHandle,
   Easing,
@@ -21,6 +19,7 @@ import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
+import BottomCTA from '../components/BottomCTA';
 const coinSoundAsset = require('../../assets/sounds/coins.mp3');
 const applauseSoundAsset = require('../../assets/sounds/applause.mp3');
 const coinAsset = require('../../assets/svg/coin.svg');
@@ -40,7 +39,6 @@ export default function CashOutScreen({ route, navigation }) {
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferCoins, setTransferCoins] = useState([]);
   const [coinBalance, setCoinBalance] = useState(getCachedCoinBalance() ?? null);
-  const pulse = useRef(new Animated.Value(1)).current;
   const buttonRef = useRef(null);
   const coinAssetPromiseRef = useRef(null);
   const preloadedCoinUriRef = useRef(coinAssetDefaultUri || null);
@@ -179,17 +177,6 @@ export default function CashOutScreen({ route, navigation }) {
     }, 5000);
   };
 
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1.05, duration: 800, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 800, useNativeDriver: true }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
-
   const handleCashout = async () => {
     if (!roomId) return;
     setLoading(true);
@@ -301,6 +288,22 @@ export default function CashOutScreen({ route, navigation }) {
     }
   };
 
+  const coinUri = coinSvgUri || coinAssetDefaultUri;
+  const ctaLabel = loading ? 'Obrada...' : `Isplata · ${payoutCoins ?? '...'} coinova`;
+  const coinStackNode = (
+    <View style={[styles.coinStack, styles.coinStackCta]}>
+      {coinUri ? (
+        <>
+          <SvgUri width={22} height={22} uri={coinUri} style={[styles.coin, styles.coinBack]} />
+          <SvgUri width={22} height={22} uri={coinUri} style={[styles.coin, styles.coinMid]} />
+          <SvgUri width={22} height={22} uri={coinUri} style={[styles.coin, styles.coinFront]} />
+        </>
+      ) : (
+        <View style={styles.coinFallback} />
+      )}
+    </View>
+  );
+
   return (
     <View style={styles.page}>
       <ScrollView
@@ -333,22 +336,17 @@ export default function CashOutScreen({ route, navigation }) {
             </Text>
           </View>
           {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
-          <Animated.View style={[styles.buttonWrapper, { transform: [{ scale: pulse }] }]}>
-            <TouchableOpacity
-              ref={buttonRef}
-              style={styles.button}
-              onPress={handleCashout}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Isplata · {payoutCoins ?? '...'} coinova</Text>
-              )}
-            </TouchableOpacity>
-          </Animated.View>
         </View>
       </ScrollView>
+      <BottomCTA
+        label={ctaLabel}
+        onPress={handleCashout}
+        fixed
+        disabled={loading}
+        leading={coinStackNode}
+        style={styles.bottomCta}
+        buttonRef={buttonRef}
+      />
       {showTransfer &&
         transferCoins.map((coin) => (
           <Animated.View
@@ -443,9 +441,6 @@ const createStyles = (colors) =>
       color: colors.text_secondary,
       lineHeight: 22,
     },
-    buttonWrapper: {
-      marginTop: 12,
-    },
     balanceRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -470,23 +465,45 @@ const createStyles = (colors) =>
       color: colors.textLight,
       fontWeight: '800',
     },
-    button: {
-      backgroundColor: colors.primary,
-      borderRadius: 30,
-      paddingHorizontal: 36,
-      paddingVertical: 16,
-      minWidth: 220,
+    bottomCta: {
+      paddingHorizontal: 24,
+      paddingBottom: 24,
+    },
+    coinStack: {
+      width: 40,
+      height: 32,
+      position: 'relative',
       alignItems: 'center',
       justifyContent: 'center',
-      shadowColor: colors.primary,
-      shadowOpacity: 0.3,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 8 },
+      overflow: 'visible',
     },
-    buttonText: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: colors.textLight,
+    coinStackCta: {
+      transform: [{ scale: 1.1 }],
+    },
+    coin: {
+      position: 'absolute',
+    },
+    coinBack: {
+      left: 2,
+      top: 8,
+      opacity: 0.5,
+    },
+    coinMid: {
+      left: 8,
+      top: 4,
+      opacity: 0.75,
+    },
+    coinFront: {
+      left: 14,
+      top: 0,
+    },
+    coinFallback: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
     },
     error: {
       color: colors.error,
