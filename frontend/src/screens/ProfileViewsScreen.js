@@ -160,9 +160,12 @@ export default function ProfileViewsScreen() {
 
     const coinUri = coinSvgUri || coinAssetDefaultUri;
     const canOpenProfile = !isHidden && Boolean(item?.visitor_id);
-    const RowComponent = canOpenProfile ? TouchableOpacity : View;
+    const canOpenPaySheet = isHidden && Boolean(item?.visitor_id);
+    const RowComponent = canOpenProfile || canOpenPaySheet ? TouchableOpacity : View;
     const rowProps = canOpenProfile
       ? { onPress: () => handleOpenProfile(item.visitor_id), activeOpacity: 0.7 }
+      : canOpenPaySheet
+      ? { onPress: () => handleOpenPaySheet(item), activeOpacity: 0.7 }
       : {};
 
     return (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { SvgUri } from 'react-native-svg';
@@ -186,9 +186,12 @@ export default function HajpoviScreen({ navigation }) {
     const coinUri = coinSvgUri || coinAssetDefaultUri;
     const voterId = voter?.id || item?.user_id;
     const canOpenProfile = !isHidden && Boolean(voterId);
-    const CardComponent = canOpenProfile ? TouchableOpacity : View;
+    const canOpenPaySheet = isHidden && Boolean(item?.id);
+    const CardComponent = canOpenProfile || canOpenPaySheet ? TouchableOpacity : View;
     const cardProps = canOpenProfile
       ? { onPress: () => handleOpenProfile(voterId), activeOpacity: 0.7 }
+      : canOpenPaySheet
+      ? { onPress: () => handleOpenPaySheet(item), activeOpacity: 0.7 }
       : {};
 
     return (
@@ -285,6 +288,14 @@ export default function HajpoviScreen({ navigation }) {
           keyExtractor={(item) => String(item.id)}
           renderItem={renderVote}
           contentContainerStyle={styles.messagesList}
+          refreshControl={
+            <RefreshControl
+              refreshing={loading}
+              onRefresh={loadCurrentTab}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
         />
       );
     }
@@ -304,6 +315,14 @@ export default function HajpoviScreen({ navigation }) {
         keyExtractor={(item) => String(item.id)}
         renderItem={renderMessage}
         contentContainerStyle={styles.messagesList}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={loadCurrentTab}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
       />
     );
   };
