@@ -21,7 +21,6 @@ import { SvgUri, SvgXml } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { getCurrentUser, fetchMyVotes, fetchUserRooms, baseURL, fetchFriends, fetchUserProfile, fetchUserRoomsFor, fetchUserFriendsCount, fetchFriendshipStatus, addFriend, removeFriend, recordProfileView, updateCurrentUser, blockUser, reportUser } from '../api';
-import { useMenuRefresh } from '../context/menuRefreshContext';
 import BottomCTA from '../components/BottomCTA';
 import SuggestionSlider from '../components/SuggestionSlider';
 import Avatar from '../components/Avatar';
@@ -246,11 +245,9 @@ export default function ProfileScreen({ navigation, route }) {
       console.log('[Profile] onRefresh already running, skipping duplicate');
       return;
     }
-    
     console.log('[Profile] pull to refresh triggered');
     isRefreshingRef.current = true;
     setRefreshing(true);
-    
     try {
       const viewingOther = route?.params?.isMine === false;
       if (viewingOther && route?.params?.userId) {
@@ -572,28 +569,6 @@ export default function ProfileScreen({ navigation, route }) {
     });
   }, [colors.text_primary, isFriendActionLoading, isOtherProfile, navigation, openOptions, styles.glassButton]);
 
-  const { registerMenuRefresh } = useMenuRefresh();
-  const menuRefreshRunningRef = useRef(false);
-  useEffect(() => {
-    const unsubscribe = registerMenuRefresh('Profile', () => {
-      if (menuRefreshRunningRef.current) {
-        return;
-      }
-      
-      menuRefreshRunningRef.current = true;
-      
-      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-      setKeepTopPaddingWithLogging(true);
-      setRefreshing(true);
-      
-      onRefresh().finally(() => {
-        menuRefreshRunningRef.current = false;
-      });
-    });
-    return () => {
-      unsubscribe();
-    };
-  }, [onRefresh, registerMenuRefresh, setKeepTopPaddingWithLogging]);
 
   useEffect(() => {
     Animated.loop(
