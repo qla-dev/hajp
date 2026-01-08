@@ -18,6 +18,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchProfileViews, getCurrentUser } from '../api';
 import BottomCTA from '../components/BottomCTA';
 import Avatar from '../components/Avatar';
+import EmptyState from '../components/EmptyState';
 import { usePaySheet } from '../context/paySheetContext';
 
 const coinAsset = require('../../assets/svg/coin.svg');
@@ -223,20 +224,27 @@ export default function ProfileViewsScreen() {
     );
   };
 
-  const listEmptyComponent = () => (
-    <View style={styles.emptyRow}>
-      {loading ? (
-        <ActivityIndicator size="large" color={colors.primary} />
-      ) : (
-        <>
-          <Text style={styles.emptyTitle}>Još nema pregleda</Text>
-          <Text style={styles.emptySubtitle}>Kada neko pogleda tvoj profil, pojaviće se ovde.</Text>
-        </>
-      )}
-    </View>
-  );
+  const listEmptyComponent = () => {
+    if (loading) {
+      return (
+        <View style={styles.emptyRow}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      );
+    }
 
-  const listContentStyle = [
+    return (
+      <EmptyState
+        title="Još nema pregleda"
+        subtitle="Kada neko pogleda tvoj profil, pojaviće se ovde."
+        onRefresh={onRefresh}
+        refreshing={refreshing}
+        coinUri={coinSvgUri || coinAssetDefaultUri}
+        coinPrice={revealPrice}
+      />
+    );
+  };
+const listContentStyle = [
     styles.listContent,
     views.length === 0 && styles.emptyContainer,
   ];
