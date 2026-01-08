@@ -10,6 +10,7 @@ import {
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchRoomsStatus, fetchUserRooms } from '../api';
 import PollItem from '../components/PollItem';
+import EmptyState from '../components/EmptyState';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 
 const ITEM_HEIGHT = 300;
@@ -161,9 +162,13 @@ export default function RoomsScreen({ navigation, route }) {
       );
     }
     return (
-      <View style={styles.emptyState}>
-        <Text style={[styles.loadingText, { marginTop: 0 }]}>Još nema soba</Text>
-      </View>
+      <EmptyState
+        title="Još uvijek nema soba"
+        subtitle="Rank sobe će se pojaviti čim ih odaberete."
+        onRefresh={() => loadRooms({ showLoader: false })}
+        refreshing={loading}
+        fullWidth
+      />
     );
   };
 
@@ -171,6 +176,7 @@ export default function RoomsScreen({ navigation, route }) {
     styles.listContent,
     keepTopPadding && styles.topSpacer,
     rooms.length === 0 && styles.topSpacer,
+    rooms.length === 0 && styles.emptyHorizontalPadding,
   ];
 
   return (
@@ -223,16 +229,20 @@ const createStyles = (colors) =>
       alignItems: 'center',
       paddingVertical: 32,
     },
-    listContent: {
-      paddingHorizontal: 16,
-      paddingTop: 10,
-      paddingBottom: 0,
-      gap: 0,
-    },
-    topSpacer: {
-      paddingTop: 40,
-      flexGrow: 1,
-      justifyContent: 'center',
-      paddingBottom: 40,
-    },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 0,
+    gap: 0,
+  },
+  topSpacer: {
+    paddingTop: 40,
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingBottom: 40,
+  },
+  emptyHorizontalPadding: {
+    paddingHorizontal: 0,
+    paddingBottom: 0,
+  },
   });
