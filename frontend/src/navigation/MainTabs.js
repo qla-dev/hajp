@@ -17,6 +17,7 @@ import RankingScreen from '../screens/RankingScreen';
 import LiveScreen from '../screens/LiveScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ProfileViewsScreen from '../screens/ProfileViewsScreen';
+import RevealScreen from '../screens/RevealScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import SuggestionsScreen from '../screens/SuggestionsScreen';
 import FriendsScreen from '../screens/FriendsScreen';
@@ -400,6 +401,14 @@ function ProfileStackNavigator() {
         })}
       />
       <ProfileStack.Screen
+        name="Reveal"
+        component={RevealScreen}
+        options={{
+          title: 'Otkrij',
+          headerBackTitle: 'Nazad',
+        }}
+      />
+      <ProfileStack.Screen
         name="Settings"
         component={SettingsScreen}
         options={{
@@ -476,6 +485,14 @@ function HajpoviStackNavigator() {
         component={FriendsScreen}
         options={profileFriendsListOptions}
         initialParams={{ fromProfile: true, profileRouteName: 'FriendProfile' }}
+      />
+      <HajpoviStack.Screen
+        name="Reveal"
+        component={RevealScreen}
+        options={{
+          title: 'Otkrij',
+          headerBackTitle: 'Nazad',
+        }}
       />
     </HajpoviStack.Navigator>
   );
@@ -666,7 +683,7 @@ function MainTabsContent() {
         }
         if (
           route.name === 'Profile' &&
-        (focused === 'ProfileFriends' || focused === 'ProfileFriendsList' || focused === 'ProfileViews' || focused === 'CreateRoom' || focused === 'RoomVibeSelection' || focused === 'Settings')
+        (focused === 'ProfileFriends' || focused === 'ProfileFriendsList' || focused === 'ProfileViews' || focused === 'Reveal' || focused === 'CreateRoom' || focused === 'RoomVibeSelection' || focused === 'Settings')
       ) {
         hideTabBar = true;
         }
@@ -684,7 +701,7 @@ function MainTabsContent() {
         }
         if (
           route.name === 'Inbox' &&
-          (focused === 'FriendProfile' || focused === 'ProfileFriendsList')
+          (focused === 'FriendProfile' || focused === 'ProfileFriendsList' || focused === 'Reveal')
         ) {
           hideTabBar = true;
         }

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,23 +7,19 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Audio } from 'expo-av';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchProfileViews, getCurrentUser, payProfileView } from '../api';
+import { fetchProfileViews, getCurrentUser } from '../api';
 import BottomCTA from '../components/BottomCTA';
 import Avatar from '../components/Avatar';
 import { usePaySheet } from '../context/paySheetContext';
-import { updateCoinBalance } from '../utils/coinHeaderTracker';
 
-const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 const coinAsset = require('../../assets/svg/coin.svg');
 const coinAssetDefaultUri = Asset.fromModule(coinAsset).uri;
 
@@ -36,36 +32,8 @@ export default function ProfileViewsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedView, setSelectedView] = useState(null);
-  const [paying, setPaying] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState(null);
   const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
   const revealPrice = 50;
-  const revealSoundRef = useRef(null);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        if (mounted) {
-          revealSoundRef.current = sound;
-        } else {
-          await sound.unloadAsync();
-        }
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      mounted = false;
-      revealSoundRef.current?.unloadAsync();
-      revealSoundRef.current = null;
-    };
-  }, []);
-
-  const playRevealSound = useCallback(() => {
-    revealSoundRef.current?.replayAsync().catch(() => {});
-  }, []);
 
   const handleOpenProfile = useCallback(
     (targetUserId) => {
@@ -103,10 +71,8 @@ export default function ProfileViewsScreen() {
       const current = await getCurrentUser();
       if (!current?.id) {
         setViews([]);
-        setCurrentUserId(null);
         return;
       }
-      setCurrentUserId(current.id);
       const { data } = await fetchProfileViews(current.id);
       setViews(data?.data || data || []);
     } catch {
@@ -141,62 +107,24 @@ export default function ProfileViewsScreen() {
     });
   }, [handleActivatePremium, handlePayWithCoins, openPaySheet, revealPrice]);
 
-  const handlePayWithCoins = useCallback(async (priceOverride, viewOverride) => {
-    const targetView = viewOverride || selectedView;
-    if (!targetView?.visitor_id) {
-      Alert.alert('Greska', 'Nismo mogli pronaci profil koji otkljucavas.');
-      return;
-    }
-    if (paying) return;
-    let userId = currentUserId;
-    if (!userId) {
-      try {
-        const current = await getCurrentUser();
-        userId = current?.id || null;
-        if (userId) {
-          setCurrentUserId(userId);
-        }
-      } catch {
-        userId = null;
-      }
-    }
-    if (!userId) {
-      Alert.alert('Greska', 'Nismo mogli potvrditi korisnika.');
-      return;
-    }
-    const normalizedPrice = Number(priceOverride);
-    const amount = Number.isFinite(normalizedPrice)
-      ? Math.max(1, Math.floor(normalizedPrice))
-      : revealPrice;
-    setPaying(true);
-    try {
-      const { data } = await payProfileView(userId, {
-        visitor_id: targetView.visitor_id,
-        amount,
-      });
-      setViews((prev) =>
-        prev.map((view) =>
-          view.visitor_id === targetView.visitor_id ? { ...view, seen: 1 } : view,
-        ),
-      );
-      if (typeof data?.coins === 'number') {
-        updateCoinBalance(data.coins);
-      }
-      playRevealSound();
+  const handlePayWithCoins = useCallback(
+    (priceOverride, viewOverride) => {
+      const targetView = viewOverride || selectedView;
+      if (!targetView?.visitor_id) return;
       closePaySheet();
-    } catch (error) {
-      const message = error?.response?.data?.message || 'Nismo mogli otkriti profil.';
-      const status = error?.response?.status;
-      if (status === 422 && typeof message === 'string' && message.toLowerCase().includes('coin')) {
-        closePaySheet();
-        navigation.navigate('BuyCoins');
-        return;
-      }
-      Alert.alert('Greska', message);
-    } finally {
-      setPaying(false);
-    }
-  }, [closePaySheet, currentUserId, navigation, paying, playRevealSound, revealPrice, selectedView]);
+      navigation.navigate('Reveal', {
+        type: 'profile_view',
+        visitorId: targetView.visitor_id,
+        targetUserId: targetView.visitor_id,
+        targetUser: targetView,
+        targetGender: targetView?.sex || null,
+        coinPrice: priceOverride ?? revealPrice,
+        title: 'Otkrij ko ti gleda profil',
+        subtitle: targetView?.room_name ? `Iz sobe ${targetView.room_name}` : undefined,
+      });
+    },
+    [closePaySheet, navigation, revealPrice, selectedView],
+  );
 
   const handleActivatePremium = useCallback(() => {
     closePaySheet();
@@ -277,20 +205,15 @@ export default function ProfileViewsScreen() {
           <TouchableOpacity
             style={styles.revealButton}
             onPress={() => handleOpenPaySheet(item)}
-            disabled={paying && selectedView?.visitor_id === item.visitor_id}
           >
-            {paying && selectedView?.visitor_id === item.visitor_id ? (
-              <ActivityIndicator size="small" color={colors.primary} />
-            ) : (
-              <View style={styles.revealButtonContent}>
-                {coinUri ? (
-                  <SvgUri width={16} height={16} uri={coinUri} />
-                ) : (
-                  <Ionicons name="cash-outline" size={16} color={colors.primary} />
-                )}
-                <Text style={styles.revealButtonText}>{revealPrice}</Text>
-              </View>
-            )}
+            <View style={styles.revealButtonContent}>
+              {coinUri ? (
+                <SvgUri width={16} height={16} uri={coinUri} />
+              ) : (
+                <Ionicons name="cash-outline" size={16} color={colors.primary} />
+              )}
+              <Text style={styles.revealButtonText}>{revealPrice}</Text>
+            </View>
           </TouchableOpacity>
         ) : null}
       </RowComponent>

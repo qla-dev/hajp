@@ -1,22 +1,20 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+import { useFocusEffect } from '@react-navigation/native';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchMyVotes, fetchShareMessages, getCurrentUser, payVote } from '../api';
+import { fetchMyVotes, fetchShareMessages, getCurrentUser } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 import { usePaySheet } from '../context/paySheetContext';
-import { updateCoinBalance } from '../utils/coinHeaderTracker';
 import Avatar from '../components/Avatar';
 import BottomCTA from '../components/BottomCTA';
 import MenuTab from '../components/MenuTab';
 
 const TAB_ANKETE = 'ankete';
 const TAB_LINK = 'link';
-const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 const coinAsset = require('../../assets/svg/coin.svg');
 const hajpoviActiveIcon = require('../../assets/svg/nav-icons/hajpovi.svg');
 const coinAssetDefaultUri = Asset.fromModule(coinAsset).uri;
@@ -28,39 +26,11 @@ export default function HajpoviScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [votes, setVotes] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [user, setUser] = useState(null);
   const [selectedVote, setSelectedVote] = useState(null);
-  const [paying, setPaying] = useState(false);
   const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
-  const revealSoundRef = useRef(null);
   const revealPrice = 50;
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        if (mounted) {
-          revealSoundRef.current = sound;
-        } else {
-          await sound.unloadAsync();
-        }
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      mounted = false;
-      revealSoundRef.current?.unloadAsync();
-      revealSoundRef.current = null;
-    };
-  }, []);
-
-  const playRevealSound = useCallback(() => {
-    revealSoundRef.current?.replayAsync().catch(() => {});
-  }, []);
 
   const handleOpenProfile = useCallback(
     (targetUserId) => {
@@ -77,11 +47,9 @@ export default function HajpoviScreen({ navigation }) {
   const loadUser = useCallback(async () => {
     try {
       const current = await getCurrentUser();
-      setUser(current || null);
       return current;
     } catch (error) {
       console.error('Greška pri učitavanju korisnika:', error);
-      setUser(null);
       return null;
     }
   }, []);
@@ -149,6 +117,12 @@ export default function HajpoviScreen({ navigation }) {
     loadCurrentTab();
   }, [loadCurrentTab]);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadCurrentTab();
+    }, [loadCurrentTab]),
+  );
+
   const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
     const unsubscribe = registerMenuRefresh('Inbox', () => {
@@ -158,69 +132,24 @@ export default function HajpoviScreen({ navigation }) {
   }, [loadCurrentTab, registerMenuRefresh]);
 
   const handlePayWithCoins = useCallback(
-    async (priceOverride, voteOverride) => {
+    (priceOverride, voteOverride) => {
       const targetVote = voteOverride || selectedVote;
-      if (!targetVote?.id) {
-        Alert.alert('Greska', 'Nismo mogli pronaci hajp.');
-        return;
-      }
-      if (paying) return;
-      let userId = user?.id;
-      if (!userId) {
-        try {
-          const current = await loadUser();
-          userId = current?.id || null;
-        } catch {
-          userId = null;
-        }
-      }
-      if (!userId) {
-        Alert.alert('Greska', 'Nismo mogli potvrditi korisnika.');
-        return;
-      }
-      const normalizedPrice = Number(priceOverride);
-      const amount = Number.isFinite(normalizedPrice)
-        ? Math.max(1, Math.floor(normalizedPrice))
-        : revealPrice;
-      setPaying(true);
-      try {
-        const { data } = await payVote(userId, {
-          vote_id: targetVote.id,
-          amount,
-        });
-        setVotes((prev) =>
-          prev.map((voteItem) =>
-            voteItem.id === targetVote.id ? { ...voteItem, seen: 1 } : voteItem,
-          ),
-        );
-        if (typeof data?.coins === 'number') {
-          updateCoinBalance(data.coins);
-        }
-        playRevealSound();
-        closePaySheet();
-      } catch (error) {
-        const message = error?.response?.data?.message || 'Nismo mogli otkriti hajp.';
-        const status = error?.response?.status;
-        if (status === 422 && typeof message === 'string' && message.toLowerCase().includes('coin')) {
-          closePaySheet();
-          navigation.navigate('BuyCoins');
-          return;
-        }
-        Alert.alert('Greska', message);
-      } finally {
-        setPaying(false);
-      }
+      if (!targetVote?.id) return;
+      closePaySheet();
+      navigation.navigate('Reveal', {
+        type: 'vote',
+        voteId: targetVote.id,
+        coinPrice: priceOverride ?? revealPrice,
+        targetUserId: targetVote?.user?.id || targetVote?.user_id || null,
+        targetUser: targetVote?.user || null,
+        targetGender: targetVote?.user?.sex || null,
+        title: 'Otkrij ko te hajpa',
+        subtitle: targetVote?.question?.question
+          ? `Pitanje: ${targetVote.question.question}`
+          : undefined,
+      });
     },
-    [
-      closePaySheet,
-      loadUser,
-      navigation,
-      paying,
-      playRevealSound,
-      revealPrice,
-      selectedVote,
-      user?.id,
-    ],
+    [closePaySheet, navigation, revealPrice, selectedVote],
   );
 
   const handleActivatePremium = useCallback(() => {
@@ -255,7 +184,6 @@ export default function HajpoviScreen({ navigation }) {
       : '';
     const genderColor = voterSex === 'boy' ? '#60a5fa' : '#f472b6';
     const coinUri = coinSvgUri || coinAssetDefaultUri;
-    const isPayingThis = paying && selectedVote?.id === item?.id;
     const voterId = voter?.id || item?.user_id;
     const canOpenProfile = !isHidden && Boolean(voterId);
     const CardComponent = canOpenProfile ? TouchableOpacity : View;
@@ -292,20 +220,15 @@ export default function HajpoviScreen({ navigation }) {
             <TouchableOpacity
               style={styles.revealButton}
               onPress={() => handleOpenPaySheet(item)}
-              disabled={isPayingThis}
             >
-              {isPayingThis ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <View style={styles.revealButtonContent}>
-                  {coinUri ? (
-                    <SvgUri width={16} height={16} uri={coinUri} />
-                  ) : (
-                    <Ionicons name="cash-outline" size={16} color={colors.primary} />
-                  )}
-                  <Text style={styles.revealButtonText}>{revealPrice}</Text>
-                </View>
-              )}
+              <View style={styles.revealButtonContent}>
+                {coinUri ? (
+                  <SvgUri width={16} height={16} uri={coinUri} />
+                ) : (
+                  <Ionicons name="cash-outline" size={16} color={colors.primary} />
+                )}
+                <Text style={styles.revealButtonText}>{revealPrice}</Text>
+              </View>
             </TouchableOpacity>
           ) : null}
         </View>
