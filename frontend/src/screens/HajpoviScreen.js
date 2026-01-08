@@ -11,6 +11,7 @@ import { useMenuRefresh } from '../context/menuRefreshContext';
 import { usePaySheet } from '../context/paySheetContext';
 import Avatar from '../components/Avatar';
 import BottomCTA from '../components/BottomCTA';
+import EmptyState from '../components/EmptyState';
 import MenuTab from '../components/MenuTab';
 
 const TAB_ANKETE = 'ankete';
@@ -342,10 +343,13 @@ export default function HajpoviScreen({ navigation }) {
 
       if (!votes.length) {
         return (
-          <View style={styles.centerContent}>
-            <Text style={styles.emptyText}>Još uvijek nemaš hajpova kroz ankete</Text>
-            <Text style={styles.emptySubtext}>Kad god te neko izhajpa u anketi, pojaviće se ovdje.</Text>
-          </View>
+          <EmptyState
+            title="Još uvijek nemaš hajpova kroz ankete"
+            subtitle="Kad god te neko izhajpa u anketi, pojaviće se ovdje."
+            onRefresh={() => loadVotesPage(1, false)}
+            coinUri={coinSvgUri || coinAssetDefaultUri}
+            coinPrice={revealPrice}
+          />
         );
       }
 
@@ -354,7 +358,7 @@ export default function HajpoviScreen({ navigation }) {
           data={votes}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderVote}
-          contentContainerStyle={styles.messagesList}
+          contentContainerStyle={[styles.messagesList, styles.anketeListPadding]}
           onEndReached={handleLoadMoreVotes}
           onEndReachedThreshold={0.5}
           refreshControl={
@@ -385,10 +389,11 @@ export default function HajpoviScreen({ navigation }) {
 
     if (!messages.length) {
       return (
-        <View style={styles.centerContent}>
-          <Text style={styles.emptyText}>Još uvijek nemaš hajpova kroz share link</Text>
-          <Text style={styles.emptySubtext}>Podijeli svoj link da dobiješ hajpove!</Text>
-        </View>
+        <EmptyState
+          title="Još uvijek nemaš hajpova kroz share link"
+          subtitle="Podijeli svoj link da dobiješ hajpove!"
+          onRefresh={() => loadMessagesPage(1, false)}
+        />
       );
     }
 
@@ -451,6 +456,9 @@ const createStyles = (colors, isDark) =>
     messagesList: {
       paddingHorizontal: 16,
       paddingBottom: 16,
+    },
+    anketeListPadding: {
+      paddingBottom: 65,
     },
     messageCard: {
       flexDirection: 'row',
