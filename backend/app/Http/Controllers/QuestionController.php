@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Question;
+use App\Models\User;
 use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -146,6 +147,57 @@ class QuestionController extends Controller
             ->get();
 
         return $votes;
+    }
+
+    public function payVote(Request $request, User $user)
+    {
+        $authUser = $request->user();
+
+        if (!$authUser || $authUser->id !== $user->id) {
+            return response()->json(['message' => 'Nemate dozvolu.'], 403);
+        }
+
+        $data = $request->validate([
+            'vote_id' => 'required|integer',
+            'amount' => 'sometimes|integer|min:1',
+        ]);
+
+        $amount = (int) ($data['amount'] ?? 50);
+        $vote = Vote::query()
+            ->where('id', $data['vote_id'])
+            ->where('selected_user_id', $user->id)
+            ->first();
+
+        if (!$vote) {
+            return response()->json(['message' => 'Hajp nije pronadjen.'], 404);
+        }
+
+        if ((int) ($vote->seen ?? 0) === 1) {
+            return response()->json([
+                'message' => 'Hajp je vec otkriven.',
+                'coins' => $authUser->coins ?? 0,
+                'seen' => 1,
+                'vote_id' => (int) $vote->id,
+            ]);
+        }
+
+        $coins = (int) ($authUser->coins ?? 0);
+        if ($coins < $amount) {
+            return response()->json(['message' => 'Nemate dovoljno coinova.'], 422);
+        }
+
+        $authUser->coins = $coins - $amount;
+        $authUser->save();
+
+        $vote->seen = 1;
+        $vote->save();
+
+        return response()->json([
+            'message' => 'Hajp otkriven.',
+            'coins' => $authUser->coins ?? 0,
+            'seen' => 1,
+            'vote_id' => (int) $vote->id,
+        ]);
     }
 
     public function activities(Request $request): JsonResponse

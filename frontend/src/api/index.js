@@ -89,6 +89,7 @@ export const fetchFriendshipStatus = (userId) => api.get(`/user/${userId}/friend
 export const fetchProfileViews = (userId) => api.get(`/user/${userId}/views`);
 export const recordProfileView = (userId) => api.post(`/user/${userId}/views`);
 export const payProfileView = (userId, payload) => api.post(`/user/${userId}/pay`, payload);
+export const payVote = (userId, payload) => api.post(`/user/${userId}/votes/pay`, payload);
 export const fetchRoomRanking = (roomId, period = 'day') => api.get(`/rooms/${roomId}/rank/${period}`);
 export const subscribeWithPayload = (payload) => api.post('/subscription/subscribe', payload);
 export const fetchRoomVibes = () => api.get('/room-vibes');

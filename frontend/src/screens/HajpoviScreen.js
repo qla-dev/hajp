@@ -1,23 +1,66 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import { SvgUri } from 'react-native-svg';
+import { Asset } from 'expo-asset';
+import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchMyVotes, fetchShareMessages, getCurrentUser } from '../api';
+import { fetchMyVotes, fetchShareMessages, getCurrentUser, payVote } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
+import { usePaySheet } from '../context/paySheetContext';
+import { updateCoinBalance } from '../utils/coinHeaderTracker';
+import Avatar from '../components/Avatar';
 import BottomCTA from '../components/BottomCTA';
 import MenuTab from '../components/MenuTab';
 
 const TAB_ANKETE = 'ankete';
 const TAB_LINK = 'link';
+const connectSoundAsset = require('../../assets/sounds/connect.mp3');
+const coinAsset = require('../../assets/svg/coin.svg');
+const hajpoviActiveIcon = require('../../assets/svg/nav-icons/hajpovi.svg');
+const coinAssetDefaultUri = Asset.fromModule(coinAsset).uri;
+const hajpoviActiveIconUri = Asset.fromModule(hajpoviActiveIcon).uri;
 
 export default function HajpoviScreen({ navigation }) {
+  const { openPaySheet, closePaySheet } = usePaySheet();
   const [activeTab, setActiveTab] = useState(TAB_ANKETE);
   const [loading, setLoading] = useState(true);
   const [votes, setVotes] = useState([]);
   const [messages, setMessages] = useState([]);
   const [user, setUser] = useState(null);
+  const [selectedVote, setSelectedVote] = useState(null);
+  const [paying, setPaying] = useState(false);
+  const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
+  const revealSoundRef = useRef(null);
+  const revealPrice = 50;
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
+        if (mounted) {
+          revealSoundRef.current = sound;
+        } else {
+          await sound.unloadAsync();
+        }
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      mounted = false;
+      revealSoundRef.current?.unloadAsync();
+      revealSoundRef.current = null;
+    };
+  }, []);
+
+  const playRevealSound = useCallback(() => {
+    revealSoundRef.current?.replayAsync().catch(() => {});
+  }, []);
 
   const loadUser = useCallback(async () => {
     try {
@@ -73,6 +116,24 @@ export default function HajpoviScreen({ navigation }) {
   }, [activeTab, loadMessages, loadVotes]);
 
   useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const asset = Asset.fromModule(coinAsset);
+        await asset.downloadAsync();
+        if (mounted) {
+          setCoinSvgUri(asset.localUri || asset.uri || coinAssetDefaultUri || null);
+        }
+      } catch {
+        if (mounted) setCoinSvgUri(coinAssetDefaultUri || null);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     loadCurrentTab();
   }, [loadCurrentTab]);
 
@@ -84,28 +145,152 @@ export default function HajpoviScreen({ navigation }) {
     return unsubscribe;
   }, [loadCurrentTab, registerMenuRefresh]);
 
+  const handlePayWithCoins = useCallback(
+    async (priceOverride, voteOverride) => {
+      const targetVote = voteOverride || selectedVote;
+      if (!targetVote?.id) {
+        Alert.alert('Greska', 'Nismo mogli pronaci hajp.');
+        return;
+      }
+      if (paying) return;
+      let userId = user?.id;
+      if (!userId) {
+        try {
+          const current = await loadUser();
+          userId = current?.id || null;
+        } catch {
+          userId = null;
+        }
+      }
+      if (!userId) {
+        Alert.alert('Greska', 'Nismo mogli potvrditi korisnika.');
+        return;
+      }
+      const normalizedPrice = Number(priceOverride);
+      const amount = Number.isFinite(normalizedPrice)
+        ? Math.max(1, Math.floor(normalizedPrice))
+        : revealPrice;
+      setPaying(true);
+      try {
+        const { data } = await payVote(userId, {
+          vote_id: targetVote.id,
+          amount,
+        });
+        setVotes((prev) =>
+          prev.map((voteItem) =>
+            voteItem.id === targetVote.id ? { ...voteItem, seen: 1 } : voteItem,
+          ),
+        );
+        if (typeof data?.coins === 'number') {
+          updateCoinBalance(data.coins);
+        }
+        playRevealSound();
+        closePaySheet();
+      } catch (error) {
+        const message = error?.response?.data?.message || 'Nismo mogli otkriti hajp.';
+        const status = error?.response?.status;
+        if (status === 422 && typeof message === 'string' && message.toLowerCase().includes('coin')) {
+          closePaySheet();
+          navigation.navigate('BuyCoins');
+          return;
+        }
+        Alert.alert('Greska', message);
+      } finally {
+        setPaying(false);
+      }
+    },
+    [
+      closePaySheet,
+      loadUser,
+      navigation,
+      paying,
+      playRevealSound,
+      revealPrice,
+      selectedVote,
+      user?.id,
+    ],
+  );
+
+  const handleActivatePremium = useCallback(() => {
+    closePaySheet();
+    navigation.navigate('Subscription');
+  }, [closePaySheet, navigation]);
+
+  const handleOpenPaySheet = useCallback(
+    (vote) => {
+      setSelectedVote(vote || null);
+      Haptics.selectionAsync().catch(() => {});
+      openPaySheet({
+        title: 'Otkrij ko te hajpa',
+        subtitle: 'Izaberi nacin otkljucavanja zeljenog korisnika',
+        coinPrice: revealPrice,
+        onPayWithCoins: (priceOverride) => handlePayWithCoins(priceOverride, vote),
+        onActivatePremium: handleActivatePremium,
+        onClose: () => setSelectedVote(null),
+      });
+    },
+    [handleActivatePremium, handlePayWithCoins, openPaySheet, revealPrice],
+  );
+
   const renderVote = ({ item }) => {
-    const voterSex = item?.user?.sex;
-    const fromText = voterSex ? `Od: ${voterSex}` : 'Od: korisnika';
+    const isHidden = Number(item?.seen ?? 0) === 0;
+    const voter = item?.user;
+    const voterName = voter?.name || voter?.username || 'Korisnik';
+    const voterSex = voter?.sex;
+    const fromText = isHidden ? 'Od: korisnika' : `Od: ${voterName}`;
     const ts = item.created_at
       ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       : '';
+    const genderColor = voterSex === 'boy' ? '#60a5fa' : '#f472b6';
+    const coinUri = coinSvgUri || coinAssetDefaultUri;
+    const isPayingThis = paying && selectedVote?.id === item?.id;
 
     return (
       <View style={styles.messageCard}>
-        <Ionicons
-          name="flame"
-          size={40}
-          color={voterSex === 'boy' ? '#60a5fa' : '#f472b6'}
-          style={styles.messageIcon}
-        />
+        <View style={styles.messageIcon}>
+          {isHidden ? (
+            <SvgUri
+              width={40}
+              height={40}
+              uri={hajpoviActiveIconUri}
+              color={genderColor}
+              fill={genderColor}
+            />
+          ) : (
+            <View style={styles.avatarWrapper}>
+              <Avatar user={voter} name={voterName} variant="friendlist" zoomModal={false} />
+            </View>
+          )}
+        </View>
         <View style={styles.messageContent}>
           <Text style={styles.messageText} numberOfLines={1}>
             {item?.question?.question || 'Pitanje'}
           </Text>
           <Text style={styles.messageMetadata}>{fromText}</Text>
         </View>
-        <Text style={styles.messageTime}>{ts}</Text>
+        <View style={styles.messageRight}>
+          <Text style={styles.messageTime}>{ts}</Text>
+          {isHidden ? (
+            <TouchableOpacity
+              style={styles.revealButton}
+              onPress={() => handleOpenPaySheet(item)}
+              disabled={isPayingThis}
+            >
+              {isPayingThis ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <View style={styles.revealButtonContent}>
+                  {coinUri ? (
+                    <SvgUri width={16} height={16} uri={coinUri} />
+                  ) : (
+                    <Ionicons name="cash-outline" size={16} color={colors.primary} />
+                  )}
+                  <Text style={styles.revealButtonText}>{revealPrice}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
     );
   };
@@ -119,7 +304,9 @@ export default function HajpoviScreen({ navigation }) {
 
     return (
       <View style={styles.messageCard}>
-        <Ionicons name="flame" size={40} color="#f472b6" style={styles.messageIcon} />
+        <View style={styles.messageIcon}>
+          <Ionicons name="flame" size={40} color="#f472b6" />
+        </View>
         <View style={styles.messageContent}>
           <Text style={styles.messageText} numberOfLines={1}>
             {item.message}
@@ -198,7 +385,7 @@ export default function HajpoviScreen({ navigation }) {
       {renderContent()}
 
       {activeTab === TAB_ANKETE && (
-        <BottomCTA label="Vidi ko te hajpa" iconName="diamond-outline" onPress={() => navigation.navigate('Subscription')} fixed />
+        <BottomCTA label="Vidi ko te hajpa" iconName="flame" onPress={() => navigation.navigate('Subscription')} fixed />
       )}
     </View>
   );
@@ -226,7 +413,18 @@ const createStyles = (colors, isDark) =>
       borderColor: colors.border,
     },
     messageIcon: {
+      width: 48,
+      height: 48,
       marginRight: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 24,
+    },
+    avatarWrapper: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      overflow: 'hidden',
     },
     messageContent: {
       flex: 1,
@@ -241,9 +439,32 @@ const createStyles = (colors, isDark) =>
       fontSize: 13,
       color: colors.text_secondary,
     },
+    messageRight: {
+      alignItems: 'flex-end',
+      gap: 6,
+    },
     messageTime: {
       fontSize: 12,
       color: colors.text_secondary,
+    },
+    revealButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 54,
+    },
+    revealButtonContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    revealButtonText: {
+      color: colors.primary,
+      fontWeight: '700',
     },
     centerContent: {
       flex: 1,

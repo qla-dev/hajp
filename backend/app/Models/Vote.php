@@ -10,7 +10,7 @@ class Vote extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['question_id', 'room_id', 'user_id', 'selected_user_id'];
+    protected $fillable = ['question_id', 'room_id', 'user_id', 'selected_user_id', 'seen'];
 
     public function question(): BelongsTo
     {

@@ -51,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/photo', [UserController::class, 'uploadPhoto']);
         Route::delete('/photo', [UserController::class, 'removePhoto']);
         Route::get('/votes', [QuestionController::class, 'myVotes']);
+        Route::post('/{user}/votes/pay', [QuestionController::class, 'payVote']);
         Route::get('/activities', [QuestionController::class, 'activities']);
         Route::get('/{user}/views', [UserController::class, 'profileViews']);
         Route::post('/{user}/views', [UserController::class, 'recordProfileView']);
