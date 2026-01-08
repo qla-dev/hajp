@@ -8,7 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchRooms } from '../api';
+import { fetchUserRooms } from '../api';
 import RoomCard from '../components/RoomCard';
 import EmptyState from '../components/EmptyState';
 
@@ -25,8 +25,9 @@ export default function RankRoomsScreen({ navigation }) {
   const loadRooms = async () => {
     setLoading(true);
     try {
-      const { data } = await fetchRooms();
-      setRooms(data || []);
+      const { data } = await fetchUserRooms('user');
+      const roomsList = data?.rooms || data?.data || data || [];
+      setRooms(roomsList);
     } catch (error) {
       console.error('Greška pri učitavanju soba:', error);
     }
