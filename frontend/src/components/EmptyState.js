@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri } from 'react-native-svg';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import Avatar from './Avatar';
 import { buildAvatarSvg, generateRandomConfig } from '../utils/bigHeadAvatar';
+import * as Haptics from 'expo-haptics';
 
 const CARD_COUNT = 3;
 const HAIR_BLOCKED_WITH_HAT = new Set(['long', 'bob']);
@@ -14,9 +15,9 @@ const BODY_FEMALE_VALUE = 'breasts';
 const BODY_MALE_VALUE = 'chest';
 
 const SAMPLE_QUESTIONS = [
-  'Ko ti se sviđa?',
-  'Ko te najviše spominje?',
-  'Ko ti se najčešće javlja?',
+  'Ko ti se svida?',
+  'Ko te najvise spominje?',
+  'Ko ti se najcesce javlja?',
 ];
 const SAMPLE_NAMES = ['Luka', 'Mia', 'Sara', 'Marko'];
 const SAMPLE_TIMES = ['08:38', '08:21', '07:58'];
@@ -102,18 +103,29 @@ export default function EmptyState({ title, subtitle, onRefresh, coinUri, coinPr
   const styles = useThemedStyles(createStyles);
   const cards = useMemo(() => buildPreviewCards(coinPrice), [coinPrice]);
   const canRefresh = typeof onRefresh === 'function';
+  const handleRefreshPress = useCallback(() => {
+    if (canRefresh) {
+      Haptics.selectionAsync().catch(() => {});
+      onRefresh();
+    }
+  }, [canRefresh, onRefresh]);
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={[styles.refreshButton, !canRefresh && styles.refreshButtonDisabled]}
-        onPress={onRefresh}
+        onPress={handleRefreshPress}
         disabled={!canRefresh}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
-        <Ionicons name="refresh" size={14} color={colors.text_secondary} />
         <Text style={styles.refreshText}>Osvježi</Text>
+        <Ionicons name="refresh" size={84} color={colors.primary} />
       </TouchableOpacity>
+
+      <View style={styles.messageBlock}>
+        <Text style={styles.title}>{title}</Text>
+        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      </View>
 
       <View style={styles.graphic}>
         <View style={styles.graphicGlow} />
@@ -152,9 +164,6 @@ export default function EmptyState({ title, subtitle, onRefresh, coinUri, coinPr
           );
         })}
       </View>
-
-      <Text style={styles.title}>{title}</Text>
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
     </View>
   );
 }
@@ -169,25 +178,28 @@ const createStyles = (colors) =>
       paddingVertical: 32,
       gap: 10,
     },
-    refreshButton: {
-      flexDirection: 'row',
+    messageBlock: {
       alignItems: 'center',
-      gap: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 999,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-      marginBottom: 10,
+      gap: 4,
+      paddingVertical: 12,
+    },
+    refreshButton: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      minWidth: 120,
+      minHeight: 64,
     },
     refreshButtonDisabled: {
       opacity: 0.6,
     },
     refreshText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: colors.text_secondary,
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.primary,
     },
     graphic: {
       width: '100%',
