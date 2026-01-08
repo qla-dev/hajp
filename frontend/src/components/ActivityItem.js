@@ -23,7 +23,7 @@ export default function ActivityItem({ activity, isLast, navigation }) {
     const targetId = relevantUser?.id;
     if (!targetId) return;
     Haptics.selectionAsync().catch(() => {});
-    navigation?.navigate('LiveFriendProfile', {
+    navigation?.navigate('FriendProfile', {
       isMine: false,
       userId: targetId,
     });

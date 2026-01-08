@@ -226,7 +226,7 @@ function RankStackNavigator() {
       })}
     />
     <RankStack.Screen
-      name="LiveFriendProfile"
+      name="FriendProfile"
       component={ProfileScreen}
       options={({ navigation }) => ({
         title: 'Profil',
@@ -257,7 +257,7 @@ function RankStackNavigator() {
       name="ProfileFriendsList"
       component={FriendsScreen}
       options={profileFriendsListOptions}
-      initialParams={{ fromProfile: true, profileRouteName: 'LiveFriendProfile' }}
+      initialParams={{ fromProfile: true, profileRouteName: 'FriendProfile' }}
     />
     <RankStack.Screen name="RankRooms" component={RankRoomsScreen} options={{ title: 'Sobe' }} />
     <RankStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
@@ -413,6 +413,7 @@ function ProfileStackNavigator() {
 
 function HajpoviStackNavigator() {
   const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   return (
     <HajpoviStack.Navigator
@@ -435,6 +436,40 @@ function HajpoviStackNavigator() {
             />
           ),
         })}
+      />
+      <HajpoviStack.Screen
+        name="FriendProfile"
+        component={ProfileScreen}
+        options={({ navigation }) => ({
+          title: 'Profil',
+          headerBackVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="chevron-back" size={22} color={colors.text_primary} />
+              <Text style={styles.backLabel}>Nazad</Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <TouchableOpacity
+              style={styles.glassButton}
+              onPress={() => {
+                alert('Opcije otvorene');
+              }}
+            >
+              <Ionicons name="ellipsis-horizontal" size={20} color={colors.text_primary} />
+            </TouchableOpacity>
+          ),
+        })}
+      />
+      <HajpoviStack.Screen
+        name="ProfileFriendsList"
+        component={FriendsScreen}
+        options={profileFriendsListOptions}
+        initialParams={{ fromProfile: true, profileRouteName: 'FriendProfile' }}
       />
     </HajpoviStack.Navigator>
   );
@@ -637,7 +672,13 @@ function MainTabsContent() {
         }
         if (
           route.name === 'Rank' &&
-          (focused === 'ProfileFriendsList' || focused === 'LiveFriendProfile' || focused === 'Ranking')
+          (focused === 'ProfileFriendsList' || focused === 'FriendProfile' || focused === 'Ranking')
+        ) {
+          hideTabBar = true;
+        }
+        if (
+          route.name === 'Inbox' &&
+          (focused === 'FriendProfile' || focused === 'ProfileFriendsList')
         ) {
           hideTabBar = true;
         }

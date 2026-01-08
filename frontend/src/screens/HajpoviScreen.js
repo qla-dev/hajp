@@ -62,6 +62,18 @@ export default function HajpoviScreen({ navigation }) {
     revealSoundRef.current?.replayAsync().catch(() => {});
   }, []);
 
+  const handleOpenProfile = useCallback(
+    (targetUserId) => {
+      if (!targetUserId) return;
+      Haptics.selectionAsync().catch(() => {});
+      navigation.navigate('FriendProfile', {
+        isMine: false,
+        userId: targetUserId,
+      });
+    },
+    [navigation],
+  );
+
   const loadUser = useCallback(async () => {
     try {
       const current = await getCurrentUser();
@@ -244,9 +256,15 @@ export default function HajpoviScreen({ navigation }) {
     const genderColor = voterSex === 'boy' ? '#60a5fa' : '#f472b6';
     const coinUri = coinSvgUri || coinAssetDefaultUri;
     const isPayingThis = paying && selectedVote?.id === item?.id;
+    const voterId = voter?.id || item?.user_id;
+    const canOpenProfile = !isHidden && Boolean(voterId);
+    const CardComponent = canOpenProfile ? TouchableOpacity : View;
+    const cardProps = canOpenProfile
+      ? { onPress: () => handleOpenProfile(voterId), activeOpacity: 0.7 }
+      : {};
 
     return (
-      <View style={styles.messageCard}>
+      <CardComponent style={styles.messageCard} {...cardProps}>
         <View style={styles.messageIcon}>
           {isHidden ? (
             <SvgUri
@@ -291,7 +309,7 @@ export default function HajpoviScreen({ navigation }) {
             </TouchableOpacity>
           ) : null}
         </View>
-      </View>
+      </CardComponent>
     );
   };
 
