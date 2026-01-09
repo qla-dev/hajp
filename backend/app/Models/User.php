@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -72,6 +73,11 @@ class User extends Authenticatable
         return $this->hasMany(Poll::class, 'creator_id');
     }
 
+    public function stories(): HasMany
+    {
+        return $this->hasMany(Story::class);
+    }
+
     public function anonymousInbox()
     {
         return $this->hasOne(AnonymousInbox::class);
@@ -100,5 +106,14 @@ class User extends Authenticatable
     public function cashouts()
     {
         return $this->hasMany(CashoutHistory::class);
+    }
+
+    public function activeStories(): HasMany
+    {
+        return $this->stories()
+            ->where('is_active', 1)
+            ->where(function ($query) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            });
     }
 }

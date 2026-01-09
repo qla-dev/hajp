@@ -11,6 +11,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\AnonInboxController;
 use App\Http\Controllers\ShareLinkController;
 use App\Http\Controllers\ShareLinkStyleController;
+use App\Http\Controllers\StoryController;
 use App\Http\Controllers\UserController;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -41,6 +42,7 @@ Route::get('/share/{user}/messages', [ShareLinkController::class, 'messages']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/room-vibes', [RoomVibeController::class, 'index']);
+    Route::post('/stories', [StoryController::class, 'store']);
 
     Route::prefix('user')->group(function () {
         Route::get('/', fn (Request $request) => $request->user());
@@ -56,6 +58,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{user}/views', [UserController::class, 'profileViews']);
         Route::post('/{user}/views', [UserController::class, 'recordProfileView']);
         Route::post('/{user}/pay', [UserController::class, 'payWithCoins']);
+        Route::get('/stories', [StoryController::class, 'mine']);
+        Route::get('/{user}/stories', [StoryController::class, 'index']);
         Route::get('/{user}', [UserController::class, 'showPublic']);
         Route::get('/{user}/rooms', [UserController::class, 'roomsForUser']);
         Route::get('/{user}/friends', [UserController::class, 'friendsForUser']);
