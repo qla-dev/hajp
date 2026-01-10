@@ -1,11 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { useTheme } from '../theme/darkMode';
 
 const coinAsset = require('../../assets/svg/coin.svg');
 const coinAssetUri = Asset.fromModule(coinAsset).uri;
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export default function PollItem({
   roomName,
@@ -23,20 +26,37 @@ export default function PollItem({
   badgeLabel,
 }) {
   const { colors } = useTheme();
-  const completion = total ? Math.min(Math.max(answered / total, 0), 1) : 0;
+
+  const completion = total ? Math.min(answered / total, 1) : 0;
+  const percentage = Math.round(completion * 100);
+  const progressLabel = `${answered}/${total}`;
+
+  const animatedProgress = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    animatedProgress.setValue(0);
+    Animated.timing(animatedProgress, {
+      toValue: completion,
+      duration: 900,
+      useNativeDriver: false,
+    }).start();
+  }, [completion]);
+
   const accent = accentColor;
-  const interactive = !!onCardPress;
-  const Container = interactive ? TouchableOpacity : View;
-  const containerProps = interactive ? { activeOpacity: 0.9, onPress: onCardPress } : {};
-  const progressLabel = total ? `${answered}/${total}` : '0/0';
-  const coinUri = coinAssetUri;
-  const labelText = badgeLabel || 'U progresu';
+  const Container = onCardPress ? TouchableOpacity : View;
+  const containerProps = onCardPress ? { activeOpacity: 0.9, onPress: onCardPress } : {};
+
+  const size = 90;
+  const strokeWidth = 6;
+  const radius = 36;
+  const circumference = 2 * Math.PI * radius;
 
   return (
     <Container
       {...containerProps}
       style={[styles.card, { backgroundColor: colors.transparent, borderColor: accent }, style]}
     >
+      {/* Header */}
       <View style={styles.row}>
         <Text style={[styles.roomName, { color: colors.text_primary }]} numberOfLines={1}>
           {roomName || 'Neimenovana soba'}
@@ -44,23 +64,93 @@ export default function PollItem({
         <View style={styles.badge}>
           <View style={styles.badgeCountRow}>
             <Text style={[styles.badgeValue, { color: accent }]}>{progressLabel}</Text>
-            {coinUri ? <SvgUri width={12} height={12} uri={coinUri} /> : null}
+            <SvgUri width={12} height={12} uri={coinAssetUri} />
           </View>
-          <Text style={[styles.badgeLabel, { color: colors.text_secondary }]}>{labelText}</Text>
+          <Text style={[styles.badgeLabel, { color: colors.text_secondary }]}>
+            {badgeLabel || 'U progresu'}
+          </Text>
         </View>
       </View>
 
+      {/* Question */}
       <Text style={[styles.question, { color: colors.text_primary }]} numberOfLines={3}>
         {question || 'Nema novih anketa za sobu'}
       </Text>
 
+      {/* Progress + vibes */}
       <View style={styles.detailRow}>
-        <Text style={[styles.emoji, { color: accent }]}>{emoji || '😊'}</Text>
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${completion * 100}%`, backgroundColor: accent }]} />
+        <View style={styles.circleColumn}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => {
+              animatedProgress.setValue(0);
+              Animated.timing(animatedProgress, {
+                toValue: completion,
+                duration: 900,
+                useNativeDriver: false,
+              }).start();
+            }}
+            style={styles.circleWrapper}
+          >
+            <Svg width={size} height={size}>
+              <Circle
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                stroke={colors.surface}
+                strokeWidth={strokeWidth}
+                fill="none"
+              />
+              <AnimatedCircle
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                stroke={accent}
+                strokeWidth={strokeWidth}
+                fill="none"
+                strokeDasharray={circumference}
+                strokeDashoffset={animatedProgress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [circumference, 0],
+                })}
+                strokeLinecap="round"
+                rotation="-90"
+                originX={size / 2}
+                originY={size / 2}
+              />
+            </Svg>
+
+            <View style={styles.circleEmojiWrapper}>
+              <Text style={styles.circleEmoji}>{emoji || '😊'}</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.circlePercentageWrapper}>
+            <Text style={[styles.circleValue, { color: accent }]}>{percentage}%</Text>
+          </View>
+        </View>
+
+        <View style={styles.vibesColumn}>
+          {[
+            { label: '✨ Good vibes only', v: percentage },
+            { label: '🌈 Summer energy', v: Math.min(percentage + 10, 100) },
+            { label: '🔥 Stay consistent', v: Math.max(percentage - 10, 0) },
+          ].map((item, i) => (
+            <View key={i} style={styles.vibeItem}>
+              <Text style={[styles.vibeLine, { color: colors.text_primary }]}>
+                {item.label}
+              </Text>
+              <View style={styles.vibeBarTrack}>
+                <View
+                  style={[styles.vibeBarFill, { width: `${item.v}%`, backgroundColor: accent }]}
+                />
+              </View>
+            </View>
+          ))}
         </View>
       </View>
 
+      {/* Options */}
       {options?.length ? (
         <View style={styles.buttonsRow}>
           {loading ? (
@@ -95,17 +185,12 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 16,
     borderWidth: 1,
-    shadowColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   roomName: {
     fontSize: 18,
@@ -135,31 +220,73 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     lineHeight: 22,
-    minHeight: 60,
+    marginBottom: 6,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 8,
+    paddingVertical: 8,
   },
-  emoji: {
-    fontSize: 24,
-    marginRight: 12,
+  circleWrapper: {
+    width: 90,
+    height: 90,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
-  progressTrack: {
+  circleColumn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  circleWrapper: {
+    width: 90,
+    height: 90,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  circleEmojiWrapper: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circlePercentageWrapper: {
+    marginTop: 6,
+    alignItems: 'center',
+  },
+  circleEmoji: {
+    fontSize: 22,
+  },
+  circleValue: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  vibesColumn: {
     flex: 1,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: 'rgba(0,0,0,0.1)',
+    justifyContent: 'center',
+    gap: 10,
   },
-  progressFill: {
+  vibeItem: {
+    gap: 4,
+  },
+  vibeLine: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  vibeBarTrack: {
+    width: '100%',
+    height: 6,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    overflow: 'hidden',
+  },
+  vibeBarFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 4,
   },
   buttonsRow: {
     flexDirection: 'row',
-    marginTop: 12,
+    marginTop: 8,
     gap: 10,
   },
   optionButton: {
@@ -168,7 +295,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderWidth: 1,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
   },
   optionText: {
     fontSize: 14,
