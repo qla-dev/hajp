@@ -120,14 +120,11 @@ export default function PollItem({
               />
             </Svg>
 
-            <View style={styles.circleEmojiWrapper}>
+            <View style={styles.circleCenter}>
               <Text style={styles.circleEmoji}>{emoji || '😊'}</Text>
+              <Text style={[styles.circleValue, { color: accent }]}>{percentage}%</Text>
             </View>
           </TouchableOpacity>
-
-          <View style={styles.circlePercentageWrapper}>
-            <Text style={[styles.circleValue, { color: accent }]}>{percentage}%</Text>
-          </View>
         </View>
 
         <View style={styles.vibesColumn}>
@@ -227,12 +224,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
   },
+  circleColumn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
   circleWrapper: {
     width: 90,
     height: 90,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
   },
   circleColumn: {
     alignItems: 'center',
@@ -245,20 +246,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  circleEmojiWrapper: {
+  circleCenter: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  circlePercentageWrapper: {
-    marginTop: 6,
-    alignItems: 'center',
-  },
+  
   circleEmoji: {
     fontSize: 22,
   },
   circleValue: {
-    fontSize: 13,
+    fontSize: 18,
     fontWeight: '700',
   },
   vibesColumn: {
