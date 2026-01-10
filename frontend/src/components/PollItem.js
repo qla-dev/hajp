@@ -10,6 +10,11 @@ const coinAssetUri = Asset.fromModule(coinAsset).uri;
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
+const CIRCLE_SIZE = 110;
+const STROKE_WIDTH = 7;
+const RADIUS = 44;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
 export default function PollItem({
   roomName,
   question,
@@ -42,14 +47,24 @@ export default function PollItem({
     }).start();
   }, [completion]);
 
+  const handleCirclePress = () => {
+    animatedProgress.setValue(0);
+    Animated.timing(animatedProgress, {
+      toValue: completion,
+      duration: 900,
+      useNativeDriver: false,
+    }).start();
+  };
+
   const accent = accentColor;
   const Container = onCardPress ? TouchableOpacity : View;
   const containerProps = onCardPress ? { activeOpacity: 0.9, onPress: onCardPress } : {};
 
-  const size = 90;
-  const strokeWidth = 6;
-  const radius = 36;
-  const circumference = 2 * Math.PI * radius;
+  const vibeData = [
+    { label: '✨ Good vibes only', v: percentage },
+    { label: '🌈 Summer energy', v: Math.min(percentage + 10, 100) },
+    { label: '🔥 Stay consistent', v: Math.max(percentage - 10, 0) },
+  ];
 
   return (
     <Container
@@ -57,7 +72,7 @@ export default function PollItem({
       style={[styles.card, { backgroundColor: colors.transparent, borderColor: accent }, style]}
     >
       {/* Header */}
-      <View style={styles.row}>
+      <View style={styles.header}>
         <Text style={[styles.roomName, { color: colors.text_primary }]} numberOfLines={1}>
           {roomName || 'Neimenovana soba'}
         </Text>
@@ -77,64 +92,54 @@ export default function PollItem({
         {question || 'Nema novih anketa za sobu'}
       </Text>
 
-      {/* Progress + vibes */}
+      {/* Progress Circle + Vibes */}
       <View style={styles.detailRow}>
-        <View style={styles.circleColumn}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => {
-              animatedProgress.setValue(0);
-              Animated.timing(animatedProgress, {
-                toValue: completion,
-                duration: 900,
-                useNativeDriver: false,
-              }).start();
-            }}
-            style={styles.circleWrapper}
-          >
-            <Svg width={size} height={size}>
-              <Circle
-                cx={size / 2}
-                cy={size / 2}
-                r={radius}
-                stroke={colors.surface}
-                strokeWidth={strokeWidth}
-                fill="none"
-              />
-              <AnimatedCircle
-                cx={size / 2}
-                cy={size / 2}
-                r={radius}
-                stroke={accent}
-                strokeWidth={strokeWidth}
-                fill="none"
-                strokeDasharray={circumference}
-                strokeDashoffset={animatedProgress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [circumference, 0],
-                })}
-                strokeLinecap="round"
-                rotation="-90"
-                originX={size / 2}
-                originY={size / 2}
-              />
-            </Svg>
-
-            <View style={styles.circleCenter}>
-              <Text style={styles.circleEmoji}>{emoji || '😊'}</Text>
-              <Text style={[styles.circleValue, { color: accent }]}>{percentage}%</Text>
+        {/* Progress Circle */}
+        <View style={styles.circleContainer}>
+          <TouchableOpacity activeOpacity={0.85} onPress={handleCirclePress}>
+            <View style={styles.circle}>
+              <View style={styles.circleContent}>
+                <Text style={styles.emoji}>{emoji || '😊'}</Text>
+                <Text style={[styles.percentage, { color: accent }]}>{percentage}%</Text>
+              </View>
+              <View style={styles.svgWrapper}>
+                <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
+                  <Circle
+                    cx={CIRCLE_SIZE / 2}
+                    cy={CIRCLE_SIZE / 2}
+                    r={RADIUS}
+                    stroke={colors.surface}
+                    strokeWidth={STROKE_WIDTH}
+                    fill="none"
+                  />
+                  <AnimatedCircle
+                    cx={CIRCLE_SIZE / 2}
+                    cy={CIRCLE_SIZE / 2}
+                    r={RADIUS}
+                    stroke={accent}
+                    strokeWidth={STROKE_WIDTH}
+                    fill="none"
+                    strokeDasharray={CIRCUMFERENCE}
+                    strokeDashoffset={animatedProgress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [CIRCUMFERENCE, 0],
+                    })}
+                    strokeLinecap="round"
+                    rotation="-90"
+                    originX={CIRCLE_SIZE / 2}
+                    originY={CIRCLE_SIZE / 2}
+                  />
+                </Svg>
+              </View>
             </View>
           </TouchableOpacity>
         </View>
 
+        {/* Vibes Column */}
         <View style={styles.vibesColumn}>
-          {[
-            { label: '✨ Good vibes only', v: percentage },
-            { label: '🌈 Summer energy', v: Math.min(percentage + 10, 100) },
-            { label: '🔥 Stay consistent', v: Math.max(percentage - 10, 0) },
-          ].map((item, i) => (
-            <View key={i} style={styles.vibeItem}>
-              <Text style={[styles.vibeLine, { color: colors.text_primary }]}>
+          {vibeData.map((item, index) => (
+            <View key={index} style={styles.vibeItem}>
+              <Text style={[styles.vibeLabel, { color: colors.text_primary }]}>
                 {item.label}
               </Text>
               <View style={styles.vibeBarTrack}>
@@ -149,7 +154,7 @@ export default function PollItem({
 
       {/* Options */}
       {options?.length ? (
-        <View style={styles.buttonsRow}>
+        <View style={styles.optionsRow}>
           {loading ? (
             <ActivityIndicator color={accent} />
           ) : (
@@ -183,7 +188,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
   },
-  row: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
@@ -223,41 +228,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
+    minHeight: 120,
   },
-  circleColumn: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  circleContainer: {
     marginRight: 16,
+    marginTop: 10,
   },
-  circleWrapper: {
-    width: 90,
-    height: 90,
+  circle: {
+    width: CIRCLE_SIZE,
+    height: CIRCLE_SIZE,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  circleColumn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  circleWrapper: {
-    width: 90,
-    height: 90,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  circleCenter: {
+  svgWrapper: {
     position: 'absolute',
-    alignItems: 'center',
+    top: 0,
+    left: 0,
+    width: CIRCLE_SIZE,
+    height: CIRCLE_SIZE,
+    pointerEvents: 'none',
+  },
+  circleContent: {
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  
-  circleEmoji: {
-    fontSize: 22,
+  emoji: {
+    fontSize: 32,
+    lineHeight: 32,
   },
-  circleValue: {
+  percentage: {
     fontSize: 18,
     fontWeight: '700',
+    marginTop: 2,
   },
   vibesColumn: {
     flex: 1,
@@ -267,7 +269,7 @@ const styles = StyleSheet.create({
   vibeItem: {
     gap: 4,
   },
-  vibeLine: {
+  vibeLabel: {
     fontSize: 13,
     fontWeight: '600',
   },
@@ -282,7 +284,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
-  buttonsRow: {
+  optionsRow: {
     flexDirection: 'row',
     marginTop: 8,
     gap: 10,
@@ -293,6 +295,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderWidth: 1,
     borderRadius: 12,
+    alignItems: 'center',
   },
   optionText: {
     fontSize: 14,
