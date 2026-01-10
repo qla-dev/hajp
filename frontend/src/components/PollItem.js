@@ -187,7 +187,7 @@ export default function PollItem({
   return (
     <Container
       {...containerProps}
-      style={[styles.card, style]}
+      style={[styles.card, { borderColor: accent }, style]}
     >
       {/* COVER IMAGE with overlay and badges */}
       <ImageBackground 

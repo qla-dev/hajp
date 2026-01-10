@@ -152,14 +152,6 @@ export default function RoomsScreen({ navigation, route }) {
   }, [loadRooms, navigation]);
 
   const renderRoom = ({ item }) => {
-    // Debug: Check what data we're getting
-    console.log('Room item data:', {
-      id: item.id,
-      name: item.name,
-      preview_members: item.preview_members,
-      has_preview_members: !!item.preview_members,
-      preview_members_length: item.preview_members?.length
-    });
 
     const highlight = item.active_question;
     const baseTotal = item.polls_count ?? 20;
