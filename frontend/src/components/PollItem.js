@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated, ImageBackground, Image } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
-import { useTheme } from '../theme/darkMode';
+import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { Ionicons } from '@expo/vector-icons';
 import { baseURL } from '../api';
 
@@ -36,8 +36,11 @@ export default function PollItem({
   roomCover,
   roomIcon,
   previewMembers = [],
+  memberCount = 0,
+  mutualMember = null,
 }) {
   const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   const completion = total ? Math.min(answered / total, 1) : 0;
   const percentage = Math.round(completion * 100);
@@ -112,6 +115,40 @@ export default function PollItem({
   });
 
   const coverUri = roomCover ? `${baseURL.replace(/\/$/, '')}${roomCover}` : FALLBACK_COVER;
+  const hasPreviewMembers = previewMembers.length > 0;
+
+  const getMemberDisplayName = (member) => {
+    if (!member) return 'Član';
+    const base = member.name || member.username || 'Član';
+    return base.split(' ')[0] || base;
+  };
+
+  const memberLabel = useMemo(() => {
+    const displayed = [];
+
+    if (mutualMember?.name || mutualMember?.username) {
+      const mutualName = getMemberDisplayName(mutualMember);
+      const usernameSuffix = !mutualMember.name && mutualMember.username ? ` (@${mutualMember.username})` : '';
+      displayed.push(`${mutualName}${usernameSuffix}`);
+    }
+
+    const firstOther = previewMembers.find(
+      (member) => !mutualMember || member?.id !== mutualMember.id,
+    );
+    if (firstOther) {
+      displayed.push(getMemberDisplayName(firstOther));
+    }
+
+    const tailCount = Math.max(memberCount - displayed.length, 0);
+
+    if (displayed.length) {
+      const names = displayed.join(', ');
+      const tail = tailCount > 0 ? ` i još ${tailCount} članova` : '';
+      return `${names}${tail}`;
+    }
+
+    return `${memberCount} članova`;
+  }, [mutualMember, previewMembers, memberCount]);
 
   const resolveAvatar = (photo) => {
     if (!photo) return null;
@@ -150,9 +187,9 @@ export default function PollItem({
   return (
     <Container
       {...containerProps}
-      style={[styles.card, { backgroundColor: colors.transparent, borderColor: colors.border }, style]}
+      style={[styles.card, style]}
     >
-      {/* COVER IMAGE with overlay and badge */}
+      {/* COVER IMAGE with overlay and badges */}
       <ImageBackground 
         source={{ uri: coverUri }} 
         style={styles.cover}
@@ -160,9 +197,9 @@ export default function PollItem({
       >
         <View style={styles.overlay} />
         
-        {/* Room Icon Badge positioned like in RoomCard */}
+        {/* Room Icon Badge */}
         {roomIcon && (
-          <View style={[styles.vibeBadge, { backgroundColor: colors.background, borderColor: colors.border }]}>
+          <View style={styles.vibeBadge}>
             <Ionicons name={roomIcon} size={28} color={accent} />
           </View>
         )}
@@ -183,12 +220,12 @@ export default function PollItem({
       {/* INFO BLOCK */}
       <View style={styles.infoBlock}>
         {/* Room Name */}
-        <Text style={[styles.roomName, { color: colors.text_primary }]} numberOfLines={1}>
+        <Text style={styles.roomName} numberOfLines={1}>
           {roomName || 'Neimenovana soba'}
         </Text>
 
         {/* Question */}
-        <Text style={[styles.question, { color: colors.text_primary }]} numberOfLines={3}>
+        <Text style={styles.question} numberOfLines={3}>
           {question || 'Nema novih anketa za sobu'}
         </Text>
 
@@ -266,7 +303,7 @@ export default function PollItem({
               {vibeData.map((item, index) => (
                 <View key={index} style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                  <Text style={[styles.legendText, { color: colors.text_secondary }]}>
+                  <Text style={styles.legendText}>
                     {item.emoji} {item.label}
                   </Text>
                   <Text style={[styles.legendPercent, { color: item.color }]}>
@@ -311,252 +348,280 @@ export default function PollItem({
             )}
           </View>
         ) : (
-          <Text style={[styles.placeholder, { color: colors.text_secondary }]}>
+          <Text style={styles.placeholder}>
             Nema novih anketa za sobu
           </Text>
         )}
       </View>
 
-      {/* AVATAR STACK at bottom */}
-      {previewMembers?.length > 0 && (
-        <View style={styles.bottomRow}>
-          <View style={styles.avatarStack}>
-            {previewMembers.slice(0, 3).map((member, idx) => renderAvatar(member, idx))}
-          </View>
+      {/* AVATAR STACK at bottom - matching RoomCard */}
+      <View style={styles.bottomRow}>
+        <View style={styles.memberRow}>
+          {hasPreviewMembers && (
+            <View style={styles.avatarStack}>
+              {previewMembers.map((member, idx) => renderAvatar(member, idx))}
+            </View>
+          )}
+          <Text style={styles.memberText}>{memberLabel}</Text>
         </View>
-      )}
+      </View>
     </Container>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  cover: {
-    height: 90,
-    justifyContent: 'space-between',
-  },
-  coverImage: {
-    resizeMode: 'cover',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-  },
-  vibeBadge: {
-    position: 'absolute',
-    left: 12,
-    bottom: -28,
-    width: 64,
-    height: 64,
-    borderRadius: 14,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
-  },
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-  statusBadgeText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 12,
-  },
-  coinBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    borderWidth: 1.5,
-  },
-  coinBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  infoBlock: {
-    paddingHorizontal: 16,
-    paddingTop: 48,
-    paddingBottom: 16,
-    gap: 16,
-  },
-  roomName: {
-    fontSize: 18,
-    fontWeight: '900',
-  },
-  question: {
-    fontSize: 16,
-    fontWeight: '700',
-    lineHeight: 24,
-  },
-  heroRow: {
-    flexDirection: 'row',
-    gap: 20,
-    alignItems: 'center',
-  },
-  circleWrapper: {
-    position: 'absolute',
-    width: CIRCLE_SIZE + 20,
-    height: CIRCLE_SIZE + 20,
-    top: -10,
-    left: -10,
-  },
-  circleGlow: {
-    width: '100%',
-    height: '100%',
-    borderRadius: (CIRCLE_SIZE + 20) / 2,
-  },
-  circle: {
-    width: CIRCLE_SIZE,
-    height: CIRCLE_SIZE,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  svgWrapper: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: CIRCLE_SIZE,
-    height: CIRCLE_SIZE,
-    pointerEvents: 'none',
-  },
-  circleContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emoji: {
-    fontSize: 32,
-    lineHeight: 32,
-  },
-  percentage: {
-    fontSize: 16,
-    fontWeight: '900',
-    marginTop: 2,
-  },
-  vibesContainer: {
-    flex: 1,
-    gap: 12,
-    justifyContent: 'center',
-  },
-  segmentedBar: {
-    flexDirection: 'row',
-    height: 12,
-    borderRadius: 6,
-    overflow: 'hidden',
-  },
-  segment: {
-    height: '100%',
-  },
-  segmentFirst: {
-    borderTopLeftRadius: 6,
-    borderBottomLeftRadius: 6,
-  },
-  segmentLast: {
-    borderTopRightRadius: 6,
-    borderBottomRightRadius: 6,
-  },
-  legendContainer: {
-    gap: 6,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  legendText: {
-    fontSize: 11,
-    fontWeight: '600',
-    flex: 1,
-  },
-  legendPercent: {
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    width: '100%',
-  },
-  primaryButton: {
-    flex: 2,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryButtonText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#000',
-    letterSpacing: 0.5,
-  },
-  secondaryButton: {
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 16,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  secondaryButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  placeholder: {
-    fontSize: 14,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  avatarStack: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 4,
-  },
-  avatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#fff',
-    marginLeft: -8,
-  },
-  avatarFallback: {
-    backgroundColor: '#888',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarFallbackText: {
-    color: '#fff',
-    fontWeight: '800',
-    fontSize: 12,
-  },
-});
+const createStyles = (colors) =>
+  StyleSheet.create({
+    card: {
+      width: '100%',
+      marginBottom: 16,
+      borderRadius: 20,
+      overflow: 'hidden',
+      backgroundColor: colors.transparent,
+      borderWidth: 1,
+      borderColor: colors.border,
+      elevation: 5,
+    },
+    cover: {
+      height: 90,
+      justifyContent: 'space-between',
+    },
+    coverImage: {
+      resizeMode: 'cover',
+    },
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+    },
+    vibeBadge: {
+      position: 'absolute',
+      left: 12,
+      bottom: -28,
+      width: 64,
+      height: 64,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.background,
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 5,
+    },
+    topRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+    statusBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+    },
+    statusBadgeText: {
+      color: '#fff',
+      fontWeight: '700',
+      fontSize: 12,
+    },
+    coinBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+      borderWidth: 1.5,
+    },
+    coinBadgeText: {
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    infoBlock: {
+      paddingHorizontal: 16,
+      paddingBottom: 0,
+      paddingTop: 48,
+      position: 'relative',
+    },
+    roomName: {
+      fontSize: 18,
+      fontWeight: '900',
+      color: colors.text_primary,
+      marginBottom: 8,
+    },
+    question: {
+      fontSize: 16,
+      fontWeight: '700',
+      lineHeight: 24,
+      color: colors.text_primary,
+      marginBottom: 16,
+    },
+    heroRow: {
+      flexDirection: 'row',
+      gap: 20,
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    circleWrapper: {
+      position: 'absolute',
+      width: CIRCLE_SIZE + 20,
+      height: CIRCLE_SIZE + 20,
+      top: -10,
+      left: -10,
+    },
+    circleGlow: {
+      width: '100%',
+      height: '100%',
+      borderRadius: (CIRCLE_SIZE + 20) / 2,
+    },
+    circle: {
+      width: CIRCLE_SIZE,
+      height: CIRCLE_SIZE,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    svgWrapper: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: CIRCLE_SIZE,
+      height: CIRCLE_SIZE,
+      pointerEvents: 'none',
+    },
+    circleContent: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    emoji: {
+      fontSize: 32,
+      lineHeight: 32,
+    },
+    percentage: {
+      fontSize: 16,
+      fontWeight: '900',
+      marginTop: 2,
+    },
+    vibesContainer: {
+      flex: 1,
+      gap: 12,
+      justifyContent: 'center',
+    },
+    segmentedBar: {
+      flexDirection: 'row',
+      height: 12,
+      borderRadius: 6,
+      overflow: 'hidden',
+    },
+    segment: {
+      height: '100%',
+    },
+    segmentFirst: {
+      borderTopLeftRadius: 6,
+      borderBottomLeftRadius: 6,
+    },
+    segmentLast: {
+      borderTopRightRadius: 6,
+      borderBottomRightRadius: 6,
+    },
+    legendContainer: {
+      gap: 6,
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    legendDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+    },
+    legendText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.text_secondary,
+      flex: 1,
+    },
+    legendPercent: {
+      fontSize: 11,
+      fontWeight: '800',
+    },
+    actionsRow: {
+      flexDirection: 'row',
+      gap: 12,
+      width: '100%',
+    },
+    primaryButton: {
+      flex: 2,
+      paddingVertical: 16,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    primaryButtonText: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: '#000',
+      letterSpacing: 0.5,
+    },
+    secondaryButton: {
+      flex: 1,
+      paddingVertical: 16,
+      borderRadius: 16,
+      borderWidth: 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    secondaryButtonText: {
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    placeholder: {
+      fontSize: 14,
+      textAlign: 'center',
+      fontStyle: 'italic',
+      color: colors.text_secondary,
+    },
+    bottomRow: {
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingBottom: 12,
+    },
+    memberRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    memberText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.text_secondary,
+    },
+    avatarStack: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 4,
+      marginRight: 0,
+    },
+    avatar: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      borderWidth: 1,
+      borderColor: colors.background,
+      marginLeft: -8,
+    },
+    avatarFallback: {
+      backgroundColor: colors.secondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    avatarFallbackText: {
+      color: colors.textLight,
+      fontWeight: '800',
+      fontSize: 12,
+    },
+  });

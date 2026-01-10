@@ -16,6 +16,21 @@ import { useMenuRefresh } from '../context/menuRefreshContext';
 const ITEM_HEIGHT = 300;
 const SKIP_LIMIT = 3;
 
+const VIBE_OPTIONS = [
+  { key: 'Zabava', icon: 'musical-notes-outline' },
+  { key: 'Sport', icon: 'fitness-outline' },
+  { key: 'Lifestyle', icon: 'leaf-outline' },
+  { key: 'Tehnologija', icon: 'laptop-outline' },
+  { key: 'Putovanja', icon: 'airplane-outline' },
+  { key: 'Hrana', icon: 'restaurant-outline' },
+  { key: 'Moda', icon: 'shirt-outline' },
+  { key: 'Zdravlje', icon: 'heart-outline' },
+  { key: 'Finansije', icon: 'cash-outline' },
+  { key: 'Obrazovanje', icon: 'school-outline' },
+  { key: 'Za žene', icon: 'flower-outline' },
+  { key: 'Za muškarce', icon: 'barbell-outline' },
+];
+
 export default function RoomsScreen({ navigation, route }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,20 +58,45 @@ export default function RoomsScreen({ navigation, route }) {
     }
 
     try {
-      let memberIds;
-      try {
-        const { data: memberRoomsData } = await fetchUserRooms('user');
-        const memberRooms = memberRoomsData?.rooms || [];
-        memberIds = new Set(memberRooms.map((room) => room.id));
-      } catch (memberError) {
-        console.error('Greška pri dohvaćanju tvojih soba:', memberError);
-      }
+      // Fetch user rooms with preview_members
+      const { data: userRoomsResponse } = await fetchUserRooms('user');
+      const memberRooms = userRoomsResponse?.rooms || [];
+      const memberIds = new Set(memberRooms.map((room) => room.id));
 
+      // Fetch room status data
       const { data } = await fetchRoomsStatus();
-      const availableRooms = data?.data || [];
-      const filteredRooms =
-        memberIds == null ? availableRooms : availableRooms.filter((room) => memberIds.has(room.id));
-      setRooms(filteredRooms);
+      const statusRooms = data?.data || [];
+      
+      // Merge status data into member rooms
+      const roomsWithStatus = memberRooms.map((memberRoom) => {
+        const statusData = statusRooms.find((sr) => sr.id === memberRoom.id);
+        return {
+          ...memberRoom,
+          ...statusData, // Merge status data (active_question, polls_count, etc.)
+          preview_members: memberRoom.preview_members, // Keep preview_members from userRooms
+          mutual_member: memberRoom.mutual_member, // Keep mutual_member from userRooms
+        };
+      });
+      
+      // Sort rooms: active/incomplete first, then completed
+      const sortedRooms = roomsWithStatus.sort((a, b) => {
+        const getStatus = (room) => {
+          const highlight = room.active_question;
+          const baseTotal = room.polls_count ?? 20;
+          const skipped = Math.min(highlight?.skipped ?? 0, SKIP_LIMIT);
+          const totalBase = highlight?.total ?? baseTotal;
+          const total = Math.max((totalBase || 0) - skipped, 0);
+          const answeredWithSkips = highlight?.answered ?? Math.min(room.completed_polls ?? baseTotal, baseTotal);
+          const answeredNormalized = Math.max(0, answeredWithSkips - skipped);
+          const answered = total > 0 ? Math.min(answeredNormalized, total) : answeredNormalized;
+          const isComplete = total > 0 && answered >= total;
+          return isComplete ? 1 : 0; // 0 = active, 1 = complete
+        };
+        
+        return getStatus(a) - getStatus(b);
+      });
+      
+      setRooms(sortedRooms);
     } catch (error) {
       console.error('Greška pri učitavanju soba:', error);
       setRooms([]);
@@ -112,6 +152,15 @@ export default function RoomsScreen({ navigation, route }) {
   }, [loadRooms, navigation]);
 
   const renderRoom = ({ item }) => {
+    // Debug: Check what data we're getting
+    console.log('Room item data:', {
+      id: item.id,
+      name: item.name,
+      preview_members: item.preview_members,
+      has_preview_members: !!item.preview_members,
+      preview_members_length: item.preview_members?.length
+    });
+
     const highlight = item.active_question;
     const baseTotal = item.polls_count ?? 20;
     const fallbackAnswered = Math.min(item.completed_polls ?? baseTotal, baseTotal);
@@ -124,10 +173,12 @@ export default function RoomsScreen({ navigation, route }) {
     const answered = total > 0 ? Math.min(answeredNormalized, total) : answeredNormalized;
     const cashoutDone = !!highlight?.cashout_done;
     const isComplete = total > 0 && answered >= total;
+    
     let badgeLabel = 'U progresu';
     if (isComplete) {
       badgeLabel = cashoutDone ? 'Isplaćeno' : 'ISPLATI ODMAH';
     }
+    
     const emoji = highlight?.emoji || (item.type === 'Za žene' ? '🌸' : '⚡️');
 
     const accentColor = isComplete
@@ -135,6 +186,10 @@ export default function RoomsScreen({ navigation, route }) {
       : item.is_private
       ? colors.primary
       : colors.primary;
+
+    // Get room icon based on type
+    const vibeMatch = VIBE_OPTIONS.find((option) => option.key === item.type);
+    const roomIcon = vibeMatch?.icon || 'leaf-outline';
 
     return (
       <PollItem
@@ -144,6 +199,11 @@ export default function RoomsScreen({ navigation, route }) {
         total={total}
         emoji={emoji}
         badgeLabel={badgeLabel}
+        roomCover={item.cover_url || item.cover}
+        roomIcon={roomIcon}
+        previewMembers={item.preview_members || []}
+        memberCount={item.members_count ?? 0}
+        mutualMember={item.mutual_member || null}
         onCardPress={() =>
           navigation.navigate('Polling', { roomId: item.id, roomName: item.name })
         }
@@ -229,20 +289,20 @@ const createStyles = (colors) =>
       alignItems: 'center',
       paddingVertical: 32,
     },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 0,
-    gap: 0,
-  },
-  topSpacer: {
-    paddingTop: 40,
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingBottom: 40,
-  },
-  emptyHorizontalPadding: {
-    paddingHorizontal: 0,
-    paddingBottom: 0,
-  },
+    listContent: {
+      paddingHorizontal: 16,
+      paddingTop: 10,
+      paddingBottom: 0,
+      gap: 0,
+    },
+    topSpacer: {
+      paddingTop: 40,
+      flexGrow: 1,
+      justifyContent: 'center',
+      paddingBottom: 40,
+    },
+    emptyHorizontalPadding: {
+      paddingHorizontal: 0,
+      paddingBottom: 0,
+    },
   });
