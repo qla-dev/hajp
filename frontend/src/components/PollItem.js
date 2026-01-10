@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { useTheme } from '../theme/darkMode';
@@ -10,9 +10,9 @@ const coinAssetUri = Asset.fromModule(coinAsset).uri;
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-const CIRCLE_SIZE = 110;
-const STROKE_WIDTH = 7;
-const RADIUS = 44;
+const CIRCLE_SIZE = 100;
+const STROKE_WIDTH = 8;
+const RADIUS = 40;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export default function PollItem({
@@ -37,21 +37,30 @@ export default function PollItem({
   const progressLabel = `${answered}/${total}`;
 
   const animatedProgress = useRef(new Animated.Value(0)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     animatedProgress.setValue(0);
     Animated.timing(animatedProgress, {
       toValue: completion,
-      duration: 900,
+      duration: 1400,
       useNativeDriver: false,
     }).start();
+
+    Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 20000,
+        useNativeDriver: true,
+      })
+    ).start();
   }, [completion]);
 
   const handleCirclePress = () => {
     animatedProgress.setValue(0);
     Animated.timing(animatedProgress, {
       toValue: completion,
-      duration: 900,
+      duration: 1400,
       useNativeDriver: false,
     }).start();
   };
@@ -60,116 +69,185 @@ export default function PollItem({
   const Container = onCardPress ? TouchableOpacity : View;
   const containerProps = onCardPress ? { activeOpacity: 0.9, onPress: onCardPress } : {};
 
+  // Determine badge color based on status
+  const isCompleted = badgeLabel === 'Isplaćeno' || badgeLabel === 'Isplati odmah';
+  const badgeColor = isCompleted ? colors.secondary : colors.primary;
+
+  // Calculate percentages that add up to 100%
+  const vibe1 = percentage;
+  const vibe2 = Math.min(percentage + 10, 100);
+  const vibe3 = Math.max(percentage - 10, 0);
+  const total_vibes = vibe1 + vibe2 + vibe3;
+  
   const vibeData = [
-    { label: '✨ Good vibes only', v: percentage },
-    { label: '🌈 Summer energy', v: Math.min(percentage + 10, 100) },
-    { label: '🔥 Stay consistent', v: Math.max(percentage - 10, 0) },
+    { 
+      label: 'Good vibes', 
+      emoji: '✨',
+      color: '#FFD700',
+      percent: total_vibes > 0 ? Math.round((vibe1 / total_vibes) * 100) : 33
+    },
+    { 
+      label: 'Summer energy', 
+      emoji: '🌈',
+      color: '#FF6B9D',
+      percent: total_vibes > 0 ? Math.round((vibe2 / total_vibes) * 100) : 33
+    },
+    { 
+      label: 'Stay consistent', 
+      emoji: '🔥',
+      color: '#FF4500',
+      percent: total_vibes > 0 ? Math.round((vibe3 / total_vibes) * 100) : 34
+    },
   ];
+
+  const rotate = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   return (
     <Container
       {...containerProps}
       style={[styles.card, { backgroundColor: colors.transparent, borderColor: accent }, style]}
     >
-      {/* Header */}
-      <View style={styles.header}>
+      {/* FLOATING HEADER with badge */}
+      <View style={styles.floatingHeader}>
         <Text style={[styles.roomName, { color: colors.text_primary }]} numberOfLines={1}>
           {roomName || 'Neimenovana soba'}
         </Text>
-        <View style={styles.badge}>
-          <View style={styles.badgeCountRow}>
-            <Text style={[styles.badgeValue, { color: accent }]}>{progressLabel}</Text>
-            <SvgUri width={12} height={12} uri={coinAssetUri} />
+        <View style={styles.badgeColumn}>
+          <View style={[styles.badge, { borderColor: badgeColor, backgroundColor: 'transparent' }]}>
+            <Text style={[styles.badgeText, { color: badgeColor }]}>{progressLabel}</Text>
+            <SvgUri width={10} height={10} uri={coinAssetUri} />
           </View>
-          <Text style={[styles.badgeLabel, { color: colors.text_secondary }]}>
+          <Text style={[styles.statusLabel, { color: colors.text_secondary }]}>
             {badgeLabel || 'U progresu'}
           </Text>
         </View>
       </View>
 
-      {/* Question */}
+      {/* QUESTION - Above everything, bigger */}
       <Text style={[styles.question, { color: colors.text_primary }]} numberOfLines={3}>
         {question || 'Nema novih anketa za sobu'}
       </Text>
 
-      {/* Progress Circle + Vibes */}
-      <View style={styles.detailRow}>
-        {/* Progress Circle */}
-        <View style={styles.circleContainer}>
-          <TouchableOpacity activeOpacity={0.85} onPress={handleCirclePress}>
-            <View style={styles.circle}>
-              <View style={styles.circleContent}>
-                <Text style={styles.emoji}>{emoji || '😊'}</Text>
-                <Text style={[styles.percentage, { color: accent }]}>{percentage}%</Text>
-              </View>
-              <View style={styles.svgWrapper}>
-                <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
-                  <Circle
-                    cx={CIRCLE_SIZE / 2}
-                    cy={CIRCLE_SIZE / 2}
-                    r={RADIUS}
-                    stroke={colors.surface}
-                    strokeWidth={STROKE_WIDTH}
-                    fill="none"
-                  />
-                  <AnimatedCircle
-                    cx={CIRCLE_SIZE / 2}
-                    cy={CIRCLE_SIZE / 2}
-                    r={RADIUS}
-                    stroke={accent}
-                    strokeWidth={STROKE_WIDTH}
-                    fill="none"
-                    strokeDasharray={CIRCUMFERENCE}
-                    strokeDashoffset={animatedProgress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [CIRCUMFERENCE, 0],
-                    })}
-                    strokeLinecap="round"
-                    rotation="-90"
-                    originX={CIRCLE_SIZE / 2}
-                    originY={CIRCLE_SIZE / 2}
-                  />
-                </Svg>
-              </View>
+      {/* HERO SECTION: Circle + Vibes in same row */}
+      <View style={styles.heroRow}>
+        <TouchableOpacity activeOpacity={0.85} onPress={handleCirclePress}>
+          <Animated.View style={[styles.circleWrapper, { transform: [{ rotate }] }]}>
+            <View style={[styles.circleGlow, { backgroundColor: accent, opacity: 0.15 }]} />
+          </Animated.View>
+          
+          <View style={styles.circle}>
+            <View style={styles.circleContent}>
+              <Text style={styles.emoji}>{emoji || '😊'}</Text>
+              <Text style={[styles.percentage, { color: accent }]}>{percentage}%</Text>
             </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Vibes Column */}
-        <View style={styles.vibesColumn}>
-          {vibeData.map((item, index) => (
-            <View key={index} style={styles.vibeItem}>
-              <Text style={[styles.vibeLabel, { color: colors.text_primary }]}>
-                {item.label}
-              </Text>
-              <View style={styles.vibeBarTrack}>
-                <View
-                  style={[styles.vibeBarFill, { width: `${item.v}%`, backgroundColor: accent }]}
+            <View style={styles.svgWrapper}>
+              <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
+                <Defs>
+                  <LinearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <Stop offset="0%" stopColor={accent} stopOpacity="1" />
+                    <Stop offset="100%" stopColor={accent} stopOpacity="0.6" />
+                  </LinearGradient>
+                </Defs>
+                <Circle
+                  cx={CIRCLE_SIZE / 2}
+                  cy={CIRCLE_SIZE / 2}
+                  r={RADIUS}
+                  stroke={colors.surface}
+                  strokeWidth={STROKE_WIDTH}
+                  fill="none"
                 />
-              </View>
+                <AnimatedCircle
+                  cx={CIRCLE_SIZE / 2}
+                  cy={CIRCLE_SIZE / 2}
+                  r={RADIUS}
+                  stroke="url(#progressGradient)"
+                  strokeWidth={STROKE_WIDTH}
+                  fill="none"
+                  strokeDasharray={CIRCUMFERENCE}
+                  strokeDashoffset={animatedProgress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [CIRCUMFERENCE, 0],
+                  })}
+                  strokeLinecap="round"
+                  rotation="-90"
+                  originX={CIRCLE_SIZE / 2}
+                  originY={CIRCLE_SIZE / 2}
+                />
+              </Svg>
             </View>
-          ))}
+          </View>
+        </TouchableOpacity>
+
+        {/* VIBES - Single segmented bar */}
+        <View style={styles.vibesContainer}>
+          {/* Segmented Bar */}
+          <View style={[styles.segmentedBar, { backgroundColor: colors.surface }]}>
+            {vibeData.map((item, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.segment,
+                  { 
+                    width: `${item.percent}%`,
+                    backgroundColor: item.color,
+                  },
+                  index === 0 && styles.segmentFirst,
+                  index === vibeData.length - 1 && styles.segmentLast,
+                ]}
+              />
+            ))}
+          </View>
+
+          {/* Legend */}
+          <View style={styles.legendContainer}>
+            {vibeData.map((item, index) => (
+              <View key={index} style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+                <Text style={[styles.legendText, { color: colors.text_secondary }]}>
+                  {item.emoji} {item.label}
+                </Text>
+                <Text style={[styles.legendPercent, { color: item.color }]}>
+                  {item.percent}%
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
       </View>
 
-      {/* Options */}
+      {/* ACTIONS - Side by side with different styles */}
       {options?.length ? (
-        <View style={styles.optionsRow}>
+        <View style={styles.actionsRow}>
           {loading ? (
             <ActivityIndicator color={accent} />
           ) : (
-            options.slice(0, 2).map((option, index) => (
-              <TouchableOpacity
-                key={`${option.value ?? option.label}-${index}`}
-                onPress={() => onSelect?.(option.value)}
-                disabled={disabled}
-                style={[styles.optionButton, { borderColor: accent }]}
-              >
-                <Text style={[styles.optionText, { color: colors.text_primary }]} numberOfLines={1}>
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            ))
+            <>
+              {options[0] && (
+                <TouchableOpacity
+                  onPress={() => onSelect?.(options[0].value)}
+                  disabled={disabled}
+                  style={[styles.primaryButton, { backgroundColor: accent }]}
+                >
+                  <Text style={styles.primaryButtonText} numberOfLines={1}>
+                    {options[0].label}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {options[1] && (
+                <TouchableOpacity
+                  onPress={() => onSelect?.(options[1].value)}
+                  disabled={disabled}
+                  style={[styles.secondaryButton, { borderColor: accent }]}
+                >
+                  <Text style={[styles.secondaryButtonText, { color: colors.text_primary }]} numberOfLines={1}>
+                    {options[1].label}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
           )}
         </View>
       ) : (
@@ -183,56 +261,69 @@ export default function PollItem({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 18,
-    padding: 18,
+    borderRadius: 28,
+    padding: 24,
     marginBottom: 16,
-    borderWidth: 1,
+    borderWidth: 2,
+    gap: 20,
   },
-  header: {
+  floatingHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 6,
+    alignItems: 'center',
+    width: '100%',
   },
   roomName: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '900',
     flex: 1,
-    marginRight: 10,
+    marginRight: 12,
+  },
+  badgeColumn: {
+    alignItems: 'flex-end',
+    gap: 4,
   },
   badge: {
-    alignItems: 'flex-end',
-  },
-  badgeCountRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1.5,
   },
-  badgeValue: {
-    fontSize: 14,
+  badgeText: {
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  statusLabel: {
+    fontSize: 9,
     fontWeight: '700',
-  },
-  badgeLabel: {
-    fontSize: 10,
     textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginTop: 2,
+    letterSpacing: 1.2,
   },
   question: {
-    fontSize: 16,
-    fontWeight: '600',
-    lineHeight: 22,
-    marginBottom: 6,
+    fontSize: 18,
+    fontWeight: '700',
+    lineHeight: 26,
   },
-  detailRow: {
+  heroRow: {
     flexDirection: 'row',
+    gap: 20,
     alignItems: 'center',
-    paddingVertical: 8,
-    minHeight: 120,
   },
-  circleContainer: {
-    marginRight: 16,
-    marginTop: 10,
+  circleWrapper: {
+    position: 'absolute',
+    width: CIRCLE_SIZE + 20,
+    height: CIRCLE_SIZE + 20,
+    top: -10,
+    left: -10,
+  },
+  circleGlow: {
+    width: '100%',
+    height: '100%',
+    borderRadius: (CIRCLE_SIZE + 20) / 2,
   },
   circle: {
     width: CIRCLE_SIZE,
@@ -257,52 +348,87 @@ const styles = StyleSheet.create({
     lineHeight: 32,
   },
   percentage: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '900',
     marginTop: 2,
   },
-  vibesColumn: {
+  vibesContainer: {
     flex: 1,
+    gap: 12,
     justifyContent: 'center',
-    gap: 10,
   },
-  vibeItem: {
-    gap: 4,
-  },
-  vibeLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  vibeBarTrack: {
-    width: '100%',
-    height: 6,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+  segmentedBar: {
+    flexDirection: 'row',
+    height: 12,
+    borderRadius: 6,
     overflow: 'hidden',
   },
-  vibeBarFill: {
+  segment: {
     height: '100%',
+  },
+  segmentFirst: {
+    borderTopLeftRadius: 6,
+    borderBottomLeftRadius: 6,
+  },
+  segmentLast: {
+    borderTopRightRadius: 6,
+    borderBottomRightRadius: 6,
+  },
+  legendContainer: {
+    gap: 6,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
     borderRadius: 4,
   },
-  optionsRow: {
-    flexDirection: 'row',
-    marginTop: 8,
-    gap: 10,
-  },
-  optionButton: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  optionText: {
-    fontSize: 14,
+  legendText: {
+    fontSize: 11,
     fontWeight: '600',
+    flex: 1,
+  },
+  legendPercent: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  primaryButton: {
+    flex: 2,
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButtonText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#000',
+    letterSpacing: 0.5,
+  },
+  secondaryButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
   },
   placeholder: {
     fontSize: 14,
-    marginTop: 8,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
