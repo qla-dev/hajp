@@ -61,12 +61,10 @@ export default function BadgesPreview({
 const createStyles = (colors) =>
   StyleSheet.create({
     container: {
-      marginHorizontal: 16,
-      marginTop: 12,
-      padding: 14,
+      marginHorizontal: 0,
       borderRadius: 18,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.transparent,
       backgroundColor: colors.background,
     },
 
@@ -75,6 +73,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       marginBottom: 12,
+      marginStart: 12,
     },
 
     headerLeft: {
@@ -91,7 +90,7 @@ const createStyles = (colors) =>
 
     badgesRow: {
       flexDirection: 'row',
-      gap: 14,
+      gap: 0,
       paddingRight: 8,
     },
 
@@ -108,10 +107,6 @@ const createStyles = (colors) =>
       backgroundColor: colors.primary,
       justifyContent: 'center',
       alignItems: 'center',
-      shadowColor: colors.primary,
-      shadowOpacity: 0.25,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 4 },
       elevation: 4,
     },
 

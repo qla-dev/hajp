@@ -728,17 +728,21 @@ export default function ProfileScreen({ navigation, route }) {
                   <Text style={styles.statLabel}>hajpova</Text>
                 </View>
               </View>
-              
-            </View>
-          </View>
-        </View>
-      
-{!showUnavailable && (
-  <BadgesPreview
-    badges={badgesPreview}
-    onPress={() => navigation.navigate('Badges')}
-  />
+    {!showUnavailable && (
+  <View style={styles.badgesPreviewWrapper}>
+    <BadgesPreview
+      badges={badgesPreview}
+      onPress={() => navigation.navigate('Badges')}
+    />
+  </View>
 )}
+            </View>
+            
+          </View>
+                
+
+        </View>
+
         {!showUnavailable && (
           <View style={styles.userDetails}>
             <View style={styles.roomRow}>
@@ -1438,5 +1442,8 @@ const createStyles = (colors) =>
       top: 46,
       right: 18,
       zIndex: 20,
+    },
+    badgesPreviewWrapper: {
+      marginStart: -15,
     },
   });
