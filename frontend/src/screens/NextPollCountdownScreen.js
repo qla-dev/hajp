@@ -10,10 +10,16 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
 import ConfettiCannon from 'react-native-confetti-cannon';
-import { Ionicons } from '@expo/vector-icons';
-import LottieView from 'lottie-react-native';
+import { SvgUri } from 'react-native-svg';
+import { Asset } from 'expo-asset';
+import SuggestionSlider from '../components/SuggestionSlider';
 
 const pad = (value) => String(value).padStart(2, '0');
+
+const FIXED_TIMER_HEIGHT = 140;
+
+const coinAsset = require('../../assets/svg/coin.svg');
+const coinAssetDefaultUri = Asset.fromModule(coinAsset).uri;
 
 const getRemainingTime = (target) => {
   if (!target) return 0;
@@ -26,7 +32,9 @@ export default function NextPollCountdownScreen({ route, navigation }) {
   const [remaining, setRemaining] = useState(getRemainingTime(targetDate));
   const [copied, setCopied] = useState(false);
   const [confettiKey, setConfettiKey] = useState(0);
+  const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
   const confettiTimeout = useRef(null);
+
   const referralCode = 'HYPER-HAJP';
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -34,9 +42,7 @@ export default function NextPollCountdownScreen({ route, navigation }) {
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', () => {
       const parent = navigation.getParent();
-      if (parent) {
-        parent.setParams({ refreshRooms: Date.now() });
-      }
+      if (parent) parent.setParams({ refreshRooms: Date.now() });
     });
     return unsubscribe;
   }, [navigation]);
@@ -46,7 +52,7 @@ export default function NextPollCountdownScreen({ route, navigation }) {
   }, [targetDate]);
 
   useEffect(() => {
-    if (!targetDate) return undefined;
+    if (!targetDate) return;
     const timer = setInterval(() => {
       setRemaining(getRemainingTime(targetDate));
     }, 1000);
@@ -54,6 +60,24 @@ export default function NextPollCountdownScreen({ route, navigation }) {
   }, [targetDate]);
 
   useEffect(() => () => clearTimeout(confettiTimeout.current), []);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const asset = Asset.fromModule(coinAsset);
+        await asset.downloadAsync();
+        if (mounted) {
+          setCoinSvgUri(asset.localUri || asset.uri || coinAssetDefaultUri || null);
+        }
+      } catch {
+        if (mounted) setCoinSvgUri(coinAssetDefaultUri || null);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const hours = Math.floor(remaining / 3600000);
   const minutes = Math.floor((remaining % 3600000) / 60000);
@@ -70,63 +94,66 @@ export default function NextPollCountdownScreen({ route, navigation }) {
   };
 
   return (
-    <View style={[styles.page, { backgroundColor: colors.background }]}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        contentInsetAdjustmentBehavior="never"
-      >
-        <View style={styles.card}>
-          <Text style={styles.title}>Preporuči prijatelje i osvoji</Text>
-          <Text style={styles.subtitle}>
-            Pozovi ekipu da uđe u Hajp. Svi uzimaju coine dok odbrojavanje ponovno počne.
-          </Text>
+    <View style={styles.page}>
+      {/* PURPLE BLOCK */}
+      <View style={styles.secondaryWrap}>
+        <ScrollView
+          contentContainerStyle={[styles.content]}
+          contentInsetAdjustmentBehavior="never"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* hero */}
+          <View style={styles.hero}>
+            <Text style={styles.title}>Preporuči prijatelje i osvoji</Text>
+            <Text style={styles.subtitle}>
+              Pozovi ekipu da uđe u Hajp. Svi uzimaju coine dok odbrojavanje ponovno počne.
+            </Text>
+          </View>
 
-          <View style={styles.heroIcon}>
-            <LottieView
-              source={{ uri: 'https://cdn.lordicon.com/jvucoldz.json' }}
-              autoPlay
-              loop
-              style={styles.heroLottie}
-              colorFilters={[{ keypath: '**', color: colors.primary }]}
+          {/* suggestions */}
+          <View style={styles.sliderSection}>
+            <Text style={styles.suggestionsTitle}>Osobe iz ove sobe koje možda poznaješ</Text>
+            <SuggestionSlider
+              cardStyle={{ backgroundColor: colors.background }}
             />
           </View>
 
-          <View style={styles.rewardRow}>
-            <Ionicons name="diamond" size={24} color="#fff" />
-            <Text style={styles.rewardValue}>50</Text>
-            <Text style={styles.rewardLabel}>Osvoji besplatne coine</Text>
-          </View>
-
-          <Text style={styles.bodyText}>
-            Kad se prijatelji pridruže, svi dobijete coine. Zajedno skupljate 50 coina po pozivu.
-          </Text>
-
-          <View style={styles.codeStrip}>
-            <View>
-            <Text style={styles.codeLabel}>Vaš kod preporuke</Text>
-              <Text style={styles.codeValue}>{referralCode}</Text>
+          {/* reward */}
+          <View style={styles.rewardSection}>
+            <View style={styles.rewardRow}>
+              {coinSvgUri ? <SvgUri width={24} height={24} uri={coinSvgUri} /> : null}
+              <Text style={styles.rewardValue}>50</Text>
+              <Text style={styles.rewardLabel}>Osvoji besplatne coine</Text>
             </View>
-            <TouchableOpacity
-              style={[styles.copyButton, copied && styles.copyButtonActive]}
-              onPress={handleCopyReferral}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.copyButtonText}>{copied ? 'Kopirano' : 'Kopiraj kod'}</Text>
-            </TouchableOpacity>
-          </View>
 
-       
-        </View>
+            <Text style={styles.bodyText}>
+              Kad se prijatelji pridruže, svi dobijete coine. Zajedno skupljate 50 coina po pozivu.
+            </Text>
 
-        <View style={styles.shareWrap}>
-          <Text style={styles.timerLabel}>Sljedeća anketa za</Text>
-          <View style={styles.timerBadge}>
-            <Text style={styles.timerText}>{timerLabel}</Text>
+            <View style={styles.codeStrip}>
+              <View>
+                <Text style={styles.codeLabel}>Vaš kod preporuke</Text>
+                <Text style={styles.codeValue}>{referralCode}</Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.copyButton, copied && styles.copyButtonActive]}
+                onPress={handleCopyReferral}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.copyButtonText}>{copied ? 'Kopirano' : 'Kopiraj kod'}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-       
+        </ScrollView>
+      </View>
+
+      {/* FIXED TIMER ON BACKGROUND */}
+      <View style={styles.fixedTimer}>
+        <Text style={styles.timerLabel}>Sljedeća anketa za</Text>
+        <View style={styles.timerBadge}>
+          <Text style={styles.timerText}>{timerLabel}</Text>
         </View>
-      </ScrollView>
+      </View>
 
       {confettiKey > 0 && (
         <View style={styles.confettiWrapper} pointerEvents="none">
@@ -149,25 +176,27 @@ const createStyles = (colors) =>
   StyleSheet.create({
     page: {
       flex: 1,
+      backgroundColor: colors.background,
     },
-    container: {
+
+    secondaryWrap: {
       flex: 1,
-    },
-    content: {
-      flexGrow: 1,
-      justifyContent: 'flex-start',
-      padding: 0,
-    },
-    card: {
       backgroundColor: colors.secondary,
       borderBottomLeftRadius: 32,
       borderBottomRightRadius: 32,
-      paddingTop: 100,
-      paddingHorizontal: 24,
-      paddingBottom: 26,
-
-      elevation: 10,
+      overflow: 'hidden',
+      marginBottom: FIXED_TIMER_HEIGHT,
     },
+
+    content: {
+      paddingTop: 120,
+    },
+
+    hero: {
+      paddingHorizontal: 24,
+      marginBottom: 32,
+    },
+
     title: {
       color: '#fff',
       fontSize: 28,
@@ -175,66 +204,49 @@ const createStyles = (colors) =>
       textAlign: 'center',
       marginBottom: 12,
     },
+
     subtitle: {
       color: '#fff',
       fontSize: 14,
       textAlign: 'center',
-      marginBottom: 16,
       lineHeight: 20,
     },
-    heroIcon: {
-      alignItems: 'center',
-      marginBottom: 16,
+
+    sliderSection: {
+      marginBottom: 5,
     },
-    heroPresent: {
-      width: 130,
-      height: 120,
-      borderRadius: 20,
-      backgroundColor: '#fff',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
+
+    suggestionsTitle: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '800',
+      textAlign: 'center',
       marginBottom: 12,
     },
-    heroRibbon: {
-      position: 'absolute',
-      top: 12,
-      width: 60,
-      height: 12,
-      backgroundColor: colors.primary,
-      borderRadius: 6,
+
+    rewardSection: {
+      paddingHorizontal: 24,
+      paddingBottom: 30,
     },
-    heroGift: {
-      width: 70,
-      height: 70,
-      borderRadius: 14,
-      backgroundColor: colors.primary,
-    },
-    heroLottie: {
-      width: 200,
-      height: 200,
-    },
-    confettiSprays: {
-      flexDirection: 'row',
-      gap: 14,
-      marginTop: 4,
-    },
+
     rewardRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 10,
-      marginBottom: 12,
     },
+
     rewardValue: {
       color: '#fff',
       fontSize: 32,
       fontWeight: '800',
     },
+
     rewardLabel: {
       color: '#fff',
       fontSize: 14,
     },
+
     bodyText: {
       color: '#fff',
       fontSize: 13,
@@ -242,6 +254,7 @@ const createStyles = (colors) =>
       marginBottom: 16,
       lineHeight: 18,
     },
+
     codeStrip: {
       backgroundColor: colors.primary,
       borderRadius: 24,
@@ -253,72 +266,53 @@ const createStyles = (colors) =>
       borderWidth: 1,
       borderColor: '#fff',
     },
+
     codeLabel: {
       color: '#fff',
       fontSize: 12,
     },
+
     codeValue: {
       color: '#fff',
       fontSize: 24,
       fontWeight: '800',
     },
+
     copyButton: {
       backgroundColor: '#fff',
       borderRadius: 16,
       paddingVertical: 8,
       paddingHorizontal: 16,
     },
+
     copyButtonActive: {
       backgroundColor: colors.success,
     },
+
     copyButtonText: {
       color: colors.primary,
       fontWeight: '700',
     },
-    referralHint: {
-      color: '#fff',
-      fontSize: 13,
-      textAlign: 'center',
-      marginTop: 12,
-    },
-    tipText: {
-      color: '#fff',
-      fontSize: 12,
-      textAlign: 'center',
-      marginTop: 10,
-      textDecorationLine: 'underline',
-      letterSpacing: 0.3,
-    },
-    counterBadge: {
-      backgroundColor: '#fff',
-      borderRadius: 20,
-      paddingVertical: 14,
-      marginTop: 16,
-      alignItems: 'center',
-    },
-    counterLabel: {
-      fontSize: 12,
-      color: colors.secondary,
-      letterSpacing: 1,
-      marginBottom: 4,
-      textTransform: 'uppercase',
-    },
-    counterValue: {
-      fontSize: 32,
-      color: colors.primary,
-      fontWeight: '900',
-    },
-    shareWrap: {
-      padding: 24,
+
+    fixedTimer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: FIXED_TIMER_HEIGHT,
+      paddingHorizontal: 16,
+      paddingTop: 14,
+      paddingBottom: 16,
       backgroundColor: colors.background,
       alignItems: 'center',
-      gap: 16,
     },
+
     timerLabel: {
       color: colors.text_primary,
       fontSize: 14,
       fontWeight: '600',
     },
+
     timerBadge: {
       backgroundColor: colors.surface,
       paddingVertical: 18,
@@ -327,23 +321,14 @@ const createStyles = (colors) =>
       borderWidth: 1,
       borderColor: colors.border,
     },
+
     timerText: {
       fontSize: 36,
       fontWeight: '800',
       color: colors.text_primary,
       letterSpacing: 1,
     },
-    shareButton: {
-      width: '100%',
-      borderRadius: 26,
-      paddingVertical: 16,
-      alignItems: 'center',
-    },
-    shareButtonText: {
-      color: '#fff',
-      fontSize: 18,
-      fontWeight: '700',
-    },
+
     confettiWrapper: {
       ...StyleSheet.absoluteFillObject,
       zIndex: 20,

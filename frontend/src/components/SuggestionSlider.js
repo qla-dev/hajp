@@ -26,6 +26,7 @@ export default function SuggestionSlider({
   emptySubtitle = 'Osvježi da dobiješ nove prijedloge.',
   onCardPress,
   refreshKey,
+  cardStyle,
   skipNextHaptic = false,
   skipHapticRef,
   onClearSkip = () => {},
@@ -196,7 +197,7 @@ export default function SuggestionSlider({
               activeOpacity={0.9}
               onPress={() => handleCardPress(item)}
             >
-              <Animated.View style={[styles.card, fadeValues[item.id] && { opacity: fadeValues[item.id] }]}>
+              <Animated.View style={[styles.card, cardStyle, fadeValues[item.id] && { opacity: fadeValues[item.id] }]}>
                 <View style={styles.cardHeader}>
                   <Avatar
                     user={item}
