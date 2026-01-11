@@ -25,6 +25,7 @@ import CashOutScreen from '../screens/CashOutScreen';
 import NextPollCountdownScreen from '../screens/NextPollCountdownScreen';
 import CreateRoomScreen from '../screens/CreateRoomScreen';
 import RoomVibeSelection from '../screens/RoomVibeSelection';
+import BadgesScreen from '../screens/BadgesScreen';
 import CoinHeaderIndicator from '../components/CoinHeaderIndicator';
 import { baseURL, getCurrentUser } from '../api';
 import { addProfileUpdatedListener } from '../utils/profileEvents';
@@ -430,6 +431,14 @@ function ProfileStackNavigator() {
         options={profileFriendsListOptions}
         initialParams={{ fromProfile: true, profileRouteName: 'ProfileFriends' }}
       />
+      <ProfileStack.Screen
+  name="Badges"
+  component={BadgesScreen}
+  options={{
+    title: 'Medalje',
+    headerBackTitle: 'Nazad',
+  }}
+/>
     </ProfileStack.Navigator>
   );
 }
@@ -707,6 +716,7 @@ function MainTabsContent() {
             'RoomVibeSelection',
             'Settings',
             'UserRooms',
+            'Badges',
           ].includes(focused)
         ) {
         hideTabBar = true;

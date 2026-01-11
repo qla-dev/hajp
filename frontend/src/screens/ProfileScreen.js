@@ -27,6 +27,7 @@ import Avatar from '../components/Avatar';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import NoteBottomSheet from '../components/NoteBottomSheet';
+import BadgesPreview from '../components/BadgesPreview';
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 const NOTE_MARQUEE_WIDTH = 220;
 
@@ -301,6 +302,11 @@ export default function ProfileScreen({ navigation, route }) {
   const noteDisplay = isMine ? noteText || 'Dodaj misao' : noteText;
   const friendsCountDisplay = isBlockedUser ? 0 : friendsCount;
   const hypeCountDisplay = isBlockedUser ? 0 : hypeCount;
+  const badgesPreview = [
+  { id: 1, title: 'Creator', icon: 'film-outline' },
+  { id: 2, title: 'Rookie', icon: 'star-outline' },
+  { id: 3, title: 'Complete', icon: 'checkmark-circle-outline' },
+];
   const glowScale = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.25] });
   const glowBaseTransform = [{ translateX: -5 }, { translateY: 5 }];
@@ -722,11 +728,17 @@ export default function ProfileScreen({ navigation, route }) {
                   <Text style={styles.statLabel}>hajpova</Text>
                 </View>
               </View>
+              
             </View>
           </View>
         </View>
       
-
+{!showUnavailable && (
+  <BadgesPreview
+    badges={badgesPreview}
+    onPress={() => navigation.navigate('Badges')}
+  />
+)}
         {!showUnavailable && (
           <View style={styles.userDetails}>
             <View style={styles.roomRow}>
