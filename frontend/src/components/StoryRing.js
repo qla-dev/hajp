@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../theme/darkMode';
 import StoriesViewer from './StoriesViewer';
+import StoryUploadModal from './StoryUploadModal';
 import { baseURL, fetchUserStories, uploadStory } from '../api';
 
 const RING_THICKNESS = 6;
@@ -29,6 +30,7 @@ export default function StoryRing({
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [uploadModalVisible, setUploadModalVisible] = useState(false);
 
   const normalizedStories = useMemo(() => {
     return (stories || []).map((story) => {
@@ -80,14 +82,30 @@ export default function StoryRing({
   );
 
   const closeViewer = useCallback(() => setViewerVisible(false), []);
+  const openUploadModal = useCallback(() => setUploadModalVisible(true), []);
+  const closeUploadModal = useCallback(() => setUploadModalVisible(false), []);
 
-  const handleUploadStory = useCallback(async () => {
-    try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        Alert.alert('Pristup odbijen', 'Dopusti pristup galeriji kako bi objavio priču.');
-        return;
+  const uploadAsset = useCallback(
+    async (asset) => {
+      if (!asset) return;
+      setUploading(true);
+      try {
+        const mediaType =
+          asset.mediaType ||
+          (asset.type && asset.type.startsWith('video') ? 'video' : 'image');
+        await uploadStory(asset, { media_type: mediaType });
+        await refreshStories();
+      } catch (error) {
+        Alert.alert('Greška', error?.response?.data?.message || error?.message || 'Nije moguće objaviti priču.');
+      } finally {
+        setUploading(false);
       }
+    },
+    [refreshStories],
+  );
+
+  const handleLibraryPress = useCallback(async () => {
+    try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         quality: 0.8,
@@ -98,15 +116,36 @@ export default function StoryRing({
       if (!asset || canceled) {
         return;
       }
-      setUploading(true);
-      await uploadStory(asset);
-      await refreshStories();
+      closeUploadModal();
+      await uploadAsset(asset);
     } catch (error) {
-      Alert.alert('Greška', error?.message || 'Neuspjeh pri objavi priče.');
-    } finally {
-      setUploading(false);
+      Alert.alert('Greška', 'Nije moguće učitati odabranu datoteku.');
     }
-  }, [refreshStories]);
+  }, [closeUploadModal, uploadAsset]);
+
+  const handleCameraPress = useCallback(async () => {
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Pristup odbijen', 'Dopusti pristup kameri da snimiš priču.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+        allowsEditing: false,
+      });
+      const canceled = result.canceled || result.cancelled;
+      const asset = result.assets?.[0] || (canceled ? null : result);
+      if (!asset || canceled) {
+        return;
+      }
+      closeUploadModal();
+      await uploadAsset(asset);
+    } catch (error) {
+      Alert.alert('Greška', 'Kamera nije dostupna.');
+    }
+  }, [closeUploadModal, uploadAsset]);
 
   return (
     <View style={styles.wrapper}>
@@ -176,7 +215,7 @@ export default function StoryRing({
       {allowStoryUpload && (
         <TouchableOpacity
           style={[styles.upload, { right: ringActive ? 6 : 0, backgroundColor: colors.secondary }]}
-          onPress={handleUploadStory}
+          onPress={openUploadModal}
           disabled={uploading}
         >
           {uploading ? (
@@ -193,6 +232,13 @@ export default function StoryRing({
         userName={userName}
         initialIndex={viewerIndex}
         onClose={closeViewer}
+      />
+      <StoryUploadModal
+        visible={uploadModalVisible}
+        onClose={closeUploadModal}
+        onCameraPress={handleCameraPress}
+        onLibraryPress={handleLibraryPress}
+        gallery={normalizedStories}
       />
     </View>
   );
