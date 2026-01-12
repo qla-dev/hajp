@@ -35,8 +35,8 @@ export default function StoryUploadModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent statusBarTranslucent>
-      <View style={[styles.backdrop, { backgroundColor: colors.background + 'cc' }]}>
-        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+      <View style={[styles.backdrop, { backgroundColor: '#000' + 'dd' }]}>
+        <View style={[styles.card, { backgroundColor: '#000' }]}>
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text_primary }]}>Nova priča</Text>
             <TouchableOpacity onPress={onClose} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
@@ -99,9 +99,9 @@ const styles = StyleSheet.create({
   card: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    paddingTop: 18,
+    paddingTop: 28,
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 42,
     borderWidth: 1,
   },
   header: {

@@ -125,16 +125,26 @@ export default function StoriesViewer({ visible, stories = [], userName, onClose
       const inputRange = [(index - 1) * WINDOW_WIDTH, index * WINDOW_WIDTH, (index + 1) * WINDOW_WIDTH];
       const rotateY = scrollX.interpolate({
         inputRange,
-        outputRange: ['45deg', '0deg', '-45deg'],
+        outputRange: ['65deg', '0deg', '-65deg'],
         extrapolate: 'clamp',
       });
-      const translateX = scrollX.interpolate({
+      const preTranslate = scrollX.interpolate({
         inputRange,
-        outputRange: [WINDOW_WIDTH * 0.15, 0, -WINDOW_WIDTH * 0.15],
+        outputRange: [WINDOW_WIDTH / 2, 0, -WINDOW_WIDTH / 2],
+        extrapolate: 'clamp',
+      });
+      const postTranslate = scrollX.interpolate({
+        inputRange,
+        outputRange: [-WINDOW_WIDTH / 2, 0, WINDOW_WIDTH / 2],
         extrapolate: 'clamp',
       });
       const animatedStyle = {
-        transform: [{ perspective: 1400 }, { rotateY }, { translateX }],
+        transform: [
+          { perspective: 1400 },
+          { translateX: preTranslate },
+          { rotateY },
+          { translateX: postTranslate },
+        ],
       };
       return (
         <Animated.View style={[styles.slide, animatedStyle]}>
@@ -151,7 +161,7 @@ export default function StoriesViewer({ visible, stories = [], userName, onClose
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose} statusBarTranslucent>
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.container, { backgroundColor: '#000' }]}>
         <Animated.FlatList
           ref={flatListRef}
           data={stories}
