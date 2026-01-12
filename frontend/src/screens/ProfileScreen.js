@@ -632,6 +632,9 @@ export default function ProfileScreen({ navigation, route }) {
                 style={styles.profileImage}
                 mode="auto"
                 zoomModal
+                storyEnabled
+                storyOwner={isMine}
+                storyUserId={safeUser?.id}
               />
 
               {showNoteBubble && (

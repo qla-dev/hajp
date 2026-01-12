@@ -5,6 +5,7 @@ import { SvgUri, SvgXml } from 'react-native-svg';
 import { useTheme } from '../theme/darkMode';
 import { buildAvatarSvg } from '../utils/bigHeadAvatar';
 import { baseURL } from '../api';
+import StoryRing from './StoryRing';
 
 export const sizeMap = {
   xs: { photoSize: 64, avatarSize: 47, slotSize: 64, font: 12 },
@@ -104,6 +105,9 @@ export default function Avatar({
   bgMode = 'default', // 'default' | 'random'
   onPress,
   svgOffset = 0,
+  storyEnabled = false,
+  storyOwner = false,
+  storyUserId,
 }) {
   const { colors } = useTheme();
   const [imageError, setImageError] = useState(false);
@@ -369,16 +373,34 @@ export default function Avatar({
   );
   const svgPreviewOffset = isSvg ? Math.round(zoomSize * -0.04) : 0;
 
+  const avatarContent = (
+    <Wrapper
+      onPress={canZoom || onPress ? handlePress : undefined}
+      style={[styles.slotWrapper, slotDimensionStyle, style]}
+    >
+      <View style={[styles.contentOverlay, contentDimensionStyle]}>
+        {renderContent(contentDimensionStyle, resolvedFont, resolvedSize, { svgOffset: svgContentOffset })}
+      </View>
+    </Wrapper>
+  );
+
+  const storyWrapper =
+    storyEnabled && (storyUserId || user?.id)
+      ? (
+        <StoryRing
+          userId={storyUserId ?? user?.id}
+          userName={resolvedName}
+          slotSize={slotSize}
+          allowStoryUpload={storyOwner}
+        >
+          {avatarContent}
+        </StoryRing>
+      )
+      : avatarContent;
+
   return (
     <>
-      <Wrapper
-        onPress={canZoom || onPress ? handlePress : undefined}
-        style={[styles.slotWrapper, slotDimensionStyle, style]}
-      >
-        <View style={[styles.contentOverlay, contentDimensionStyle]}>
-          {renderContent(contentDimensionStyle, resolvedFont, resolvedSize, { svgOffset: svgContentOffset })}
-        </View>
-      </Wrapper>
+      {storyWrapper}
 
       {showZoom && canZoom && (
         <Modal transparent visible animationType="fade" onRequestClose={handleCloseZoom}>

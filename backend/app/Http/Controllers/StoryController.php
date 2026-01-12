@@ -7,6 +7,7 @@ use App\Models\Story;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 class StoryController extends Controller
 {
@@ -67,7 +68,21 @@ class StoryController extends Controller
             $file->move($storagePath, $filename);
 
             $mediaUrl = "/assets/stories/{$filename}";
-            $mediaType = $mediaType ?: (str_starts_with($file->getMimeType(), 'video/') ? 'video' : 'image');
+            $detectedMime = null;
+            try {
+                $path = $file->getPathname();
+                if ($path && File::exists($path)) {
+                    $detectedMime = $file->getMimeType();
+                }
+            } catch (\Throwable $localException) {
+                Log::warning('Story upload mime detection failed', [
+                    'userId' => $user->id,
+                    'mediaTemp' => $file?->getPathname(),
+                    'exception' => $localException->getMessage(),
+                ]);
+            }
+
+            $mediaType = $mediaType ?: (str_starts_with($detectedMime ?? '', 'video/') ? 'video' : 'image');
         }
 
         if (!$mediaUrl) {

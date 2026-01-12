@@ -99,5 +99,33 @@ export const payVote = (userId, payload) => api.post(`/user/${userId}/votes/pay`
 export const fetchRoomRanking = (roomId, period = 'day') => api.get(`/rooms/${roomId}/rank/${period}`);
 export const subscribeWithPayload = (payload) => api.post('/subscription/subscribe', payload);
 export const fetchRoomVibes = () => api.get('/room-vibes');
+export const fetchUserStories = (userId) => api.get(`/user/${userId}/stories`);
+export const fetchMyStories = () => api.get('/user/stories');
+export const uploadStory = async (asset, options = {}) => {
+  if (!asset?.uri) {
+    throw new Error('Story upload requires media asset');
+  }
+  const formData = new FormData();
+  const uri = asset.uri;
+  const rawType = asset.mimeType || asset.type || '';
+  const guessType =
+    rawType.includes('/')
+      ? rawType
+      : rawType
+      ? `${rawType}/${rawType === 'video' ? 'mp4' : 'jpeg'}`
+      : 'image/jpeg';
+  const defaultName = asset.fileName || `story_${Date.now()}.${guessType.split('/').pop() || 'jpg'}`;
+  formData.append('media', {
+    uri,
+    name: defaultName,
+    type: guessType,
+  });
+  if (options.media_type) formData.append('media_type', options.media_type);
+  if (options.caption) formData.append('caption', options.caption);
+  if (options.expires_at) formData.append('expires_at', options.expires_at);
+  return api.post('/stories', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
 
 export default api;
