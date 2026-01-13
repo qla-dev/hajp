@@ -16,7 +16,14 @@ const WINDOW_WIDTH = Dimensions.get('window').width;
 const WINDOW_HEIGHT = Dimensions.get('window').height;
 const STORY_DURATION = 10000;
 
-export default function StoriesViewer({ visible, stories = [], userName, onClose, initialIndex = 0 }) {
+export default function StoriesViewer({
+  visible,
+  stories = [],
+  userName,
+  onClose,
+  initialIndex = 0,
+  onAdvanceToNextUser,
+}) {
   const { colors } = useTheme();
   const listRef = useRef(null);
   const timerRef = useRef(null);
@@ -26,10 +33,10 @@ export default function StoriesViewer({ visible, stories = [], userName, onClose
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || !stories.length) return;
     setActiveIndex(initialIndex);
     listRef.current?.scrollToIndex({ index: initialIndex, animated: false });
-  }, [initialIndex, visible]);
+  }, [initialIndex, visible, stories]);
 
   const clearTimer = () => {
     if (timerRef.current) {
@@ -47,22 +54,41 @@ export default function StoriesViewer({ visible, stories = [], userName, onClose
     setProgress(Math.min(1, elapsed / STORY_DURATION));
   }, []);
 
+  const goToIndex = useCallback(
+    (index) => {
+      if (index < 0 || index >= stories.length) return;
+      setActiveIndex(index);
+      listRef.current?.scrollToIndex({ index, animated: true });
+    },
+    [stories.length],
+  );
+
+  const handleStoryEnd = useCallback(() => {
+    if (activeIndex + 1 >= stories.length) {
+      if (typeof onAdvanceToNextUser === 'function') {
+        const advanced = onAdvanceToNextUser();
+        if (advanced !== false) {
+          return;
+        }
+      }
+      onClose?.();
+      return;
+    }
+    goToIndex(activeIndex + 1);
+  }, [activeIndex, stories.length, goToIndex, onAdvanceToNextUser, onClose]);
+
   const scheduleNext = useCallback(() => {
     clearTimer();
     setProgress(0);
     startTimestampRef.current = Date.now();
     timerRef.current = setTimeout(() => {
-      if (activeIndex + 1 >= stories.length) {
-        onClose?.();
-        return;
-      }
-      goToIndex(activeIndex + 1);
+      handleStoryEnd();
     }, STORY_DURATION);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
     intervalRef.current = setInterval(updateProgress, 100);
-  }, [activeIndex, stories.length, onClose, goToIndex, updateProgress]);
+  }, [activeIndex, stories.length, handleStoryEnd, updateProgress]);
 
   useEffect(() => {
     if (!visible || stories.length === 0) return;
@@ -76,15 +102,6 @@ export default function StoriesViewer({ visible, stories = [], userName, onClose
     };
   }, [activeIndex, scheduleNext, visible, stories.length]);
 
-  const goToIndex = useCallback(
-    (index) => {
-      if (index < 0 || index >= stories.length) return;
-      setActiveIndex(index);
-      listRef.current?.scrollToIndex({ index, animated: true });
-    },
-    [stories.length],
-  );
-
   const handleViewableItemsChanged = useCallback(({ viewableItems }) => {
     const next = viewableItems[0]?.index;
     if (typeof next === 'number' && next !== activeIndex) {
@@ -97,13 +114,9 @@ export default function StoriesViewer({ visible, stories = [], userName, onClose
   const handleEdgePress = (direction) => {
     if (direction === 'left') {
       goToIndex(activeIndex - 1);
-    } else {
-      if (activeIndex + 1 >= stories.length) {
-        onClose?.();
-        return;
-      }
-      goToIndex(activeIndex + 1);
+      return;
     }
+    handleStoryEnd();
   };
 
   const renderProgress = () => (

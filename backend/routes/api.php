@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/room-vibes', [RoomVibeController::class, 'index']);
     Route::post('/stories', [StoryController::class, 'store']);
+    Route::get('/stories/users', [StoryController::class, 'owners']);
 
     Route::prefix('user')->group(function () {
         Route::get('/', fn (Request $request) => $request->user());

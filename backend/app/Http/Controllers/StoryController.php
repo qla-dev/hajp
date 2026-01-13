@@ -44,6 +44,24 @@ class StoryController extends Controller
         ]);
     }
 
+    public function owners(Request $request)
+    {
+        $limit = max(1, min(50, (int) ($request->query('limit', 20) ?? 20)));
+        $viewer = $request->user();
+
+        $users = User::query()
+            ->where('id', '!=', $viewer?->id)
+            ->whereHas('activeStories')
+            ->inRandomOrder()
+            ->limit($limit)
+            ->get(['id', 'name', 'username', 'avatar', 'profile_photo', 'sex']);
+
+        return response()->json([
+            'data' => $users,
+            'count' => $users->count(),
+        ]);
+    }
+
     public function store(Request $request)
     {
         $user = $request->user();

@@ -101,6 +101,10 @@ export const subscribeWithPayload = (payload) => api.post('/subscription/subscri
 export const fetchRoomVibes = () => api.get('/room-vibes');
 export const fetchUserStories = (userId) => api.get(`/user/${userId}/stories`);
 export const fetchMyStories = () => api.get('/user/stories');
+export const fetchStoryUsers = (options = {}) =>
+  api.get('/stories/users', {
+    params: Object.keys(options).length ? options : undefined,
+  });
 export const uploadStory = async (asset, options = {}) => {
   if (!asset?.uri) {
     throw new Error('Story upload requires media asset');
