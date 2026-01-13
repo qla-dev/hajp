@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../theme/darkMode';
 import StoriesViewer from './StoriesViewer';
+import StoryUploadModal from './StoryUploadModal';
 import { baseURL, fetchUserStories, uploadStory } from '../api';
 
 const RING_THICKNESS = 6;
@@ -29,6 +30,7 @@ export default function StoryRing({
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [uploadModalVisible, setUploadModalVisible] = useState(false);
 
   const normalizedStories = useMemo(() => {
     return (stories || []).map((story) => {
@@ -81,13 +83,9 @@ export default function StoryRing({
 
   const closeViewer = useCallback(() => setViewerVisible(false), []);
 
-  const handleUploadStory = useCallback(async () => {
+  const handleLibraryPress = useCallback(async () => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        Alert.alert('Pristup odbijen', 'Dopusti pristup galeriji kako bi objavio priču.');
-        return;
-      }
+      setUploading(true);
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         quality: 0.8,
@@ -95,15 +93,41 @@ export default function StoryRing({
       });
       const canceled = result.canceled || result.cancelled;
       const asset = result.assets?.[0] || (canceled ? null : result);
-      if (!asset || canceled) {
-        return;
-      }
-      setUploading(true);
+      if (!asset || canceled) return;
+      setUploadModalVisible(false);
       await uploadStory(asset);
       await refreshStories();
-    } catch (error) {
-      Alert.alert('Greška', error?.message || 'Neuspjeh pri objavi priče.');
-    } finally {
+    } catch {
+      Alert.alert('Greška', 'Nije moguće učitati odabranu datoteku.');
+    }
+    finally {
+      setUploading(false);
+    }
+  }, [refreshStories]);
+
+  const handleCameraPress = useCallback(async () => {
+    try {
+      setUploading(true);
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Pristup odbijen', 'Dopusti pristup kameri da snimiš priču.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+        allowsEditing: false,
+      });
+      const canceled = result.canceled || result.cancelled;
+      const asset = result.assets?.[0] || (canceled ? null : result);
+      if (!asset || canceled) return;
+      setUploadModalVisible(false);
+      await uploadStory(asset);
+      await refreshStories();
+    } catch {
+      Alert.alert('Greška', 'Kamera nije dostupna.');
+    }
+    finally {
       setUploading(false);
     }
   }, [refreshStories]);
@@ -176,7 +200,7 @@ export default function StoryRing({
       {allowStoryUpload && (
         <TouchableOpacity
           style={[styles.upload, { right: ringActive ? 6 : 0, backgroundColor: colors.secondary }]}
-          onPress={handleUploadStory}
+          onPress={() => setUploadModalVisible(true)}
           disabled={uploading}
         >
           {uploading ? (
@@ -186,6 +210,14 @@ export default function StoryRing({
           )}
         </TouchableOpacity>
       )}
+
+      <StoryUploadModal
+        visible={uploadModalVisible}
+        onClose={() => setUploadModalVisible(false)}
+        onCameraPress={handleCameraPress}
+        onLibraryPress={handleLibraryPress}
+        gallery={normalizedStories}
+      />
 
       <StoriesViewer
         visible={viewerVisible}

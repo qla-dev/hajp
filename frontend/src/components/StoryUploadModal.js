@@ -21,21 +21,17 @@ export default function StoryUploadModal({
   gallery = [],
 }) {
   const { colors } = useTheme();
-  const samples = gallery.slice(0, 9);
+  const samples = gallery.slice(0, 8);
 
   const renderPreview = ({ item }) => (
     <View style={[styles.preview, { borderColor: colors.border }]}>
-      <Image
-        source={{ uri: item?.media_url }}
-        style={styles.previewImage}
-        resizeMode="cover"
-      />
+      <Image source={{ uri: item?.media_url }} style={styles.previewImage} resizeMode="cover" />
     </View>
   );
 
   return (
     <Modal visible={visible} animationType="slide" transparent statusBarTranslucent>
-      <View style={[styles.backdrop, { backgroundColor: '#000' + 'dd' }]}>
+      <View style={[styles.backdrop, { backgroundColor: '#000000dd' }]}>
         <View style={[styles.card, { backgroundColor: '#000' }]}>
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text_primary }]}>Nova priča</Text>
@@ -48,7 +44,7 @@ export default function StoryUploadModal({
             <TouchableOpacity
               onPress={onCameraPress}
               style={[styles.tile, { borderColor: colors.border }]}
-              activeOpacity={0.75}
+              activeOpacity={0.8}
             >
               <View style={[styles.tileContent, { backgroundColor: colors.secondary + '22' }]}>
                 <Ionicons name="camera" size={32} color={colors.primary} />
@@ -60,7 +56,7 @@ export default function StoryUploadModal({
             <TouchableOpacity
               onPress={onLibraryPress}
               style={[styles.tile, { borderColor: colors.border }]}
-              activeOpacity={0.75}
+              activeOpacity={0.8}
             >
               <View style={[styles.tileContent, { backgroundColor: colors.primary + '22' }]}>
                 <Ionicons name="images" size={32} color={colors.primary} />
@@ -72,9 +68,7 @@ export default function StoryUploadModal({
 
           {!!samples.length && (
             <>
-              <Text style={[styles.sectionLabel, { color: colors.text_secondary }]}>
-                Nedavni prizori
-              </Text>
+              <Text style={[styles.sectionLabel, { color: colors.text_secondary }]}>Nedavni prizori</Text>
               <FlatList
                 data={samples}
                 renderItem={renderPreview}
@@ -101,7 +95,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingTop: 28,
     paddingHorizontal: 20,
-    paddingBottom: 42,
+    paddingBottom: 40,
     borderWidth: 1,
   },
   header: {
