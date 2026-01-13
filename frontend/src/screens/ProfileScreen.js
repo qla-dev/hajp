@@ -531,6 +531,10 @@ export default function ProfileScreen({ navigation, route }) {
     noteSheetRef.current?.open?.();
   }, [isMine, noteText]);
 
+  const handleOpenStoriesDemo = useCallback(() => {
+    navigation.navigate('StoriesDemo');
+  }, [navigation]);
+
   const handleSaveNote = useCallback(
     async (value) => {
       if (!isMine || savingNote) return;
@@ -807,6 +811,14 @@ export default function ProfileScreen({ navigation, route }) {
             </View>
           )}
         </View>
+
+        <TouchableOpacity
+          style={styles.storiesDemoButton}
+          onPress={handleOpenStoriesDemo}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.storiesDemoButtonText}>Open stories sandbox</Text>
+        </TouchableOpacity>
 
         {showUnavailable ? (
           <View style={styles.privateWrapper}>
@@ -1148,6 +1160,21 @@ const createStyles = (colors) =>
       fontSize: 15,
       fontWeight: '600',
       color: colors.text_primary,
+    },
+    storiesDemoButton: {
+      marginHorizontal: 16,
+      marginTop: 12,
+      borderWidth: 1,
+      borderRadius: 16,
+      paddingVertical: 12,
+      alignItems: 'center',
+      borderColor: colors.primary,
+      backgroundColor: colors.surfaceVariant || colors.background,
+    },
+    storiesDemoButtonText: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.primary,
     },
     modalBackdrop: {
       flex: 1,
