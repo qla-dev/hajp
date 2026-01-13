@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal,
   View,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  PanResponder,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/darkMode';
@@ -15,6 +16,7 @@ import { useTheme } from '../theme/darkMode';
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const WINDOW_HEIGHT = Dimensions.get('window').height;
 const STORY_DURATION = 10000;
+const HORIZONTAL_SWIPE_THRESHOLD = 80;
 
 export default function StoriesViewer({
   visible,
@@ -63,19 +65,39 @@ export default function StoriesViewer({
     [stories.length],
   );
 
+  const tryAdvanceToNextUser = useCallback(() => {
+    if (typeof onAdvanceToNextUser === 'function') {
+      const advanced = onAdvanceToNextUser();
+      if (advanced !== false) {
+        return true;
+      }
+    }
+    onClose?.();
+    return false;
+  }, [onAdvanceToNextUser, onClose]);
+
   const handleStoryEnd = useCallback(() => {
     if (activeIndex + 1 >= stories.length) {
-      if (typeof onAdvanceToNextUser === 'function') {
-        const advanced = onAdvanceToNextUser();
-        if (advanced !== false) {
-          return;
-        }
-      }
-      onClose?.();
+      tryAdvanceToNextUser();
       return;
     }
     goToIndex(activeIndex + 1);
-  }, [activeIndex, stories.length, goToIndex, onAdvanceToNextUser, onClose]);
+  }, [activeIndex, stories.length, goToIndex, tryAdvanceToNextUser]);
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dy) < 40,
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dx < -HORIZONTAL_SWIPE_THRESHOLD) {
+            tryAdvanceToNextUser();
+          }
+        },
+      }),
+    [tryAdvanceToNextUser],
+  );
 
   const scheduleNext = useCallback(() => {
     clearTimer();
@@ -153,13 +175,14 @@ export default function StoriesViewer({
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose} statusBarTranslucent>
-      <View style={[styles.container, { backgroundColor: '#000' }]}>
+      <View style={[styles.container, { backgroundColor: '#000' }]} {...panResponder.panHandlers}>
         <FlatList
           ref={listRef}
           data={stories}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
+          scrollEnabled={false}
           onViewableItemsChanged={handleViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
           keyExtractor={(item, index) => `${item?.id || item?.media_url}-${index}`}
