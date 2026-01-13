@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    paddingTop: 40,
+    paddingTop: 60,
     paddingHorizontal: 16,
   },
   topRow: {
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   },
   progressRow: {
     position: 'absolute',
-    top: 12,
+    top: 52,
     left: 16,
     right: 16,
     flexDirection: 'row',
