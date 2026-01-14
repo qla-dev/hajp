@@ -764,7 +764,10 @@ function MainTabsContent() {
         }
         if (
           route.name === 'Rank' &&
-          (focused === 'ProfileFriendsList' || focused === 'FriendProfile' || focused === 'Ranking')
+          (focused === 'ProfileFriendsList' ||
+            focused === 'FriendProfile' ||
+            focused === 'Ranking' ||
+            focused === 'RankRooms')
         ) {
           hideTabBar = true;
         }

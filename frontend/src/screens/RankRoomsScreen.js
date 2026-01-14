@@ -11,23 +11,12 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchUserRooms } from '../api';
 import RoomCard from '../components/RoomCard';
 import EmptyState from '../components/EmptyState';
-import { useFocusEffect } from '@react-navigation/native';
 
 export default function RankRoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      const parent = navigation.getParent();
-      parent?.setOptions({ tabBarStyle: { display: 'none' } });
-      return () => {
-        parent?.setOptions({ tabBarStyle: undefined });
-      };
-    }, [navigation]),
-  );
 
   useEffect(() => {
     loadRooms();
