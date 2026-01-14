@@ -1,18 +1,38 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
+} from 'react-native';
+import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import * as Haptics from 'expo-haptics';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { fetchMyVotes, fetchShareMessages, getCurrentUser } from '../api';
+import {
+  fetchMyVotes,
+  fetchShareMessages,
+  getCurrentUser,
+  fetchFriendRequests,
+  approveFriendRequest,
+  acceptRoomInvite,
+  approveRoomMember,
+} from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 import { usePaySheet } from '../context/paySheetContext';
+import { useRoomSheet } from '../context/roomSheetContext';
 import Avatar from '../components/Avatar';
 import BottomCTA from '../components/BottomCTA';
 import EmptyState from '../components/EmptyState';
 import MenuTab from '../components/MenuTab';
+import FriendListItem from '../components/FriendListItem';
 
 const TAB_ANKETE = 'ankete';
 const TAB_LINK = 'link';
@@ -21,6 +41,7 @@ const coinAsset = require('../../assets/svg/coin.svg');
 const hajpoviActiveIcon = require('../../assets/svg/nav-icons/hajpovi.svg');
 const coinAssetDefaultUri = Asset.fromModule(coinAsset).uri;
 const hajpoviActiveIconUri = Asset.fromModule(hajpoviActiveIcon).uri;
+const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 const resolveHasMore = (payload, items) => {
   const meta = payload?.meta || payload?.pagination || payload?.paging || {};
   if (typeof meta?.has_more === 'boolean') return meta.has_more;
@@ -31,6 +52,7 @@ const resolveHasMore = (payload, items) => {
 
 export default function HajpoviScreen({ navigation }) {
   const { openPaySheet, closePaySheet } = usePaySheet();
+  const { openRoomSheet } = useRoomSheet();
   const [activeTab, setActiveTab] = useState(TAB_ANKETE);
   const [loadingVotes, setLoadingVotes] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(true);
@@ -45,6 +67,9 @@ export default function HajpoviScreen({ navigation }) {
   const [selectedVote, setSelectedVote] = useState(null);
   const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [requests, setRequests] = useState([]);
+  const [loadingRequests, setLoadingRequests] = useState(true);
+  const [approvingRequestId, setApprovingRequestId] = useState(null);
   const revealPrice = 50;
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -146,6 +171,86 @@ export default function HajpoviScreen({ navigation }) {
     [loadUser],
   );
 
+  const loadRequests = useCallback(async () => {
+    setLoadingRequests(true);
+    try {
+      const { data } = await fetchFriendRequests();
+      setRequests(data?.data || data || []);
+    } catch {
+      setRequests([]);
+    } finally {
+      setLoadingRequests(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRequests();
+  }, [loadRequests]);
+
+  const handleApprove = useCallback(
+    async (item) => {
+      const refType = item.ref_type || null;
+      const friendId = item.user_id || item.friend_id || item.id;
+      const requestKey = item.ref_id || item.id;
+      if (!friendId && refType === 'friendship') return;
+      Haptics.selectionAsync().catch(() => {});
+      setApprovingRequestId(requestKey);
+      try {
+        if (refType === 'room-invite') {
+          connectSoundRef.current?.replayAsync().catch(() => {});
+          await acceptRoomInvite(item.id);
+          setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
+          Alert.alert('Poziv prihvaćen', `Dobrodošao u grupu ${item.room_name || ''}.`);
+        } else if (refType === 'my-room-allowence') {
+          connectSoundRef.current?.replayAsync().catch(() => {});
+          await approveRoomMember(item.id, item.user_id);
+          setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
+          Alert.alert('Član odobren', `Korisnik ${item.name || ''} je odobren.`);
+        } else {
+          connectSoundRef.current?.replayAsync().catch(() => {});
+          await approveFriendRequest(friendId);
+          setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
+          Alert.alert('Povezivanje uspjelo', `Sada ste povezani sa korisnikom ${item.name || ''}.`);
+        }
+      } catch {
+        Alert.alert('Greška', 'Nije moguće obraditi zahtjev.');
+      } finally {
+        setApprovingRequestId(null);
+      }
+    },
+    [],
+  );
+
+  const handleRequestPress = useCallback(
+    (item) => {
+      const refType = item.ref_type || null;
+      const friendId = item.user_id || item.friend_id || item.id;
+      if (!friendId) return;
+      Haptics.selectionAsync().catch(() => {});
+      if (refType === 'room-invite') {
+        const roomPayload = {
+          id: item.id,
+          name: item.room_name || item.name,
+          cover_url: item.profile_photo,
+          type: item.room_icon,
+        };
+        openRoomSheet(
+          roomPayload,
+          null,
+          null,
+          1,
+          () => setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id)),
+        );
+        return;
+      }
+      navigation.push('FriendProfile', {
+        isMine: false,
+        userId: friendId,
+      });
+    },
+    [navigation, openRoomSheet],
+  );
+
   const loadCurrentTab = useCallback(async () => {
     if (activeTab === TAB_ANKETE) {
       await loadVotesPage(1, false);
@@ -182,11 +287,33 @@ export default function HajpoviScreen({ navigation }) {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
+        if (mounted) {
+          connectSoundRef.current = sound;
+        } else {
+          await sound.unloadAsync();
+        }
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      mounted = false;
+      connectSoundRef.current?.unloadAsync();
+      connectSoundRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
     loadCurrentTab();
   }, [loadCurrentTab]);
 
   const votesListRef = useRef(null);
   const messagesListRef = useRef(null);
+  const connectSoundRef = useRef(null);
   const scrollVotesToTop = useCallback(() => {
     const list = votesListRef.current;
     if (!list) return;
@@ -467,6 +594,44 @@ export default function HajpoviScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.requestsSection}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Zahtjevi za povezivanje i grupe</Text>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('Friends', {
+                screen: 'FriendsList',
+                params: { mode: 'requests' },
+              })
+            }
+          >
+            <Text style={styles.sectionLink}>Pogledaj sve</Text>
+          </TouchableOpacity>
+        </View>
+        {loadingRequests ? (
+          <View style={styles.loaderRow}>
+            <ActivityIndicator color={colors.primary} />
+          </View>
+        ) : (
+          <View style={styles.requestsRow}>
+            {requests.slice(0, 2).map((item) => (
+              <FriendListItem
+                key={item.ref_id || item.id}
+                friend={item}
+                refType={item.ref_type}
+                isRequestList
+                hideStatus
+                approving={approvingRequestId === (item.ref_id || item.id)}
+                onPress={() => handleRequestPress(item)}
+                onApprove={() => handleApprove(item)}
+              />
+            ))}
+            {!requests.length && (
+              <Text style={styles.emptyRequests}>Nema novih zahtjeva.</Text>
+            )}
+          </View>
+        )}
+      </View>
       <MenuTab
         items={[
           { key: TAB_ANKETE, label: 'Ankete' },
@@ -474,7 +639,6 @@ export default function HajpoviScreen({ navigation }) {
         ]}
         activeKey={activeTab}
         onChange={setActiveTab}
-        topPadding={100}
         horizontalPadding={16}
         variant="menu-tab-s"
         color="secondary"
@@ -495,9 +659,44 @@ const createStyles = (colors, isDark) =>
       flex: 1,
       backgroundColor: colors.background,
     },
+    requestsSection: {
+      paddingTop: 110,
+      paddingBottom: 8,
+      backgroundColor: colors.background,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '800',
+      color: colors.text_primary,
+    },
+    sectionLink: {
+      color: colors.primary,
+      fontWeight: '700',
+    },
     messagesList: {
       paddingHorizontal: 16,
       paddingBottom: 16,
+    },
+    requestsRow: {
+      flexDirection: 'column',
+      gap: 12,
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+    },
+    loaderRow: {
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    emptyRequests: {
+      paddingHorizontal: 0,
+      color: colors.text_secondary,
     },
     shareEmptyPadding: {
       paddingHorizontal: 0,
