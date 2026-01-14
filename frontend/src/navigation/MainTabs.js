@@ -26,7 +26,6 @@ import NextPollCountdownScreen from '../screens/NextPollCountdownScreen';
 import CreateRoomScreen from '../screens/CreateRoomScreen';
 import RoomVibeSelection from '../screens/RoomVibeSelection';
 import BadgesScreen from '../screens/BadgesScreen';
-import StoriesScreen from '../screens/StoriesScreen';
 import CoinHeaderIndicator from '../components/CoinHeaderIndicator';
 import { baseURL, getCurrentUser } from '../api';
 import { addProfileUpdatedListener } from '../utils/profileEvents';
@@ -465,14 +464,6 @@ function ProfileStackNavigator() {
         component={BadgesScreen}
         options={{
           title: 'Medalje',
-          headerBackTitle: 'Nazad',
-        }}
-      />
-      <ProfileStack.Screen
-        name="StoriesDemo"
-        component={StoriesScreen}
-        options={{
-          title: 'Stories Demo',
           headerBackTitle: 'Nazad',
         }}
       />

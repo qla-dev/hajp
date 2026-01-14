@@ -164,7 +164,6 @@ export default function StoriesSlider({
       const image = user.user_image || '';
       return image.length > 50 ? `${image.slice(0, 50)}…` : image;
     });
-    console.log('StoriesSlider user_images', userImages);
   }, [storyData]);
 
   useEffect(() => {
