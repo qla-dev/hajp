@@ -226,23 +226,25 @@ function RankStackNavigator() {
       component={LiveScreen}
       options={({ navigation }) => ({
         title: 'Uživo',
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('RankRooms')}
-              style={styles.rankButton}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            >
-              <View style={styles.rankIconWrapper}>
-                <SvgUri
-                  width={24}
-                  height={24}
-                  uri={leaderBoardUri}
-                  preserveAspectRatio="xMidYMid meet"
-                  style={styles.rankIcon}
-                />
-              </View>
-            </TouchableOpacity>
-          ),
+        headerLeft: () => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('RankRooms')}
+            style={styles.rankButton}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <View style={styles.rankIconWrapper}>
+              <SvgUri
+                width={24}
+                height={24}
+                uri={leaderBoardUri}
+                preserveAspectRatio="xMidYMid meet"
+                color={colors.text_secondary}
+                fill={colors.text_secondary}
+                style={styles.rankIcon}
+              />
+            </View>
+          </TouchableOpacity>
+        ),
           headerRight: () => (
           <CoinHeaderIndicator
             onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
@@ -905,8 +907,7 @@ function MainTabsContent() {
         listeners={({ navigation, route }) => ({
           tabPress: (e) => {
             const isFocused = navigation.isFocused();
-            const isRootRoute =
-              route?.state?.index == null || route.state.index <= 0;
+            const isRootRoute = route?.state?.index == null || route.state.index <= 0;
             if (isFocused && isRootRoute) {
               e.preventDefault();
               triggerMenuRefresh('Inbox');
@@ -986,6 +987,7 @@ const createStyles = (colors, isDark) =>
       width: 24,
       height: 24,
       alignSelf: 'center',
+      tintColor: colors.text_secondary,
     },
     rankIconWrapper: {
       width: '100%',

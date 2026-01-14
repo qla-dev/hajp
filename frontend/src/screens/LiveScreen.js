@@ -12,6 +12,7 @@ import { fetchFriendActivities } from '../api';
 import ActivityItem from '../components/ActivityItem';
 import EmptyState from '../components/EmptyState';
 import StoriesSlider from '../components/StoriesSlider';
+import { useMenuRefresh } from '../context/menuRefreshContext';
 
 const PAGE_LIMIT = 10;
 
@@ -88,6 +89,40 @@ export default function LiveScreen({ navigation }) {
       fullWidth
     />
   );
+
+  const scrollToTop = useCallback(() => {
+    const list = listRef.current;
+    if (!list) return;
+    try {
+      list.scrollToIndex({ index: 0, animated: true, viewPosition: 0 });
+    } catch {
+      list.scrollToOffset?.({ offset: 0, animated: true });
+    }
+  }, []);
+
+  const { registerMenuRefresh } = useMenuRefresh();
+
+  useEffect(() => {
+    let scheduled;
+
+    const unsubscribe = registerMenuRefresh('Rank', () => {
+      scrollToTop();
+      if (scheduled) {
+        clearTimeout(scheduled);
+      }
+      scheduled = setTimeout(() => {
+        loadActivities(1);
+        scheduled = null;
+      }, 260);
+    });
+
+    return () => {
+      if (scheduled) {
+        clearTimeout(scheduled);
+      }
+      unsubscribe();
+    };
+  }, [loadActivities, registerMenuRefresh, scrollToTop]);
 
   const renderActivities = () => (
     <FlatList
