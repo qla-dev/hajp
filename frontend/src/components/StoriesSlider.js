@@ -143,11 +143,6 @@ export default function StoriesSlider({
           const configurationAvatar = getConfigAvatar(user);
           const normalizedUserImage =
             resolveImageUrl(user, normalizeUrl) || configurationAvatar || getDefaultAvatar();
-          console.log('StoriesSlider user', {
-            user_id: user?.user_id ?? user?.id,
-            user_name: userName,
-            user_image: normalizedUserImage,
-          });
 
           return {
             user_id: user?.user_id ?? user?.id,
@@ -165,15 +160,11 @@ export default function StoriesSlider({
 
   useEffect(() => {
     if (!storyData.length) return;
-    const logPayload = storyData
-      .flatMap((user) =>
-        user.stories.map((story) => ({
-          user: user.user_name,
-          image: story.story_image,
-        })),
-      )
-      .slice(0, 10);
-    console.log('StoriesSlider images', logPayload);
+    const userImages = storyData.map((user) => {
+      const image = user.user_image || '';
+      return image.length > 50 ? `${image.slice(0, 50)}…` : image;
+    });
+    console.log('StoriesSlider user_images', userImages);
   }, [storyData]);
 
   useEffect(() => {
@@ -236,8 +227,17 @@ export default function StoriesSlider({
     <View>
       {showHeader && (
         <View style={styles.headerRow}>
-          <Text style={styles.title}>{title}</Text>
-          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+          <View style={styles.headerLeft}>
+            <Text style={styles.title}>{title}</Text>
+            {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+          </View>
+          <TouchableOpacity
+            onPress={loadStoryUsers}
+            style={[styles.refreshButton, loading && styles.refreshButtonDisabled]}
+            disabled={loading}
+          >
+            <Text style={styles.refreshText}>Osvježi</Text>
+          </TouchableOpacity>
         </View>
       )}
       {storyData.length ? (
@@ -269,6 +269,9 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       alignItems: 'center',
     },
+    headerLeft: {
+      flex: 1,
+    },
     title: {
       color: colors.text_primary,
       fontSize: 16,
@@ -276,6 +279,21 @@ const createStyles = (colors) =>
     },
     subtitle: {
       color: colors.text_secondary,
+    },
+    refreshButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    refreshButtonDisabled: {
+      opacity: 0.4,
+    },
+    refreshText: {
+      color: colors.primary,
+      fontWeight: '600',
+      fontSize: 12,
     },
     storyWrapper: {
       paddingHorizontal: 16,
