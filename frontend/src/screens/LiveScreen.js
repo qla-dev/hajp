@@ -8,41 +8,29 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import {
-  fetchFriendActivities,
-  fetchUserRooms,
-} from '../api';
-import { useMenuRefresh } from '../context/menuRefreshContext';
+import { fetchFriendActivities } from '../api';
 import ActivityItem from '../components/ActivityItem';
-import RoomCard from '../components/RoomCard';
-import MenuTab from '../components/MenuTab';
 import EmptyState from '../components/EmptyState';
 import StoriesSlider from '../components/StoriesSlider';
 
-const TAB_ACTIVITY = 'activity';
-const TAB_RANK = 'rank';
 const PAGE_LIMIT = 10;
 
 export default function LiveScreen({ navigation }) {
-  const [activeTab, setActiveTab] = useState(TAB_ACTIVITY);
   const [activities, setActivities] = useState([]);
   const [activityPage, setActivityPage] = useState(1);
   const [loadingActivities, setLoadingActivities] = useState(true);
   const [loadingMoreActivities, setLoadingMoreActivities] = useState(false);
   const [hasMoreActivities, setHasMoreActivities] = useState(true);
-
-  const [rooms, setRooms] = useState([]);
-  const [loadingRooms, setLoadingRooms] = useState(true);
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const listRef = useRef(null);
-  const roomsListRef = useRef(null);
+
   const resolvePagination = (meta, payload) => {
     const hasMore =
       typeof meta?.has_more === 'boolean'
         ? meta.has_more
         : typeof meta?.hasMore === 'boolean'
-        ? meta.hasMore
+        ? meta?.hasMore
         : typeof meta?.next_page_url === 'string'
         ? Boolean(meta.next_page_url)
         : payload.length >= PAGE_LIMIT;
@@ -82,86 +70,14 @@ export default function LiveScreen({ navigation }) {
     [],
   );
 
-  const loadRooms = useCallback(async () => {
-    setLoadingRooms(true);
-    try {
-      const { data } = await fetchUserRooms('user');
-      const list = data?.rooms || data?.data || data || [];
-      setRooms(list);
-    } catch (error) {
-      console.error('Greška pri učitavanju rank soba:', error);
-      setRooms([]);
-    } finally {
-      setLoadingRooms(false);
-    }
-  }, []);
-
   useEffect(() => {
-    if (activeTab === TAB_ACTIVITY) {
-      loadActivities(1);
-    } else {
-      loadRooms();
-    }
-  }, [activeTab, loadActivities, loadRooms]);
+    loadActivities(1);
+  }, [loadActivities]);
 
-  const { registerMenuRefresh } = useMenuRefresh();
   const handleLoadMore = () => {
     if (loadingActivities || loadingMoreActivities || !hasMoreActivities) return;
     loadActivities(activityPage + 1, true);
   };
-
-  const scrollToTop = useCallback(() => {
-    const list = listRef.current;
-    if (!list) return;
-    try {
-      list.scrollToOffset({ offset: 0, animated: true });
-    } catch {
-      list.scrollToOffset?.({ offset: 0, animated: true });
-    }
-  }, []);
-
-  const scrollRoomsToTop = useCallback(() => {
-    const list = roomsListRef.current;
-    if (!list) return;
-    try {
-      list.scrollToOffset({ offset: 0, animated: true });
-    } catch {
-      list.scrollToOffset?.({ offset: 0, animated: true });
-    }
-  }, []);
-
-  useEffect(() => {
-    let scheduled;
-    const unsubscribe = registerMenuRefresh('Rank', () => {
-      if (activeTab === TAB_ACTIVITY) {
-        scrollToTop();
-        if (scheduled) {
-          clearTimeout(scheduled);
-        }
-        scheduled = setTimeout(() => {
-          loadActivities(1);
-          scheduled = null;
-        }, 260);
-        return;
-      }
-
-      scrollRoomsToTop();
-      if (scheduled) {
-        clearTimeout(scheduled);
-      }
-      scheduled = setTimeout(() => {
-        loadRooms();
-        scheduled = null;
-      }, 260);
-    });
-
-    return () => {
-      if (scheduled) {
-        clearTimeout(scheduled);
-      }
-      unsubscribe();
-    };
-  }, [activeTab, loadActivities, loadRooms, registerMenuRefresh, scrollToTop, scrollRoomsToTop]);
 
   const renderActivityEmpty = () => (
     <EmptyState
@@ -169,16 +85,6 @@ export default function LiveScreen({ navigation }) {
       subtitle="Aktivnosti će se pojaviti čim se nešto dogodi."
       onRefresh={() => loadActivities(1)}
       refreshing={loadingActivities}
-      fullWidth
-    />
-  );
-
-  const renderRoomEmpty = () => (
-    <EmptyState
-      title="Još uvijek nema rank soba"
-      subtitle="Pridruži se sobama i pratite rankove."
-      onRefresh={loadRooms}
-      refreshing={loadingRooms}
       fullWidth
     />
   );
@@ -214,74 +120,19 @@ export default function LiveScreen({ navigation }) {
     />
   );
 
-  const renderRooms = () => (
-    <FlatList
-      ref={roomsListRef}
-      data={rooms}
-      keyExtractor={(item) => `${item.id}`}
-      renderItem={({ item }) => (
-        <RoomCard
-          room={item}
-          connectButtonHide={1}
-          onPress={() => navigation.navigate('Ranking', { roomId: item.id, roomName: item.name })}
-        />
-      )}
-      contentContainerStyle={[
-        styles.messagesList,
-        rooms.length === 0 && styles.flexGrow,
-        rooms.length === 0 && styles.emptyHorizontalPadding,
-      ]}
-      refreshControl={
-        <RefreshControl refreshing={loadingRooms} onRefresh={loadRooms} tintColor={colors.primary} colors={[colors.primary]} />
-      }
-      ListEmptyComponent={renderRoomEmpty}
-    />
-  );
-
-  const renderContent = () => {
-    if (activeTab === TAB_ACTIVITY) {
-      if (loadingActivities && !activities.length) {
-        return (
-          <View style={styles.centerContent}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>Učitavanje</Text>
-          </View>
-        );
-      }
-      if (!activities.length) {
-        return renderActivityEmpty();
-      }
-      return renderActivities();
-    }
-
-    if (loadingRooms && !rooms.length) {
-      return (
+  return (
+    <View style={styles.container2}>
+      <StoriesSlider title="Priče" showHeader topPadding={100} />
+      {loadingActivities && !activities.length ? (
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Učitavanje</Text>
         </View>
-      );
-    }
-
-    return renderRooms();
-  };
-
-  return (
-    <View style={styles.container2}>
-      <StoriesSlider title="Priče" showHeader topPadding={100} />
-      <MenuTab
-        items={[
-          { key: TAB_ACTIVITY, label: 'Aktivnosti' },
-          { key: TAB_RANK, label: 'Rank' },
-        ]}
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        topPadding={20}
-        horizontalPadding={16}
-        variant="menu-tab-s"
-        color="secondary"
-      />
-      {renderContent()}
+      ) : !activities.length ? (
+        renderActivityEmpty()
+      ) : (
+        renderActivities()
+      )}
     </View>
   );
 }
@@ -295,7 +146,6 @@ const createStyles = (colors) =>
     container2: {
       flex: 1,
       paddingTop: 100,
-      
     },
     messagesList: {
       flexGrow: 1,

@@ -55,6 +55,8 @@ const customTabIconUriMap = {
     inactive: assetUri(require('../../assets/svg/nav-icons/hajpovi.svg')),
   },
 };
+const leaderBoardAsset = require('../../assets/svg/rank.svg');
+const leaderBoardUri = assetUri(leaderBoardAsset);
 const POLLING_LOGO_STYLE = { width: 70, height: 38 };
 const POLLING_LOGO_CONTAINER_STYLE = {
   alignItems: 'center',
@@ -224,7 +226,24 @@ function RankStackNavigator() {
       component={LiveScreen}
       options={({ navigation }) => ({
         title: 'Uživo',
-        headerRight: () => (
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('RankRooms')}
+              style={styles.rankButton}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <View style={styles.rankIconWrapper}>
+                <SvgUri
+                  width={24}
+                  height={24}
+                  uri={leaderBoardUri}
+                  preserveAspectRatio="xMidYMid meet"
+                  style={styles.rankIcon}
+                />
+              </View>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
           <CoinHeaderIndicator
             onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
           />
@@ -265,7 +284,14 @@ function RankStackNavigator() {
       options={profileFriendsListOptions}
       initialParams={{ fromProfile: true, profileRouteName: 'FriendProfile' }}
     />
-    <RankStack.Screen name="RankRooms" component={RankRoomsScreen} options={{ title: 'Sobe' }} />
+    <RankStack.Screen
+      name="RankRooms"
+      component={RankRoomsScreen}
+      options={({ navigation }) => ({
+        title: 'Ranking',
+        headerBackTitle: 'Nazad',
+      })}
+    />
     <RankStack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
     </RankStack.Navigator>
   );
@@ -944,6 +970,25 @@ const createStyles = (colors, isDark) =>
     gearButton: {
       paddingHorizontal: 10,
       paddingVertical: 6,
+    },
+    rankButton: {
+      padding: 8,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 50,
+      height: 30,
+    },
+    rankIcon: {
+      width: 24,
+      height: 24,
+      alignSelf: 'center',
+    },
+    rankIconWrapper: {
+      width: '100%',
+      height: '100%',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     glassButtonLabel: {
       color: colors.text_primary,
