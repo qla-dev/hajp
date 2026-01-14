@@ -1,19 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import InstaStory from 'react-native-insta-story';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import Avatar from './Avatar';
-import { fetchStoryUsers } from '../api';
+import { baseURL, fetchStoryUsers } from '../api';
 
-const ITEM_SIZE = 88;
-const INNER_SIZE = 70;
+const STORY_DURATION = 8;
+const FALLBACK_AVATAR = 'https://via.placeholder.com/120?text=U';
 
 export default function StoriesSlider({
   title = 'Priče',
@@ -28,8 +20,79 @@ export default function StoriesSlider({
   const styles = useThemedStyles(createStyles);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
+
+  const normalizeUrl = useCallback(
+    (value) => {
+      if (!value) return null;
+      const trimmed = value.toString().trim();
+      if (!trimmed) return null;
+      if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        return trimmed;
+      }
+      if (trimmed.startsWith('/')) {
+        return `${baseURL}${trimmed}`;
+      }
+      const normalizedPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+      return `${baseURL}${normalizedPath}`;
+    },
+    [baseURL],
+  );
+
+  const formatStoryItems = useCallback(
+    (incoming) => {
+      if (!Array.isArray(incoming)) return [];
+      return incoming
+        .map((user) => {
+          const stories =
+            (user?.stories || [])
+              .map((story, storyIndex) => {
+                const imageUrl = normalizeUrl(story?.story_image ?? story?.media_url);
+                if (!imageUrl) return null;
+                return {
+                  story_id: `${user?.user_id ?? user?.id}-${story?.story_id ?? story?.id ?? storyIndex}`,
+                  story_image: imageUrl,
+                  swipeText: story?.caption ?? undefined,
+                  media_type: story?.media_type,
+                };
+              })
+              .filter(Boolean) || [];
+
+          if (!stories.length) return null;
+
+          return {
+            user_id: user?.user_id ?? user?.id,
+            user_name: user?.user_name ?? user?.name ?? user?.username ?? 'Korisnik',
+            user_image:
+              normalizeUrl(user?.user_image ?? user?.profile_photo ?? user?.avatar) || FALLBACK_AVATAR,
+            stories,
+          };
+        })
+        .filter(Boolean);
+    },
+    [normalizeUrl],
+  );
+
+  const storyData = useMemo(() => formatStoryItems(users), [formatStoryItems, users]);
+
+  useEffect(() => {
+    if (!storyData.length) return;
+    const logPayload = storyData
+      .flatMap((user) =>
+        user.stories.map((story) => ({
+          user: user.user_name,
+          image: story.story_image,
+        })),
+      )
+      .slice(0, 10);
+    console.log('StoriesSlider images', logPayload);
+  }, [storyData]);
+
+  useEffect(() => {
+    if (!storyData.length) {
+      return;
+    }
+    onActiveUserChange?.(storyData[0], 0);
+  }, [storyData, onActiveUserChange]);
 
   const loadStoryUsers = useCallback(async () => {
     setLoading(true);
@@ -38,10 +101,6 @@ export default function StoriesSlider({
       const payload = data?.data || [];
       setUsers(payload);
       onUsersLoaded?.(payload);
-      if (payload.length) {
-        setActiveIndex(0);
-        onActiveUserChange?.(payload[0], 0);
-      }
     } catch (error) {
       console.error('Failed to load story users', error);
       setUsers([]);
@@ -49,31 +108,22 @@ export default function StoriesSlider({
     } finally {
       setLoading(false);
     }
-  }, [onActiveUserChange, onUsersLoaded]);
+  }, [onUsersLoaded]);
 
   useEffect(() => {
     loadStoryUsers();
   }, [loadStoryUsers, refreshKey]);
 
-  const handleUserPress = useCallback(
-    (user, index) => {
-      onUserPress?.(user, index);
-    },
-    [onUserPress],
-  );
-
-  const handleViewableItemsChanged = useCallback(
-    ({ viewableItems }) => {
-      const nextIndex = viewableItems[0]?.index;
-      if (typeof nextIndex === 'number' && nextIndex !== activeIndex) {
-        setActiveIndex(nextIndex);
-        const nextUser = users[nextIndex];
-        if (nextUser) {
-          onActiveUserChange?.(nextUser, nextIndex);
-        }
+  const handleStoryStart = useCallback(
+    (item) => {
+      if (!item) return;
+      const nextIndex = storyData.findIndex((story) => story.user_id === item.user_id);
+      if (nextIndex >= 0) {
+        onActiveUserChange?.(item, nextIndex);
       }
+      onUserPress?.(item, nextIndex);
     },
-    [activeIndex, onActiveUserChange, users],
+    [onActiveUserChange, onUserPress, storyData],
   );
 
   const renderPlaceholder = () => (
@@ -85,36 +135,7 @@ export default function StoriesSlider({
     </View>
   );
 
-  const renderItem = ({ item, index }) => (
-    <TouchableOpacity
-      style={styles.item}
-      key={item.id}
-      activeOpacity={0.75}
-      onPress={() => handleUserPress(item, index)}
-    >
-      <LinearGradient
-        colors={[colors.primary, colors.secondary, colors.primary]}
-        style={styles.ring}
-        start={[0, 0]}
-        end={[1, 1]}
-      >
-        <View style={styles.inner}>
-          <Avatar
-            user={item}
-            variant="avatar-xs"
-            size={56}
-            mode="photo"
-            storyEnabled={false}
-          />
-        </View>
-      </LinearGradient>
-      <Text style={styles.label} numberOfLines={1}>
-        {item.name || item.username || 'Korisnik'}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  if (loading && !users.length) {
+  if (loading && !storyData.length) {
     return (
       <View style={styles.loaderRow}>
         <ActivityIndicator color={colors.primary} />
@@ -130,17 +151,19 @@ export default function StoriesSlider({
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         </View>
       )}
-      {users.length ? (
-        <FlatList
-          data={users}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.list}
-          renderItem={renderItem}
-          keyExtractor={(item) => `${item.id}`}
-          onViewableItemsChanged={handleViewableItemsChanged}
-          viewabilityConfig={viewabilityConfig}
-        />
+      {storyData.length ? (
+        <View style={styles.storyWrapper}>
+          <InstaStory
+            data={storyData}
+            duration={STORY_DURATION}
+            avatarSize={64}
+            showAvatarText
+            unPressedBorderColor="#ccc"
+            pressedBorderColor={colors.primary}
+            onStart={handleStoryStart}
+            style={styles.storyContainer}
+          />
+        </View>
       ) : (
         renderPlaceholder()
       )}
@@ -165,37 +188,12 @@ const createStyles = (colors) =>
     subtitle: {
       color: colors.text_secondary,
     },
-    list: {
-      paddingLeft: 16,
+    storyWrapper: {
+      paddingHorizontal: 16,
       paddingBottom: 12,
-      paddingRight: 8,
     },
-    item: {
-      alignItems: 'center',
-      width: ITEM_SIZE,
-      marginRight: 12,
-    },
-    ring: {
-      width: INNER_SIZE + 18,
-      height: INNER_SIZE + 18,
-      borderRadius: (INNER_SIZE + 18) / 2,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    inner: {
-      width: INNER_SIZE,
-      height: INNER_SIZE,
-      borderRadius: INNER_SIZE / 2,
-      backgroundColor: colors.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    label: {
-      color: colors.text_secondary,
-      fontSize: 12,
-      marginTop: 6,
-      textAlign: 'center',
-      width: ITEM_SIZE,
+    storyContainer: {
+      width: '100%',
     },
     loaderRow: {
       paddingVertical: 20,

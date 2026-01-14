@@ -50,15 +50,52 @@ class StoryController extends Controller
         $viewer = $request->user();
 
         $users = User::query()
+            ->with(['activeStories' => function ($query) {
+                $query->orderByDesc('created_at')->limit(5);
+            }])
             ->where('id', '!=', $viewer?->id)
             ->whereHas('activeStories')
             ->inRandomOrder()
             ->limit($limit)
-            ->get(['id', 'name', 'username', 'avatar', 'profile_photo', 'sex']);
+            ->get(['id', 'name', 'username', 'avatar', 'profile_photo']);
+
+        $payload = $users
+            ->map(function (User $user) {
+                $stories = $user->activeStories
+                    ->sortByDesc('created_at')
+                    ->map(function (Story $story) {
+                        if (!$story->media_url) {
+                            return null;
+                        }
+
+                        return [
+                            'story_id' => $story->id,
+                            'story_image' => $story->media_url,
+                            'media_type' => $story->media_type,
+                            'caption' => $story->caption,
+                            'expires_at' => $story->expires_at?->toIso8601String(),
+                        ];
+                    })
+                    ->filter()
+                    ->values();
+
+                if ($stories->isEmpty()) {
+                    return null;
+                }
+
+                return [
+                    'user_id' => $user->id,
+                    'user_name' => $user->name ?: $user->username,
+                    'user_image' => $user->profile_photo ?? $user->avatar,
+                    'stories' => $stories,
+                ];
+            })
+            ->filter()
+            ->values();
 
         return response()->json([
-            'data' => $users,
-            'count' => $users->count(),
+            'data' => $payload,
+            'count' => $payload->count(),
         ]);
     }
 

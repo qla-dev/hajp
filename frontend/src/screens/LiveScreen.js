@@ -9,10 +9,8 @@ import {
 } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import {
-  baseURL,
   fetchFriendActivities,
   fetchUserRooms,
-  fetchUserStories,
 } from '../api';
 import { useMenuRefresh } from '../context/menuRefreshContext';
 import ActivityItem from '../components/ActivityItem';
@@ -20,7 +18,6 @@ import RoomCard from '../components/RoomCard';
 import MenuTab from '../components/MenuTab';
 import EmptyState from '../components/EmptyState';
 import StoriesSlider from '../components/StoriesSlider';
-import StoriesViewer from '../components/StoriesViewer';
 
 const TAB_ACTIVITY = 'activity';
 const TAB_RANK = 'rank';
@@ -40,13 +37,6 @@ export default function LiveScreen({ navigation }) {
   const styles = useThemedStyles(createStyles);
   const listRef = useRef(null);
   const roomsListRef = useRef(null);
-  const [storyUsers, setStoryUsers] = useState([]);
-  const [storyViewerVisible, setStoryViewerVisible] = useState(false);
-  const [storyViewerStories, setStoryViewerStories] = useState([]);
-  const [storyViewerUserIndex, setStoryViewerUserIndex] = useState(0);
-  const [storyViewerUserName, setStoryViewerUserName] = useState('');
-  const storyCacheRef = useRef({});
-
   const resolvePagination = (meta, payload) => {
     const hasMore =
       typeof meta?.has_more === 'boolean'
@@ -173,86 +163,6 @@ export default function LiveScreen({ navigation }) {
     };
   }, [activeTab, loadActivities, loadRooms, registerMenuRefresh, scrollToTop, scrollRoomsToTop]);
 
-  const normalizeStory = useCallback(
-    (story) => {
-      const mediaUrl = story?.media_url;
-      const absolute =
-        mediaUrl && mediaUrl.startsWith('http')
-          ? mediaUrl
-          : mediaUrl && mediaUrl.startsWith('/')
-          ? `${baseURL}${mediaUrl}`
-          : mediaUrl;
-      return {
-        ...story,
-        media_url: absolute,
-      };
-    },
-    [baseURL],
-  );
-
-  const formatStories = useCallback(
-    (stories) => {
-      if (!Array.isArray(stories)) return [];
-      return stories.map(normalizeStory);
-    },
-    [normalizeStory],
-  );
-
-  const loadStoriesForUser = useCallback(
-    async (user, index) => {
-      if (!user?.id) return;
-      const userId = user.id;
-      const cached = storyCacheRef.current[userId];
-      if (cached && cached.length) {
-        setStoryViewerStories(cached);
-        setStoryViewerUserIndex(index);
-        setStoryViewerUserName(user.name || user.username || '');
-        setStoryViewerVisible(true);
-        return;
-      }
-
-      try {
-        const { data } = await fetchUserStories(userId);
-        const payload = data?.data || [];
-        const normalized = formatStories(payload);
-        storyCacheRef.current[userId] = normalized;
-        if (!normalized.length) {
-          setStoryViewerVisible(false);
-          return;
-        }
-        setStoryViewerStories(normalized);
-        setStoryViewerUserIndex(index);
-        setStoryViewerUserName(user.name || user.username || '');
-        setStoryViewerVisible(true);
-      } catch (error) {
-        console.error('Failed to load stories for user', error);
-      }
-    },
-    [formatStories],
-  );
-
-  const handleStoryUsersLoaded = useCallback((users) => {
-    setStoryUsers(Array.isArray(users) ? users : []);
-  }, []);
-
-  const handleStoryUserPress = useCallback(
-    (user, index) => {
-      loadStoriesForUser(user, index);
-    },
-    [loadStoriesForUser],
-  );
-
-  const handleAdvanceToNextUser = useCallback(() => {
-    const nextIndex = storyViewerUserIndex + 1;
-    const nextUser = storyUsers[nextIndex];
-    if (!nextUser) {
-      setStoryViewerVisible(false);
-      return false;
-    }
-    loadStoriesForUser(nextUser, nextIndex);
-    return true;
-  }, [loadStoriesForUser, storyUsers, storyViewerUserIndex]);
-
   const renderActivityEmpty = () => (
     <EmptyState
       title="Još uvijek nema aktivnosti"
@@ -358,13 +268,7 @@ export default function LiveScreen({ navigation }) {
 
   return (
     <View style={styles.container2}>
-      <StoriesSlider
-        title="Priče"
-        showHeader
-        onUserPress={handleStoryUserPress}
-        onUsersLoaded={handleStoryUsersLoaded}
-        topPadding={100}
-      />
+      <StoriesSlider title="Priče" showHeader topPadding={100} />
       <MenuTab
         items={[
           { key: TAB_ACTIVITY, label: 'Aktivnosti' },
@@ -378,14 +282,6 @@ export default function LiveScreen({ navigation }) {
         color="secondary"
       />
       {renderContent()}
-      <StoriesViewer
-        visible={storyViewerVisible}
-        stories={storyViewerStories}
-        userName={storyViewerUserName}
-        initialIndex={0}
-        onClose={() => setStoryViewerVisible(false)}
-        onAdvanceToNextUser={handleAdvanceToNextUser}
-      />
     </View>
   );
 }
