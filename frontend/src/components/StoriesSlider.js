@@ -3,32 +3,88 @@ import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'rea
 import InstaStory from 'react-native-insta-story';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL, fetchStoryUsers } from '../api';
+import { buildAvatarSvg } from '../utils/bigHeadAvatar';
 
 const STORY_DURATION = 8;
 
-const computeInitials = (value) => {
-  if (!value) return '??';
-  const parts = value.toString().trim().split(/\s+/);
-  const letters = parts.slice(0, 2).map((part) => (part?.[0] ?? '').toUpperCase());
-  return letters.join('') || '??';
-};
-
-const paletteColors = ['red', 'orange', 'yellow', 'green', 'turqoise', 'blue', 'pink', 'purple'];
-
-const pickBackgroundColor = (name) => {
-  if (!name) return '#b794f4';
-  let hash = 0;
-  for (const ch of name) {
-    hash = (hash * 31 + ch.charCodeAt(0)) % paletteColors.length;
+const parseAvatarConfig = (value) => {
+  if (!value) return null;
+  if (typeof value === 'object') return value;
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const start = trimmed.indexOf('{');
+  const end = trimmed.lastIndexOf('}');
+  const target =
+    start >= 0 && end >= start && end > start ? trimmed.slice(start, end + 1) : trimmed;
+  try {
+    return JSON.parse(target);
+  } catch {
+    return null;
   }
-  return paletteColors[hash] || '#b794f4';
 };
 
-const FALLBACK_AVATAR = (name) => {
-  const initials = computeInitials(name);
-  const backgroundColor = pickBackgroundColor(name);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><circle cx="60" cy="60" r="60" fill="${backgroundColor}" /><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" fill="#fff" font-weight="700">${initials}</text></svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+const pickAvatarConfig = (...candidates) => {
+  for (const candidate of candidates) {
+    const config = parseAvatarConfig(candidate);
+    if (config) return config;
+  }
+  return null;
+};
+
+const buildAvatarFromConfig = (config) => {
+  if (!config) return null;
+  const enforcedConfig = { ...config, showBackground: true, backgroundShape: 'circle' };
+  return buildAvatarSvg(enforcedConfig);
+};
+
+const getConfigAvatar = (user) =>
+  buildAvatarFromConfig(
+    pickAvatarConfig(
+      user?.avatarConfig ?? user?.avatar,
+      user?.avatar,
+      user?.avatar_uri,
+      user?.avatar_url,
+      user?.avatarUrl,
+      user?.avatarSvg,
+      user?.avatar_svg,
+      user?.avatarSvgUrl,
+      user?.user_image,
+      user?.profile_photo,
+      user?.profilePhoto,
+      user?.photo,
+      user?.image,
+      user?.picture,
+    ),
+  );
+
+const resolveImageUrl = (user, normalizeUrl) => {
+  const candidates = [
+    user?.user_image,
+    user?.profile_photo,
+    user?.profilePhoto,
+    user?.photo,
+    user?.image,
+    user?.avatar,
+    user?.avatar_uri,
+    user?.avatar_url,
+    user?.avatarUrl,
+  ];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    if (parseAvatarConfig(candidate)) continue;
+    const normalized = normalizeUrl(candidate);
+    if (normalized) return normalized;
+  }
+  return null;
+};
+
+let cachedDefaultAvatar = null;
+const getDefaultAvatar = () => {
+  if (!cachedDefaultAvatar) {
+    cachedDefaultAvatar = buildAvatarSvg();
+  }
+  return cachedDefaultAvatar;
 };
 
 export default function StoriesSlider({
@@ -84,8 +140,9 @@ export default function StoriesSlider({
           if (!stories.length) return null;
 
           const userName = user?.user_name ?? user?.name ?? user?.username ?? 'Korisnik';
+          const configurationAvatar = getConfigAvatar(user);
           const normalizedUserImage =
-            normalizeUrl(user?.user_image ?? user?.profile_photo ?? user?.avatar) || FALLBACK_AVATAR(userName);
+            resolveImageUrl(user, normalizeUrl) || configurationAvatar || getDefaultAvatar();
           console.log('StoriesSlider user', {
             user_id: user?.user_id ?? user?.id,
             user_name: userName,
