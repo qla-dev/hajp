@@ -5,7 +5,31 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL, fetchStoryUsers } from '../api';
 
 const STORY_DURATION = 8;
-const FALLBACK_AVATAR = 'https://via.placeholder.com/120?text=U';
+
+const computeInitials = (value) => {
+  if (!value) return '??';
+  const parts = value.toString().trim().split(/\s+/);
+  const letters = parts.slice(0, 2).map((part) => (part?.[0] ?? '').toUpperCase());
+  return letters.join('') || '??';
+};
+
+const paletteColors = ['red', 'orange', 'yellow', 'green', 'turqoise', 'blue', 'pink', 'purple'];
+
+const pickBackgroundColor = (name) => {
+  if (!name) return '#b794f4';
+  let hash = 0;
+  for (const ch of name) {
+    hash = (hash * 31 + ch.charCodeAt(0)) % paletteColors.length;
+  }
+  return paletteColors[hash] || '#b794f4';
+};
+
+const FALLBACK_AVATAR = (name) => {
+  const initials = computeInitials(name);
+  const backgroundColor = pickBackgroundColor(name);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><circle cx="60" cy="60" r="60" fill="${backgroundColor}" /><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" fill="#fff" font-weight="700">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
 
 export default function StoriesSlider({
   title = 'Priče',
@@ -59,11 +83,19 @@ export default function StoriesSlider({
 
           if (!stories.length) return null;
 
+          const userName = user?.user_name ?? user?.name ?? user?.username ?? 'Korisnik';
+          const normalizedUserImage =
+            normalizeUrl(user?.user_image ?? user?.profile_photo ?? user?.avatar) || FALLBACK_AVATAR(userName);
+          console.log('StoriesSlider user', {
+            user_id: user?.user_id ?? user?.id,
+            user_name: userName,
+            user_image: normalizedUserImage,
+          });
+
           return {
             user_id: user?.user_id ?? user?.id,
-            user_name: user?.user_name ?? user?.name ?? user?.username ?? 'Korisnik',
-            user_image:
-              normalizeUrl(user?.user_image ?? user?.profile_photo ?? user?.avatar) || FALLBACK_AVATAR,
+            user_name: userName,
+            user_image: normalizedUserImage,
             stories,
           };
         })
