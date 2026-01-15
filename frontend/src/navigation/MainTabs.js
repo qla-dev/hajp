@@ -596,7 +596,7 @@ function FriendsStackNavigator() {
           headerBackVisible: false,
           headerLeft: () => (
             <TouchableOpacity
-              style={styles.backButton}
+              style={[styles.backButton, styles.searchButton]}
               onPress={() => navigation.navigate('Search')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
@@ -669,6 +669,7 @@ function FriendsStackNavigator() {
                     style={styles.backButton}
                     onPress={onBack}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    width={52}
                   >
                     <Ionicons name="chevron-back" size={22} color={colors.text_primary} />
                     <Text style={styles.backLabel}>Nazad</Text>
@@ -1032,6 +1033,16 @@ const createStyles = (colors, isDark) =>
       height: 24,
       alignSelf: 'center',
       tintColor: colors.text_secondary,
+    },
+    searchIcon: {
+      width: 26,
+      height: 26,
+    },
+    searchButton: {
+      width: 50,
+      height: 30,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     rankIconWrapper: {
       width: '100%',
