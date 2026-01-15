@@ -84,6 +84,19 @@ const AppHeaderLogo = ({ color = '#fff' }) => (
   </View>
 );
 
+const getRootTabNavigator = (navigation) => {
+  const parent = navigation?.getParent?.();
+  return parent?.getParent?.() ?? parent;
+};
+
+const navigateToProfileHome = (navigation) => {
+  getRootTabNavigator(navigation)?.navigate('Profile', { screen: 'ProfileHome' });
+};
+
+const navigateToProfileUserRooms = (navigation) => {
+  getRootTabNavigator(navigation)?.navigate('Profile', { screen: 'UserRooms' });
+};
+
 const Tab = createBottomTabNavigator();
 const HajpStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
@@ -113,6 +126,8 @@ const profileFriendsListOptions = ({ route }) => {
       ? 'Pozovi prijatelja'
       : mode === 'blocked'
       ? 'Blokirani kontakti'
+      : mode === 'requests'
+      ? 'Zahtjevi za povezivanje'
       : 'Prijatelji';
   return {
     title,
@@ -150,7 +165,7 @@ function HajpStackNavigator() {
           headerLeft: () => <AppHeaderLogo color={colors.text_primary} />,
           headerRight: () => (
             <CoinHeaderIndicator
-              onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+              onPress={() => navigateToProfileHome(navigation)}
             />
           ),
         })}
@@ -186,7 +201,7 @@ function HajpStackNavigator() {
           headerRight: () => (
             <View style={styles.headerRightSlot}>
               <CoinHeaderIndicator
-                onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+                onPress={() => navigateToProfileHome(navigation)}
               />
             </View>
           ),
@@ -246,7 +261,7 @@ function RankStackNavigator() {
         ),
           headerRight: () => (
           <CoinHeaderIndicator
-            onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+            onPress={() => navigateToProfileHome(navigation)}
           />
         ),
       })}
@@ -424,7 +439,7 @@ function ProfileStackNavigator() {
           headerRight: () => (
             <View style={styles.headerRightSlot}>
               <CoinHeaderIndicator
-                onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+                onPress={() => navigateToProfileHome(navigation)}
               />
             </View>
           ),
@@ -439,7 +454,7 @@ function ProfileStackNavigator() {
           headerRight: () => (
             <View style={styles.headerRightSlot}>
               <CoinHeaderIndicator
-                onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+                onPress={() => navigateToProfileHome(navigation)}
               />
             </View>
           ),
@@ -492,7 +507,7 @@ function HajpoviStackNavigator() {
           title: headerLabelMap.Inbox,
           headerRight: () => (
             <CoinHeaderIndicator
-              onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+              onPress={() => navigateToProfileHome(navigation)}
             />
           ),
         })}
@@ -540,11 +555,16 @@ function HajpoviStackNavigator() {
           headerRight: () => (
             <View style={styles.headerRightSlot}>
               <CoinHeaderIndicator
-                onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+                onPress={() => navigateToProfileHome(navigation)}
               />
             </View>
           ),
         })}
+      />
+      <HajpoviStack.Screen
+        name="FriendsStack"
+        component={FriendsStackNavigator}
+        options={{ headerShown: false }}
       />
     </HajpoviStack.Navigator>
   );
@@ -573,7 +593,7 @@ function FriendsStackNavigator() {
           headerBackVisible: false,
           headerRight: () => (
             <CoinHeaderIndicator
-              onPress={() => navigation.getParent()?.navigate('Profile', { screen: 'ProfileHome' })}
+              onPress={() => navigateToProfileHome(navigation)}
             />
           ),
         })}
@@ -591,11 +611,19 @@ function FriendsStackNavigator() {
               : mode === 'blocked'
               ? 'Blokirani kontakti'
               : 'Prijatelji';
+          const findTabNavigator = () => {
+            const parent = navigation.getParent?.();
+            return parent?.getParent?.() ?? parent;
+          };
+          const fallbackToSuggestions = () => {
+            const tabNav = findTabNavigator();
+            tabNav?.navigate('Friends', { screen: 'Suggestions' });
+          };
           const onBack = () => {
             console.log('[FriendsList back] mode:', mode, 'canGoBack:', navigation.canGoBack());
             if (mode === 'group-invite') {
               console.log('[FriendsList back] force navigate to Profile > UserRooms');
-              navigation.getParent()?.navigate('Profile', { screen: 'UserRooms' });
+              navigateToProfileUserRooms(navigation);
               return;
             }
             if (navigation.canGoBack()) {
@@ -604,10 +632,10 @@ function FriendsStackNavigator() {
             }
             if (mode === 'requests') {
               console.log('[FriendsList back] fallback to Friends > Suggestions (requests)');
-              navigation.getParent()?.navigate('Friends', { screen: 'Suggestions' });
+              fallbackToSuggestions();
             } else {
               console.log('[FriendsList back] fallback to Friends > Suggestions (default)');
-              navigation.getParent()?.navigate('Friends', { screen: 'Suggestions' });
+              fallbackToSuggestions();
             }
           };
           const useCustomBack = mode === 'requests' || mode === 'group-invite';

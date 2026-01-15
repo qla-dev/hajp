@@ -597,14 +597,14 @@ export default function HajpoviScreen({ navigation }) {
       <View style={styles.requestsSection}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Zahtjevi za povezivanje i grupe</Text>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('Friends', {
-                screen: 'FriendsList',
-                params: { mode: 'requests' },
-              })
-            }
-          >
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('ProfileFriendsList', {
+              mode: 'requests',
+              fromHajp: true,
+            })
+          }
+        >
             <Text style={styles.sectionLink}>Pogledaj sve</Text>
           </TouchableOpacity>
         </View>
