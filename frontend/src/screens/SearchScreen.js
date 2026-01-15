@@ -12,12 +12,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import FriendListItem from '../components/FriendListItem';
 import { searchSocial } from '../api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SEARCH_DELAY_MS = 2000;
 
 export default function SearchScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -87,8 +89,15 @@ export default function SearchScreen({ navigation }) {
 
   const recentLabel = useMemo(() => (results.length ? 'Rezultati' : 'Nema rezultata'), [results.length]);
 
+  const headerOffset = insets.top + 64;
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.background, paddingTop: headerOffset },
+      ]}
+    >
       <View style={styles.searchBarRow}>
         <View style={styles.searchInputWrapper}>
           <Ionicons name="search-outline" size={18} color={colors.text_secondary} />
@@ -147,7 +156,7 @@ const createStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      paddingTop: 60,
+      paddingTop: 0,
     },
     searchBarRow: {
       flexDirection: 'row',
@@ -183,6 +192,7 @@ const createStyles = (colors) =>
     },
     resultsList: {
       paddingBottom: 16,
+      paddingHorizontal: 16,
     },
     loadingRow: {
       paddingHorizontal: 16,
