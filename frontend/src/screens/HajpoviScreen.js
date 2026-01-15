@@ -8,10 +8,11 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import * as Haptics from 'expo-haptics';
@@ -31,13 +32,18 @@ import { useRoomSheet } from '../context/roomSheetContext';
 import Avatar from '../components/Avatar';
 import BottomCTA from '../components/BottomCTA';
 import EmptyState from '../components/EmptyState';
-import MenuTab from '../components/MenuTab';
 import FriendListItem from '../components/FriendListItem';
 
 const TAB_SVE = 'sve';
 const TAB_ANKETE = 'ankete';
 const TAB_STORIES = 'stories';
 const TAB_LINK = 'link';
+const FILTER_OPTIONS = [
+  { key: TAB_SVE, label: 'Sve' },
+  { key: TAB_ANKETE, label: 'Ankete' },
+  { key: TAB_STORIES, label: 'Stories' },
+  { key: TAB_LINK, label: 'Link' },
+];
 const PAGE_LIMIT = 10;
 const coinAsset = require('../../assets/svg/coin.svg');
 const hajpoviActiveIcon = require('../../assets/svg/nav-icons/hajpovi.svg');
@@ -56,6 +62,7 @@ export default function HajpoviScreen({ navigation }) {
   const { openPaySheet, closePaySheet } = usePaySheet();
   const { openRoomSheet } = useRoomSheet();
   const [activeTab, setActiveTab] = useState(TAB_SVE);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
   const [loadingVotes, setLoadingVotes] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [loadingMoreVotes, setLoadingMoreVotes] = useState(false);
@@ -75,6 +82,26 @@ export default function HajpoviScreen({ navigation }) {
   const revealPrice = 50;
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const filterLabel = FILTER_OPTIONS.find((option) => option.key === activeTab)?.label || 'Sve';
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity
+          style={styles.headerFilterButton}
+          onPress={() => setDropdownVisible(true)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.headerFilterLabel}>{filterLabel}</Text>
+          <Ionicons
+            name={dropdownVisible ? 'chevron-up' : 'chevron-down'}
+            size={18}
+            color={colors.text_primary}
+          />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, filterLabel, dropdownVisible, styles, colors]);
 
   const handleOpenProfile = useCallback(
     (targetUserId) => {
@@ -334,6 +361,19 @@ export default function HajpoviScreen({ navigation }) {
       list.scrollToOffset?.({ offset: 0, animated: true });
     }
   }, []);
+
+  const handleSelectTab = useCallback(
+    (key) => {
+      setActiveTab(key);
+      setDropdownVisible(false);
+      if (key === TAB_LINK) {
+        scrollMessagesToTop();
+      } else {
+        scrollVotesToTop();
+      }
+    },
+    [scrollMessagesToTop, scrollVotesToTop],
+  );
 
   const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
@@ -645,21 +685,45 @@ export default function HajpoviScreen({ navigation }) {
           </View>
         )}
       </View>
-      <MenuTab
-        items={[
-          { key: TAB_SVE, label: 'Sve' },
-          { key: TAB_ANKETE, label: 'Ankete' },
-          { key: TAB_STORIES, label: 'Stories' },
-          { key: TAB_LINK, label: 'Link' },
-        ]}
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        horizontalPadding={16}
-        variant="menu-tab-s"
-        color="secondary"
-      />
-
       {renderContent()}
+
+      {dropdownVisible && (
+        <Modal
+          visible={dropdownVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setDropdownVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
+              <View style={styles.modalBackdrop} />
+            </TouchableWithoutFeedback>
+            <View style={styles.filterMenuWrapper}>
+              <View style={styles.filterMenu}>
+                {FILTER_OPTIONS.map((option) => (
+                  <TouchableOpacity
+                    key={option.key}
+                    style={[
+                      styles.filterMenuItem,
+                      option.key === activeTab && styles.filterMenuItemActive,
+                    ]}
+                    onPress={() => handleSelectTab(option.key)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterMenuItemText,
+                        option.key === activeTab && styles.filterMenuItemTextActive,
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
 
       {activeTab === TAB_ANKETE && (
         <BottomCTA label="Vidi ko te hajpa" iconName="flame" onPress={() => navigation.navigate('Subscription')} fixed />
@@ -806,5 +870,55 @@ const createStyles = (colors, isDark) =>
       fontSize: 14,
       color: colors.text_secondary,
       textAlign: 'center',
+    },
+    headerFilterButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+    },
+    headerFilterLabel: {
+      fontWeight: '500',
+      fontSize: 17,
+      color: colors.text_primary,
+      marginRight: 6,
+    },
+    modalOverlay: {
+      flex: 1,
+      justifyContent: 'flex-start',
+      backgroundColor: 'transparent',
+    },
+    modalBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    filterMenuWrapper: {
+      paddingTop: 110,
+      paddingHorizontal: 16,
+    },
+    filterMenu: {
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      elevation: 6,
+      shadowColor: colors.text_primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.08,
+      shadowRadius: 16,
+      minWidth: 160,
+    },
+    filterMenuItem: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+    },
+    filterMenuItemActive: {
+      backgroundColor: colors.primary,
+    },
+    filterMenuItemText: {
+      color: colors.text_primary,
+      fontWeight: '700',
+    },
+    filterMenuItemTextActive: {
+      color: colors.textLight,
     },
   });
