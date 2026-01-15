@@ -622,8 +622,9 @@ function FriendsStackNavigator() {
         name="Search"
         component={SearchScreen}
         options={{
-          title: 'Pretraga',
+          headerTitle: 'Pretraga',
           headerBackTitle: 'Nazad',
+          headerBackVisible: false,
           headerTransparent: true,
           headerShadowVisible: false,
           presentation: 'card',

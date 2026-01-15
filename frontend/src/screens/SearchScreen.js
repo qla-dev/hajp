@@ -89,7 +89,7 @@ export default function SearchScreen({ navigation }) {
 
   const recentLabel = useMemo(() => (results.length ? 'Rezultati' : 'Nema rezultata'), [results.length]);
 
-  const headerOffset = insets.top + 64;
+  const headerOffset = insets.top + 50;
 
   return (
     <View
@@ -169,7 +169,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.surface,
-      borderRadius: 18,
+      borderRadius: 10,
       paddingHorizontal: 12,
       paddingVertical: 8,
       marginRight: 12,
