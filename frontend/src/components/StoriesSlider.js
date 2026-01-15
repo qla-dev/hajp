@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
-import InstaStory from 'react-native-insta-story';
+import InstaStory from '../../assets/vendor/react-native-insta-story';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL, fetchStoryUsers } from '../api';
 import { buildAvatarSvg } from '../utils/bigHeadAvatar';
