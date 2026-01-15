@@ -35,6 +35,13 @@ import BottomCTA from '../components/BottomCTA';
 import EmptyState from '../components/EmptyState';
 import FriendListItem from '../components/FriendListItem';
 import { BlurView } from 'expo-blur';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+  runOnJS,
+} from 'react-native-reanimated';
 
 const TAB_SVE = 'sve';
 const TAB_ANKETE = 'ankete';
@@ -82,10 +89,33 @@ export default function HajpoviScreen({ navigation }) {
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [approvingRequestId, setApprovingRequestId] = useState(null);
   const revealPrice = 50;
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const styles = useThemedStyles(createStyles);
   const filterLabel = FILTER_OPTIONS.find((option) => option.key === activeTab)?.label || 'Sve';
   const { width: windowWidth } = useWindowDimensions();
+  const menuScale = useSharedValue(0.7);
+  const menuOpacity = useSharedValue(0);
+  const menuTranslateX = useSharedValue(-40);
+  const menuTranslateY = useSharedValue(-30);
+  const openDropdown = useCallback(() => {
+    menuScale.value = 0.7;
+    menuTranslateX.value = -40;
+    menuTranslateY.value = -30;
+    menuOpacity.value = 0;
+    setDropdownVisible(true);
+  }, []);
+  const handleFilterButtonPress = useCallback(() => {
+    Haptics.selectionAsync().catch(() => {});
+    openDropdown();
+  }, [openDropdown]);
+  const menuAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: menuScale.value },
+      { translateX: menuTranslateX.value },
+      { translateY: menuTranslateY.value },
+    ],
+    opacity: menuOpacity.value,
+  }));
 
   const handleOpenProfile = useCallback(
     (targetUserId) => {
@@ -349,7 +379,7 @@ export default function HajpoviScreen({ navigation }) {
   const handleSelectTab = useCallback(
     (key) => {
       setActiveTab(key);
-      setDropdownVisible(false);
+      closeDropdown();
       if (key === TAB_LINK) {
         scrollMessagesToTop();
       } else {
@@ -359,12 +389,40 @@ export default function HajpoviScreen({ navigation }) {
     [scrollMessagesToTop, scrollVotesToTop],
   );
 
+  const startEnterAnimation = () => {
+    menuScale.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.exp) });
+    menuOpacity.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.exp) });
+    menuTranslateX.value = withTiming(0, { duration: 150, easing: Easing.out(Easing.exp) });
+    menuTranslateY.value = withTiming(0, { duration: 150, easing: Easing.out(Easing.exp) });
+  };
+
+  const startExitAnimation = (onDone) => {
+    menuScale.value = withTiming(0.7, { duration: 120, easing: Easing.in(Easing.ease) }, () => {
+      if (onDone) runOnJS(onDone)();
+    });
+    menuOpacity.value = withTiming(0, { duration: 120, easing: Easing.in(Easing.ease) });
+    menuTranslateX.value = withTiming(-40, { duration: 120, easing: Easing.out(Easing.ease) });
+    menuTranslateY.value = withTiming(-30, { duration: 120, easing: Easing.out(Easing.ease) });
+  };
+
+  const closeDropdown = () => {
+    startExitAnimation(() => setDropdownVisible(false));
+  };
+
+  useEffect(() => {
+    if (dropdownVisible) {
+      menuScale.value = 0.8;
+      menuOpacity.value = 0;
+      startEnterAnimation();
+    }
+  }, [dropdownVisible, menuScale, menuOpacity]);
+
   useEffect(() => {
     navigation.setOptions({
       headerLeft: () => (
         <TouchableOpacity
           style={styles.headerFilterButton}
-          onPress={() => setDropdownVisible(true)}
+          onPress={handleFilterButtonPress}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Text style={styles.headerFilterLabel}>{filterLabel}</Text>
@@ -684,6 +742,9 @@ export default function HajpoviScreen({ navigation }) {
           </View>
         )}
       </View>
+      <View style={styles.hajpoviHeader}>
+        <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Hajpovi</Text>
+      </View>
       {renderContent()}
 
       {dropdownVisible && (
@@ -691,51 +752,42 @@ export default function HajpoviScreen({ navigation }) {
           visible={dropdownVisible}
           transparent
           animationType="fade"
-          onRequestClose={() => setDropdownVisible(false)}
+          onRequestClose={closeDropdown}
         >
-          <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
+          <TouchableWithoutFeedback onPress={closeDropdown}>
             <View style={styles.modalOverlay}>
               <TouchableWithoutFeedback>
-                <BlurView
-                  intensity={90}
-                  tint="dark"
+                <Animated.View
                   style={[
                     styles.filterMenu,
+                    menuAnimatedStyle,
                     { width: windowWidth * 0.4 },
                   ]}
                 >
+                  <BlurView
+                    intensity={isDark ? 90 : 30}
+                    tint={isDark ? 'dark' : 'light'}
+                    style={StyleSheet.absoluteFillObject}
+                  />
                   {FILTER_OPTIONS.map((option) => (
-                      <TouchableOpacity
-                        key={option.key}
-                        style={styles.filterMenuItem}
-                        onPress={() => handleSelectTab(option.key)}
-                      >
-                        {option.key === activeTab && (
-                          <BlurView
-                            intensity={70}
-                            tint="dark"
-                            style={styles.activeBlur}
-                          />
-                        )}
+                    <TouchableOpacity
+                      key={option.key}
+                      style={styles.filterMenuItem}
+                      onPress={() => handleSelectTab(option.key)}
+                    >
+                  
                         <Ionicons
                           name={option.icon}
                           size={20}
-                          color={
-                            option.key === activeTab ? colors.textLight : colors.text_primary
-                          }
+                          color={colors.text_primary}
                           style={{ marginRight: 10 }}
                         />
-                        <Text
-                          style={[
-                            styles.filterMenuItemText,
-                            option.key === activeTab && styles.filterMenuItemTextActive,
-                          ]}
-                        >
+                        <Text style={styles.filterMenuItemText}>
                           {option.label}
                         </Text>
                       </TouchableOpacity>
                   ))}
-                </BlurView>
+                </Animated.View>
               </TouchableWithoutFeedback>
             </View>
           </TouchableWithoutFeedback>
@@ -757,7 +809,6 @@ const createStyles = (colors, isDark) =>
     },
     requestsSection: {
       paddingTop: 110,
-      paddingBottom: 8,
       backgroundColor: colors.background,
     },
     sectionHeader: {
@@ -776,6 +827,11 @@ const createStyles = (colors, isDark) =>
       color: colors.primary,
       fontWeight: '700',
     },
+    hajpoviHeader: {
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+      marginTop: 8,
+    },
     messagesList: {
       paddingHorizontal: 16,
       paddingBottom: 16,
@@ -784,7 +840,6 @@ const createStyles = (colors, isDark) =>
       flexDirection: 'column',
       gap: 12,
       paddingHorizontal: 16,
-      paddingBottom: 8,
     },
     loaderRow: {
       paddingVertical: 12,
@@ -793,6 +848,7 @@ const createStyles = (colors, isDark) =>
     emptyRequests: {
       paddingHorizontal: 0,
       color: colors.text_secondary,
+      paddingBottom: 0,
     },
     shareEmptyPadding: {
       paddingHorizontal: 0,
@@ -903,11 +959,11 @@ const createStyles = (colors, isDark) =>
     modalOverlay: {
       flex: 1,
       justifyContent: 'flex-start',
-      paddingTop: 110,
+      paddingTop: 105,
       paddingHorizontal: 16,
     },
     filterMenu: {
-      borderRadius: 18,
+      borderRadius: 30,
       paddingVertical: 10,
       paddingHorizontal: 12,
       overflow: 'hidden',
@@ -927,12 +983,5 @@ const createStyles = (colors, isDark) =>
       color: colors.text_primary,
       fontWeight: '600',
       fontSize: 16,
-    },
-    filterMenuItemTextActive: {
-      color: colors.textLight,
-    },
-    activeBlur: {
-      ...StyleSheet.absoluteFillObject,
-      borderRadius: 12,
     },
   });
