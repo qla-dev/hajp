@@ -10,37 +10,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import ActivityItem from '../components/ActivityItem';
+import FriendListItem from '../components/FriendListItem';
 import { searchSocial } from '../api';
 
 const SEARCH_DELAY_MS = 2000;
-
-const buildActivityFromResult = (result) => {
-  const baseUser =
-    result.type === 'user'
-      ? {
-          id: result.id,
-          name: result.name || result.username || 'Korisnik',
-          username: result.username,
-          profile_photo: result.avatar,
-        }
-      : { name: result.name || 'Grupa' };
-
-  return {
-    id: `${result.type}-${result.id}`,
-    action: 'search',
-    user: baseUser,
-    selected_user: baseUser,
-    question: {
-      question:
-        result.type === 'group'
-          ? result.subtitle || 'Grupa'
-          : result.description || result.username || 'Korisnik',
-      poll: { room: { name: result.type === 'group' ? 'Grupa' : 'Korisnik' } },
-    },
-    created_at: result.timestamp || new Date().toISOString(),
-  };
-};
 
 export default function SearchScreen({ navigation }) {
   const { colors } = useTheme();
@@ -66,7 +39,27 @@ export default function SearchScreen({ navigation }) {
           type: entry.type || (entry.username ? 'user' : 'group'),
           id: entry.id,
         }));
-        setResults(normalized.map((entry) => ({ activity: buildActivityFromResult(entry), id: entry.id, type: entry.type })));
+        setResults(normalized.map((entry) => {
+          const friend = {
+            id: entry.id,
+            name: entry.name,
+            username: entry.username,
+            profile_photo: entry.profile_photo || entry.cover_url,
+            avatar: entry.avatar,
+          };
+          const subtitle =
+            entry.type === 'group'
+              ? entry.subtitle || entry.description || 'Grupa'
+              : entry.description || entry.username || null;
+          return {
+            id: `${entry.type}-${entry.id}`,
+            type: entry.type,
+            friend,
+            subtitle,
+            refType: entry.type === 'group' ? 'room-invite' : 'friendship',
+            statusLabel: entry.type === 'group' ? 'Grupa' : 'Korisnik',
+          };
+        }));
       } catch (err) {
         setError(err);
         setResults([]);
@@ -121,9 +114,23 @@ export default function SearchScreen({ navigation }) {
       <Text style={styles.sectionLabel}>{recentLabel}</Text>
       <FlatList
         data={results}
-        keyExtractor={(item, index) => `${item.type}-${item.id}-${index}`}
+        keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => (
-          <ActivityItem activity={item.activity} navigation={navigation} isLast={index === results.length - 1} />
+          <FriendListItem
+            friend={item.friend}
+            subtitle={item.subtitle}
+            refType={item.refType}
+            statusLabel={item.statusLabel}
+            onPress={() => {
+              if (item.type === 'user') {
+                navigation.navigate('FriendProfile', {
+                  userId: item.friend.id,
+                  isMine: false,
+                });
+              }
+            }}
+            isLast={index === results.length - 1}
+          />
         )}
         contentContainerStyle={styles.resultsList}
         ListEmptyComponent={
@@ -152,7 +159,7 @@ const createStyles = (colors) =>
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.surfaceVariant,
+      backgroundColor: colors.surface,
       borderRadius: 18,
       paddingHorizontal: 12,
       paddingVertical: 8,

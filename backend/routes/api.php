@@ -11,6 +11,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\AnonInboxController;
 use App\Http\Controllers\ShareLinkController;
 use App\Http\Controllers\ShareLinkStyleController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\UserController;
 
@@ -41,6 +42,7 @@ Route::get('/share/{user}/messages', [ShareLinkController::class, 'messages']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/search', [SearchController::class, 'index']);
     Route::get('/room-vibes', [RoomVibeController::class, 'index']);
     Route::post('/stories', [StoryController::class, 'store']);
     Route::get('/stories/users', [StoryController::class, 'owners']);

@@ -619,6 +619,15 @@ function FriendsStackNavigator() {
         })}
       />
       <FriendsStack.Screen
+        name="Search"
+        component={SearchScreen}
+        options={{
+          headerShown: false,
+          presentation: 'card',
+          animation: 'slide_from_right',
+        }}
+      />
+      <FriendsStack.Screen
         name="FriendsList"
         component={FriendsScreen}
         options={({ route, navigation }) => {
@@ -713,11 +722,6 @@ function FriendsStackNavigator() {
           ),
         })}
       />
-      <FriendsStack.Screen
-        name="Search"
-        component={SearchScreen}
-        options={{ headerShown: false }}
-      />
     </FriendsStack.Navigator>
   );
 }
@@ -807,6 +811,9 @@ function MainTabsContent() {
           hideTabBar = true;
         }
         if (route.name === 'Friends' && focused === 'FriendsList') {
+          hideTabBar = true;
+        }
+        if (route.name === 'Friends' && focused === 'Search') {
           hideTabBar = true;
         }
         if (
