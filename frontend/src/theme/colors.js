@@ -43,6 +43,9 @@ export const lightColors = {
   primarySoft: 'rgba(255, 107, 53, 0.1)',
   secondarySoft: 'rgba(155, 89, 182, 0.1)',
   secondarySoft2: 'rgba(155, 89, 182, 0.3)',
+  modalOverlay: 'rgba(0, 0, 0, 0.15)',
+  modalSurface: '#FFFFFF',
+  modalBorder: 'rgba(0, 0, 0, 0.08)',
 };
 
 export const darkColors = {
@@ -90,7 +93,10 @@ export const darkColors = {
   primaryOpacity2: 'rgba(255, 107, 53, 0.2)',
   primarySoft: 'rgba(255, 107, 53, 0.2)',
   secondarySoft: 'rgba(155, 89, 182, 0.2)',
-   secondarySoft2: 'rgba(155, 89, 182, 0.4)',
+  secondarySoft2: 'rgba(155, 89, 182, 0.4)',
+  modalOverlay: 'rgba(0, 0, 0, 0.45)',
+  modalSurface: 'rgba(17, 24, 39, 0.95)',
+  modalBorder: 'rgba(255, 255, 255, 0.08)',
 };
 
 export const THEME_MODES = {

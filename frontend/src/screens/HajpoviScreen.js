@@ -10,6 +10,7 @@ import {
   Alert,
   Modal,
   TouchableWithoutFeedback,
+  useWindowDimensions,
 } from 'react-native';
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,16 +34,17 @@ import Avatar from '../components/Avatar';
 import BottomCTA from '../components/BottomCTA';
 import EmptyState from '../components/EmptyState';
 import FriendListItem from '../components/FriendListItem';
+import { BlurView } from 'expo-blur';
 
 const TAB_SVE = 'sve';
 const TAB_ANKETE = 'ankete';
 const TAB_STORIES = 'stories';
 const TAB_LINK = 'link';
 const FILTER_OPTIONS = [
-  { key: TAB_SVE, label: 'Sve' },
-  { key: TAB_ANKETE, label: 'Ankete' },
-  { key: TAB_STORIES, label: 'Stories' },
-  { key: TAB_LINK, label: 'Link' },
+  { key: TAB_SVE, label: 'Sve', icon: 'home' },
+  { key: TAB_ANKETE, label: 'Ankete', icon: 'checkmark-done' },
+  { key: TAB_STORIES, label: 'Stories', icon: 'albums' },
+  { key: TAB_LINK, label: 'Share link', icon: 'share-social' },
 ];
 const PAGE_LIMIT = 10;
 const coinAsset = require('../../assets/svg/coin.svg');
@@ -83,25 +85,7 @@ export default function HajpoviScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const filterLabel = FILTER_OPTIONS.find((option) => option.key === activeTab)?.label || 'Sve';
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => (
-        <TouchableOpacity
-          style={styles.headerFilterButton}
-          onPress={() => setDropdownVisible(true)}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text style={styles.headerFilterLabel}>{filterLabel}</Text>
-          <Ionicons
-            name={dropdownVisible ? 'chevron-up' : 'chevron-down'}
-            size={18}
-            color={colors.text_primary}
-          />
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, filterLabel, dropdownVisible, styles, colors]);
+  const { width: windowWidth } = useWindowDimensions();
 
   const handleOpenProfile = useCallback(
     (targetUserId) => {
@@ -374,6 +358,21 @@ export default function HajpoviScreen({ navigation }) {
     },
     [scrollMessagesToTop, scrollVotesToTop],
   );
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity
+          style={styles.headerFilterButton}
+          onPress={() => setDropdownVisible(true)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.headerFilterLabel}>{filterLabel}</Text>
+          <Ionicons name={dropdownVisible ? 'chevron-up' : 'chevron-down'} size={18} color={colors.text_primary} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, filterLabel, dropdownVisible, styles, colors.text_primary]);
 
   const { registerMenuRefresh } = useMenuRefresh();
   useEffect(() => {
@@ -694,34 +693,52 @@ export default function HajpoviScreen({ navigation }) {
           animationType="fade"
           onRequestClose={() => setDropdownVisible(false)}
         >
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
-              <View style={styles.modalBackdrop} />
-            </TouchableWithoutFeedback>
-            <View style={styles.filterMenuWrapper}>
-              <View style={styles.filterMenu}>
-                {FILTER_OPTIONS.map((option) => (
-                  <TouchableOpacity
-                    key={option.key}
-                    style={[
-                      styles.filterMenuItem,
-                      option.key === activeTab && styles.filterMenuItemActive,
-                    ]}
-                    onPress={() => handleSelectTab(option.key)}
-                  >
-                    <Text
-                      style={[
-                        styles.filterMenuItemText,
-                        option.key === activeTab && styles.filterMenuItemTextActive,
-                      ]}
-                    >
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+          <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
+            <View style={styles.modalOverlay}>
+              <TouchableWithoutFeedback>
+                <BlurView
+                  intensity={90}
+                  tint="dark"
+                  style={[
+                    styles.filterMenu,
+                    { width: windowWidth * 0.4 },
+                  ]}
+                >
+                  {FILTER_OPTIONS.map((option) => (
+                      <TouchableOpacity
+                        key={option.key}
+                        style={styles.filterMenuItem}
+                        onPress={() => handleSelectTab(option.key)}
+                      >
+                        {option.key === activeTab && (
+                          <BlurView
+                            intensity={70}
+                            tint="dark"
+                            style={styles.activeBlur}
+                          />
+                        )}
+                        <Ionicons
+                          name={option.icon}
+                          size={20}
+                          color={
+                            option.key === activeTab ? colors.textLight : colors.text_primary
+                          }
+                          style={{ marginRight: 10 }}
+                        />
+                        <Text
+                          style={[
+                            styles.filterMenuItemText,
+                            option.key === activeTab && styles.filterMenuItemTextActive,
+                          ]}
+                        >
+                          {option.label}
+                        </Text>
+                      </TouchableOpacity>
+                  ))}
+                </BlurView>
+              </TouchableWithoutFeedback>
             </View>
-          </View>
+          </TouchableWithoutFeedback>
         </Modal>
       )}
 
@@ -886,39 +903,36 @@ const createStyles = (colors, isDark) =>
     modalOverlay: {
       flex: 1,
       justifyContent: 'flex-start',
-      backgroundColor: 'transparent',
-    },
-    modalBackdrop: {
-      ...StyleSheet.absoluteFillObject,
-    },
-    filterMenuWrapper: {
       paddingTop: 110,
       paddingHorizontal: 16,
     },
     filterMenu: {
-      borderRadius: 16,
+      borderRadius: 18,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      overflow: 'hidden',
       borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-      elevation: 6,
-      shadowColor: colors.text_primary,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.08,
-      shadowRadius: 16,
-      minWidth: 160,
+      borderColor: colors.modalBorder,
+      minWidth: 180,
     },
     filterMenuItem: {
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-    },
-    filterMenuItemActive: {
-      backgroundColor: colors.primary,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 6,
+      borderRadius: 12,
+      overflow: 'hidden',
     },
     filterMenuItemText: {
       color: colors.text_primary,
-      fontWeight: '700',
+      fontWeight: '600',
+      fontSize: 16,
     },
     filterMenuItemTextActive: {
       color: colors.textLight,
+    },
+    activeBlur: {
+      ...StyleSheet.absoluteFillObject,
+      borderRadius: 12,
     },
   });
