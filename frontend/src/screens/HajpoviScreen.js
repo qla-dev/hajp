@@ -34,7 +34,9 @@ import EmptyState from '../components/EmptyState';
 import MenuTab from '../components/MenuTab';
 import FriendListItem from '../components/FriendListItem';
 
+const TAB_SVE = 'sve';
 const TAB_ANKETE = 'ankete';
+const TAB_STORIES = 'stories';
 const TAB_LINK = 'link';
 const PAGE_LIMIT = 10;
 const coinAsset = require('../../assets/svg/coin.svg');
@@ -53,7 +55,7 @@ const resolveHasMore = (payload, items) => {
 export default function HajpoviScreen({ navigation }) {
   const { openPaySheet, closePaySheet } = usePaySheet();
   const { openRoomSheet } = useRoomSheet();
-  const [activeTab, setActiveTab] = useState(TAB_ANKETE);
+  const [activeTab, setActiveTab] = useState(TAB_SVE);
   const [loadingVotes, setLoadingVotes] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [loadingMoreVotes, setLoadingMoreVotes] = useState(false);
@@ -252,11 +254,11 @@ export default function HajpoviScreen({ navigation }) {
   );
 
   const loadCurrentTab = useCallback(async () => {
-    if (activeTab === TAB_ANKETE) {
-      await loadVotesPage(1, false);
-    } else {
+    if (activeTab === TAB_LINK) {
       await loadMessagesPage(1, false);
+      return;
     }
+    await loadVotesPage(1, false);
   }, [activeTab, loadMessagesPage, loadVotesPage]);
 
   const handleLoadMoreVotes = useCallback(() => {
@@ -491,61 +493,61 @@ export default function HajpoviScreen({ navigation }) {
     );
   };
 
-  const renderContent = () => {
-    if (activeTab === TAB_ANKETE) {
-      if (loadingVotes && !votes.length) {
-        return (
-          <View style={styles.centerContent}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>Učitavanje</Text>
-          </View>
-        );
-      }
-
-      if (!votes.length) {
-        return (
-          <EmptyState
-            title="Još uvijek nemaš hajpova kroz ankete"
-            subtitle="Kad god te neko izhajpa u anketi, pojaviće se ovdje."
-            onRefresh={() => loadVotesPage(1, false)}
-            refreshing={loadingVotes}
-            coinUri={coinSvgUri || coinAssetDefaultUri}
-            coinPrice={revealPrice}
-          />
-        );
-      }
-
+  const renderVotesList = () => {
+    if (loadingVotes && !votes.length) {
       return (
-      <FlatList
-        data={votes}
-        ref={votesListRef}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderVote}
-          contentContainerStyle={[styles.messagesList, styles.anketeListPadding]}
-          onEndReached={handleLoadMoreVotes}
-          onEndReachedThreshold={0.5}
-          refreshControl={
-            <RefreshControl
-              refreshing={loadingVotes}
-              onRefresh={() => loadVotesPage(1, false)}
-              tintColor={colors.primary}
-              colors={[colors.primary]}
-            />
-          }
-          ListFooterComponent={
-            loadingMoreVotes ? (
-              <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 12 }} />
-            ) : null
-          }
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>U??itavanje</Text>
+        </View>
+      );
+    }
+
+    if (!votes.length) {
+      return (
+        <EmptyState
+          title="Jo?? uvijek nema?? hajpova kroz ankete"
+          subtitle="Kad god te neko izhajpa u anketi, pojavi??e se ovdje."
+          onRefresh={() => loadVotesPage(1, false)}
+          refreshing={loadingVotes}
+          coinUri={coinSvgUri || coinAssetDefaultUri}
+          coinPrice={revealPrice}
         />
       );
     }
 
+    return (
+      <FlatList
+        data={votes}
+        ref={votesListRef}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={renderVote}
+        contentContainerStyle={[styles.messagesList, styles.anketeListPadding]}
+        onEndReached={handleLoadMoreVotes}
+        onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl
+            refreshing={loadingVotes}
+            onRefresh={() => loadVotesPage(1, false)}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+        ListFooterComponent={
+          loadingMoreVotes ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 12 }} />
+          ) : null
+        }
+      />
+    );
+  };
+
+  const renderMessagesList = () => {
     if (loadingMessages && !messages.length) {
       return (
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Učitavanje</Text>
+          <Text style={styles.loadingText}>U??itavanje</Text>
         </View>
       );
     }
@@ -553,8 +555,8 @@ export default function HajpoviScreen({ navigation }) {
     if (!messages.length) {
       return (
         <EmptyState
-          title="Još uvijek nemaš hajpova kroz share link"
-          subtitle="Podijeli svoj link da dobiješ hajpove!"
+          title="Jo?? uvijek nema?? hajpova kroz share link"
+          subtitle="Podijeli svoj link da dobije?? hajpove!"
           onRefresh={() => loadMessagesPage(1, false)}
           refreshing={loadingMessages}
           fullWidth
@@ -566,12 +568,12 @@ export default function HajpoviScreen({ navigation }) {
       <FlatList
         data={messages}
         ref={messagesListRef}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderMessage}
-          contentContainerStyle={[
-            styles.messagesList,
-            !messages.length && styles.shareEmptyPadding,
-          ]}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={renderMessage}
+        contentContainerStyle={[
+          styles.messagesList,
+          !messages.length && styles.shareEmptyPadding,
+        ]}
         onEndReached={handleLoadMoreMessages}
         onEndReachedThreshold={0.5}
         refreshControl={
@@ -590,6 +592,17 @@ export default function HajpoviScreen({ navigation }) {
       />
     );
   };
+
+  const renderContent = () => {
+    if ([TAB_SVE, TAB_ANKETE, TAB_STORIES].includes(activeTab)) {
+      return renderVotesList();
+    }
+    if (activeTab === TAB_LINK) {
+      return renderMessagesList();
+    }
+    return null;
+  };
+
 
 
   return (
@@ -634,8 +647,10 @@ export default function HajpoviScreen({ navigation }) {
       </View>
       <MenuTab
         items={[
+          { key: TAB_SVE, label: 'Sve' },
           { key: TAB_ANKETE, label: 'Ankete' },
-          { key: TAB_LINK, label: 'Share link' },
+          { key: TAB_STORIES, label: 'Stories' },
+          { key: TAB_LINK, label: 'Link' },
         ]}
         activeKey={activeTab}
         onChange={setActiveTab}

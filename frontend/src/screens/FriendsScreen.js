@@ -66,14 +66,6 @@ export default function FriendsScreen({ navigation, route }) {
   }, []);
 
   const loadFriends = useCallback(async () => {
-    console.log('[FriendsScreen] loadFriends start', {
-      mode,
-      isRequestList,
-      isGroupInvite,
-      roomId,
-      targetUserId,
-      fromProfile,
-    });
     setLoading(true);
     try {
       let response;
@@ -88,12 +80,7 @@ export default function FriendsScreen({ navigation, route }) {
       }
       const data = response?.data;
       setFriends(data?.data || data || []);
-      console.log('[FriendsScreen] loadFriends success', {
-        count: (data?.data || data || []).length,
-        keys: data ? Object.keys(data) : null,
-      });
     } catch (err) {
-      console.log('[FriendsScreen] loadFriends error', err?.message || err);
       setFriends([]);
     } finally {
       setLoading(false);
