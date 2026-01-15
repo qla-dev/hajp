@@ -1,161 +1,23 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  RefreshControl,
-  Alert,
-} from 'react-native';
-import * as Haptics from 'expo-haptics';
+import React, { useCallback, useRef, useState } from 'react';
+import { ScrollView, RefreshControl, StyleSheet } from 'react-native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import SuggestionSlider from '../components/SuggestionSlider';
 import RoomSuggestions from '../components/RoomSuggestions';
 import SuggestionGrid from '../components/SuggestionGrid';
-import FriendListItem from '../components/FriendListItem';
-import { fetchFriendRequests, approveFriendRequest, acceptRoomInvite, approveRoomMember } from '../api';
-import { useMenuRefresh } from '../context/menuRefreshContext';
-import { useRoomSheet } from '../context/roomSheetContext';
-import { Audio } from 'expo-av';
-const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 
 export default function SuggestionsScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
-  const [requests, setRequests] = useState([]);
-  const [loadingRequests, setLoadingRequests] = useState(true);
-  const [approvingRequestId, setApprovingRequestId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [skipSliderHaptic, setSkipSliderHaptic] = useState(false);
   const skipSliderHapticRef = useRef(false);
-  const { openRoomSheet } = useRoomSheet();
-  const connectSoundRef = useRef(null);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        if (mounted) connectSoundRef.current = sound;
-        else await sound.unloadAsync();
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      mounted = false;
-      connectSoundRef.current?.unloadAsync();
-      connectSoundRef.current = null;
-    };
-  }, []);
-
-  const formatStatusDate = (value) => {
-    if (!value) return null;
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return null;
-    const day = String(parsed.getDate()).padStart(2, '0');
-    const month = String(parsed.getMonth() + 1).padStart(2, '0');
-    const year = parsed.getFullYear();
-    return `${day}.${month}.${year}`;
-  };
-
-  const loadRequests = useCallback(async () => {
-    setLoadingRequests(true);
-    try {
-      const { data } = await fetchFriendRequests();
-      setRequests(data?.data || data || []);
-    } catch {
-      setRequests([]);
-    } finally {
-      setLoadingRequests(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadRequests();
-  }, [loadRequests]);
-
-  const handleApprove = useCallback(
-    async (item) => {
-      const refType = item.ref_type || null;
-      const friendId = item.user_id || item.friend_id || item.id;
-      const requestKey = item.ref_id || item.id;
-      if (!friendId && refType === 'friendship') return;
-      Haptics.selectionAsync().catch(() => {});
-      setApprovingRequestId(requestKey);
-      try {
-        if (refType === 'room-invite') {
-          connectSoundRef.current?.replayAsync().catch(() => {});
-          await acceptRoomInvite(item.id);
-          setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
-          Alert.alert('Poziv prihvaćen', `Dobrodošao u grupu ${item.room_name || ''}.`);
-        } else if (refType === 'my-room-allowence') {
-          connectSoundRef.current?.replayAsync().catch(() => {});
-          await approveRoomMember(item.id, item.user_id);
-          setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
-          Alert.alert('Član odobren', `Korisnik ${item.name || ''} je odobren.`);
-        } else {
-          connectSoundRef.current?.replayAsync().catch(() => {});
-          await approveFriendRequest(friendId);
-          setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
-          Alert.alert('Povezivanje uspjelo', `Sada ste povezani sa korisnikom ${item.name || ''}.`);
-        }
-      } catch {
-        Alert.alert('Greška', 'Nije moguće obraditi zahtjev.');
-      } finally {
-        setApprovingRequestId(null);
-      }
-    },
-    [],
-  );
-
-  const handleRequestPress = useCallback(
-    (item) => {
-      const refType = item.ref_type || null;
-      const friendId = item.user_id || item.friend_id || item.id;
-      if (!friendId) return;
-      Haptics.selectionAsync().catch(() => {});
-      if (refType === 'room-invite') {
-        const roomPayload = {
-          id: item.id,
-          name: item.room_name || item.name,
-          cover_url: item.profile_photo,
-          type: item.room_icon,
-        };
-        openRoomSheet(
-          roomPayload,
-          null,
-          null,
-          1,
-          () => setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id)),
-        );
-        return;
-      }
-      navigation.push('FriendProfile', {
-        isMine: false,
-        userId: friendId,
-      });
-    },
-    [navigation, openRoomSheet],
-  );
-
-  const onRefresh = useCallback(async () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
-    await loadRequests();
     setRefreshKey((prev) => prev + 1);
     setRefreshing(false);
-  }, [loadRequests]);
-
-  const { registerMenuRefresh } = useMenuRefresh();
-  useEffect(() => {
-    const unsubscribe = registerMenuRefresh('Friends', () => {
-      onRefresh();
-    });
-    return unsubscribe;
-  }, [onRefresh, registerMenuRefresh]);
+  }, []);
 
   const handleGridCardPress = useCallback(
     (item) => {
@@ -184,54 +46,14 @@ export default function SuggestionsScreen({ navigation }) {
         />
       }
     >
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Zahtjevi za povezivanje i grupe</Text>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('Friends', {
-              screen: 'FriendsList',
-              params: { mode: 'requests' },
-            })
-          }
-        >
-          <Text style={styles.sectionLink}>Pogledaj sve</Text>
-        </TouchableOpacity>
-      </View>
-
-      {loadingRequests ? (
-        <View style={styles.loaderRow}>
-          <ActivityIndicator color={colors.primary} />
-        </View>
-      ) : (
-        <View style={styles.requestsRow}>
-          {requests.slice(0, 2).map((item) => (
-            <FriendListItem
-              key={item.ref_id || item.id}
-              friend={item}
-              refType={item.ref_type}
-              isRequestList
-              hideStatus
-              approving={approvingRequestId === (item.ref_id || item.id)}
-              onPress={() => handleRequestPress(item)}
-              onApprove={() => handleApprove(item)}
-            />
-          ))}
-          {!requests.length && (
-            <Text style={styles.emptyRequests}>Nema novih zahtjeva.</Text>
-          )}
-        </View>
-      )}
-
-      <View style={styles.sliderWrapper}>
-        <SuggestionSlider
-          linkLabel="Pogledaj sve"
-          onLinkPress={() => navigation.navigate('Friends', { screen: 'FriendsList' })}
-          refreshKey={refreshKey}
-          skipNextHaptic={skipSliderHaptic}
-          skipHapticRef={skipSliderHapticRef}
-          onClearSkip={() => setSkipSliderHaptic(false)}
-        />
-      </View>
+      <SuggestionSlider
+        linkLabel="Pogledaj sve"
+        onLinkPress={() => navigation.navigate('Friends', { screen: 'Suggestions' })}
+        refreshKey={refreshKey}
+        skipNextHaptic={skipSliderHaptic}
+        skipHapticRef={skipSliderHapticRef}
+        onClearSkip={() => setSkipSliderHaptic(false)}
+      />
 
       <RoomSuggestions refreshKey={refreshKey} onRoomPress={(room) => console.log('Open room', room?.name)} />
 
@@ -246,38 +68,5 @@ const createStyles = (colors) =>
       flex: 1,
       backgroundColor: colors.background,
       paddingBottom: 16,
-    },
-    sectionHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: '800',
-      color: colors.text_primary,
-    },
-    sectionLink: {
-      color: colors.primary,
-      fontWeight: '700',
-    },
-    requestsRow: {
-      flexDirection: 'column',
-      gap: 12,
-      paddingHorizontal: 16,
-      paddingBottom: 8,
-    },
-    loaderRow: {
-      paddingVertical: 20,
-      alignItems: 'center',
-    },
-    emptyRequests: {
-      paddingHorizontal: 0,
-      color: colors.text_secondary,
-    },
-    sliderWrapper: {
-      marginTop: 16,
     },
   });

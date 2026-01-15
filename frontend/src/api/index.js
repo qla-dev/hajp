@@ -88,6 +88,14 @@ export const acceptRoomInvite = (roomId) => api.post(`/rooms/${roomId}/invites/a
 export const approveRoomMember = (roomId, userId) => api.post(`/rooms/${roomId}/members/${userId}/approve`);
 export const inviteToRoom = (roomId, userId) =>
   api.post(`/rooms/${roomId}/join`, { user_id: userId, is_invite: 1 });
+export const searchSocial = (query, options = {}) => {
+  const params = {
+    ...(query ? { query } : {}),
+    ...(options.limit ? { limit: options.limit } : {}),
+    ...(options.after ? { after: options.after } : {}),
+  };
+  return api.get('/search', { params });
+};
 export const fetchUserProfile = (userId) => api.get(`/user/${userId}`);
 export const fetchUserRoomsFor = (userId, role = 'user') => api.get(buildUserRoomsPath(userId, role));
 export const fetchUserFriendsCount = (userId) => api.get(`/user/${userId}/friends/count`);

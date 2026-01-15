@@ -21,6 +21,7 @@ import RevealScreen from '../screens/RevealScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import SuggestionsScreen from '../screens/SuggestionsScreen';
 import FriendsScreen from '../screens/FriendsScreen';
+import SearchScreen from '../screens/SearchScreen';
 import CashOutScreen from '../screens/CashOutScreen';
 import NextPollCountdownScreen from '../screens/NextPollCountdownScreen';
 import CreateRoomScreen from '../screens/CreateRoomScreen';
@@ -56,6 +57,8 @@ const customTabIconUriMap = {
 };
 const leaderBoardAsset = require('../../assets/svg/rank.svg');
 const leaderBoardUri = assetUri(leaderBoardAsset);
+const searchAsset = require('../../assets/svg/search.svg');
+const searchUri = assetUri(searchAsset);
 const POLLING_LOGO_STYLE = { width: 70, height: 38 };
 const POLLING_LOGO_CONTAINER_STYLE = {
   alignItems: 'center',
@@ -591,6 +594,23 @@ function FriendsStackNavigator() {
         options={({ navigation }) => ({
           title: 'Mreža',
           headerBackVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.navigate('Search')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <SvgUri
+                uri={searchUri}
+                width={24}
+                height={24}
+                preserveAspectRatio="xMidYMid meet"
+                fill={colors.text_secondary}
+                color={colors.text_secondary}
+                style={[styles.rankIcon, styles.searchIcon]}
+              />
+            </TouchableOpacity>
+          ),
           headerRight: () => (
             <CoinHeaderIndicator
               onPress={() => navigateToProfileHome(navigation)}
@@ -691,6 +711,11 @@ function FriendsStackNavigator() {
             </TouchableOpacity>
           ),
         })}
+      />
+      <FriendsStack.Screen
+        name="Search"
+        component={SearchScreen}
+        options={{ headerShown: false }}
       />
     </FriendsStack.Navigator>
   );
