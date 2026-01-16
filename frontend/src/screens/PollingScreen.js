@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator, Platform, Animated, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator, Animated, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,15 +10,11 @@ import { useSoundEffect } from '../utils/useSoundEffect';
 import Avatar from '../components/Avatar';
 import { BlurView } from 'expo-blur';
 import { Asset } from 'expo-asset';
+import * as Haptics from 'expo-haptics';
 
 const SKIP_LIMIT = 3;
 
 const { width } = Dimensions.get('window');
-let Haptics;
-if (Platform.OS !== 'android') {
-  // defer loading the native module on Android because it may not be available in the current build
-  Haptics = require('expo-haptics');
-}
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 const skipSoundAsset = require('../../assets/sounds/skip.mp3');
 const shuffleSoundAsset = require('../../assets/sounds/shuffle.mp3');
