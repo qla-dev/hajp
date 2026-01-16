@@ -2,7 +2,7 @@
   "expo": {
     "sdkVersion": "54.0.0",
     "name": "HAJP",
-    "slug": "hajp",
+    "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/svg/logo.svg",
@@ -15,7 +15,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.hajp.mobile",
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -33,6 +36,7 @@
       "eas": {
         "projectId": "0774aebf-7264-4db5-a93d-cb233484e86a"
       }
-    }
+    },
+    "owner": "kulasinn"
   }
 }
