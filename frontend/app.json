@@ -2,26 +2,29 @@
   "expo": {
     "sdkVersion": "54.0.0",
     "name": "HAJP",
-    "slug": "frontend",
+    "slug": "hajp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/svg/logo.svg",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/svg/logo.svg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "app.hajp.mobile",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/svg/logo.svg",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.kulasinn.frontend"
+      "package": "app.hajp.mobile",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
