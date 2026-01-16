@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Audio } from 'expo-av';
+import { useSoundEffect } from '../utils/useSoundEffect';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import * as Haptics from 'expo-haptics';
 import { SvgUri } from 'react-native-svg';
@@ -102,9 +102,9 @@ export default function RevealScreen({ route, navigation }) {
   const [coinSvgUri, setCoinSvgUri] = useState(coinAssetDefaultUri || null);
   const [celebrating, setCelebrating] = useState(false);
   const shuffleScale = useRef(new Animated.Value(1)).current;
-  const shuffleSoundRef = useRef(null);
-  const drumsSoundRef = useRef(null);
-  const connectSoundRef = useRef(null);
+  const playShuffleSound = useSoundEffect(shuffleSoundAsset);
+  const playDrumsSound = useSoundEffect(drumsSoundAsset);
+  const playConnectSound = useSoundEffect(connectSoundAsset);
   const redirectTimerRef = useRef(null);
   const isMountedRef = useRef(true);
   const { colors } = useTheme();
@@ -157,37 +157,6 @@ export default function RevealScreen({ route, navigation }) {
     let mounted = true;
     (async () => {
       try {
-        const { sound: shuffleSound } = await Audio.Sound.createAsync(shuffleSoundAsset, { shouldPlay: false });
-        const { sound: drumsSound } = await Audio.Sound.createAsync(drumsSoundAsset, { shouldPlay: false });
-        const { sound: connectSound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        if (mounted) {
-          shuffleSoundRef.current = shuffleSound;
-          drumsSoundRef.current = drumsSound;
-          connectSoundRef.current = connectSound;
-        } else {
-          await shuffleSound.unloadAsync();
-          await drumsSound.unloadAsync();
-          await connectSound.unloadAsync();
-        }
-      } catch {
-        // ignore audio load errors
-      }
-    })();
-    return () => {
-      mounted = false;
-      shuffleSoundRef.current?.unloadAsync();
-      drumsSoundRef.current?.unloadAsync();
-      connectSoundRef.current?.unloadAsync();
-      shuffleSoundRef.current = null;
-      drumsSoundRef.current = null;
-      connectSoundRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
         const asset = Asset.fromModule(coinAsset);
         await asset.downloadAsync();
         if (mounted) {
@@ -200,18 +169,6 @@ export default function RevealScreen({ route, navigation }) {
     return () => {
       mounted = false;
     };
-  }, []);
-
-  const playShuffleSound = useCallback(() => {
-    shuffleSoundRef.current?.replayAsync().catch(() => {});
-  }, []);
-
-  const playDrumsSound = useCallback(() => {
-    drumsSoundRef.current?.replayAsync().catch(() => {});
-  }, []);
-
-  const playConnectSound = useCallback(() => {
-    connectSoundRef.current?.replayAsync().catch(() => {});
   }, []);
 
   const bumpAvatar = useCallback(() => {

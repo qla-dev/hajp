@@ -12,7 +12,7 @@ import {
   TouchableWithoutFeedback,
   useWindowDimensions,
 } from 'react-native';
-import { Audio } from 'expo-av';
+import { useSoundEffect } from '../utils/useSoundEffect';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
@@ -240,17 +240,17 @@ export default function HajpoviScreen({ navigation }) {
       setApprovingRequestId(requestKey);
       try {
         if (refType === 'room-invite') {
-          connectSoundRef.current?.replayAsync().catch(() => {});
+                          playConnectSound();
           await acceptRoomInvite(item.id);
           setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
           Alert.alert('Poziv prihvaćen', `Dobrodošao u grupu ${item.room_name || ''}.`);
         } else if (refType === 'my-room-allowence') {
-          connectSoundRef.current?.replayAsync().catch(() => {});
+                          playConnectSound();
           await approveRoomMember(item.id, item.user_id);
           setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
           Alert.alert('Član odobren', `Korisnik ${item.name || ''} je odobren.`);
         } else {
-          connectSoundRef.current?.replayAsync().catch(() => {});
+                          playConnectSound();
           await approveFriendRequest(friendId);
           setRequests((prev) => prev.filter((r) => r.ref_id !== item.ref_id));
           Alert.alert('Povezivanje uspjelo', `Sada ste povezani sa korisnikom ${item.name || ''}.`);
@@ -330,33 +330,12 @@ export default function HajpoviScreen({ navigation }) {
   }, []);
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        if (mounted) {
-          connectSoundRef.current = sound;
-        } else {
-          await sound.unloadAsync();
-        }
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      mounted = false;
-      connectSoundRef.current?.unloadAsync();
-      connectSoundRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
     loadCurrentTab();
   }, [loadCurrentTab]);
 
   const votesListRef = useRef(null);
   const messagesListRef = useRef(null);
-  const connectSoundRef = useRef(null);
+  const playConnectSound = useSoundEffect(connectSoundAsset);
   const scrollVotesToTop = useCallback(() => {
     const list = votesListRef.current;
     if (!list) return;

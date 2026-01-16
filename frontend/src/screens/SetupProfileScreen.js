@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo, useRef, useState, useEffect } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useThemedStyles } from '../theme/darkMode';
 import * as Haptics from 'expo-haptics';
-import { Audio } from 'expo-av';
+import { useSoundEffect } from '../utils/useSoundEffect';
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
@@ -126,17 +126,17 @@ function CountryStep({ selected, onSelect, styles }) {
 // -----------------------------------------------------------------------------
 
 function AgeStep({ age, onSelect, styles }) {
-  const soundRef = useRef(null);
+  const playConnectSound = useSoundEffect(connectSoundAsset);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        soundRef.current = sound;
-      } catch {}
-    })();
-    return () => soundRef.current?.unloadAsync();
-  }, []);
+  const handleSelectValue = useCallback(
+    (value) => {
+      if (!value || value === age) return;
+      onSelect(value);
+      Haptics.selectionAsync().catch(() => {});
+      playConnectSound();
+    },
+    [age, onSelect, playConnectSound],
+  );
 
   return (
     <View style={styles.stepContentFullWidth}>
@@ -149,23 +149,18 @@ function AgeStep({ age, onSelect, styles }) {
         snapToInterval={AGE_ITEM_WIDTH}
         decelerationRate="fast"
         contentContainerStyle={styles.ageRow}
-        onMomentumScrollEnd={e => {
+        onMomentumScrollEnd={(e) => {
           const index = Math.round(e.nativeEvent.contentOffset.x / AGE_ITEM_WIDTH);
-          const value = ages[index];
-          if (value && value !== age) {
-            onSelect(value);
-            Haptics.selectionAsync().catch(() => {});
-            soundRef.current?.replayAsync().catch(() => {});
-          }
+          handleSelectValue(ages[index]);
         }}
       >
-        {ages.map(a => (
-          <View key={a} style={{ width: AGE_ITEM_WIDTH, alignItems: 'center' }}>
+        {ages.map((value) => (
+          <View key={value} style={{ width: AGE_ITEM_WIDTH, alignItems: 'center' }}>
             <TouchableOpacity
-              style={[styles.ageChip, a === age && styles.ageChipActive]}
-              onPress={() => onSelect(a)}
+              style={[styles.ageChip, value === age && styles.ageChipActive]}
+              onPress={() => handleSelectValue(value)}
             >
-              <Text style={[styles.ageText, a === age && styles.ageTextActive]}>{a}</Text>
+              <Text style={[styles.ageText, value === age && styles.ageTextActive]}>{value}</Text>
             </TouchableOpacity>
           </View>
         ))}

@@ -16,7 +16,7 @@ import LottieView from 'lottie-react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { updateCoinBalance, getCachedCoinBalance } from '../utils/coinHeaderTracker';
 import * as Haptics from 'expo-haptics';
-import { Audio } from 'expo-av';
+import { useSoundEffect } from '../utils/useSoundEffect';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import BottomCTA from '../components/BottomCTA';
@@ -48,8 +48,8 @@ export default function CashOutScreen({ route, navigation }) {
   const [payoutCoins, setPayoutCoins] = useState(() => deriveAmount(coinsEarned ?? cashoutAmount));
   const confettiTimer = useRef(null);
   const confettiRef = useRef(null);
-  const coinSoundRef = useRef(null);
-  const applauseSoundRef = useRef(null);
+  const playCoinSound = useSoundEffect(coinSoundAsset);
+  const playApplauseSound = useSoundEffect(applauseSoundAsset);
   const handleConfettiComplete = () => setCelebrating(false);
   const fetchCashoutAmount = useCallback(async () => {
     if (!roomId) return null;
@@ -100,38 +100,27 @@ export default function CashOutScreen({ route, navigation }) {
     }
   }, [coinSvgUri]);
 
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(coinSoundAsset, { shouldPlay: false });
-        const { sound: applause } = await Audio.Sound.createAsync(applauseSoundAsset, { shouldPlay: false });
-        const coinUri = await preloadCoinAsset();
-        if (coinUri) preloadedCoinUriRef.current = coinUri;
-        if (isMounted && coinUri) setCoinSvgUri((prev) => prev || coinUri);
-        if (isMounted) {
-          coinSoundRef.current = sound;
-          applauseSoundRef.current = applause;
-          // Kick off celebration on load
-          Haptics.selectionAsync().catch(() => {});
-          applause.replayAsync().then(() => fadeOutApplause()).catch(() => {});
-          setCelebrating(true);
-        } else {
-          await sound.unloadAsync();
-          await applause.unloadAsync();
+  const fadeOutApplause = useCallback(() => {
+    const player = playApplauseSound.getPlayer?.();
+    if (!player) return;
+    setTimeout(() => {
+      let volume = 1;
+      const step = 0.12;
+      const interval = setInterval(() => {
+        volume = Math.max(0, volume - step);
+        player.volume = volume;
+        if (volume <= 0) {
+          clearInterval(interval);
+          player
+            .stop()
+            .catch(() => {})
+            .finally(() => {
+              player.volume = 1;
+            });
         }
-      } catch (loadError) {
-        console.warn('Failed to load coin sound', loadError);
-      }
-    })();
-    return () => {
-      isMounted = false;
-      coinSoundRef.current?.unloadAsync();
-      applauseSoundRef.current?.unloadAsync();
-      coinSoundRef.current = null;
-      applauseSoundRef.current = null;
-    };
-  }, [preloadCoinAsset]);
+      }, 120);
+    }, 5000);
+  }, [playApplauseSound]);
 
   useEffect(() => {
     fetchCashoutAmount();
@@ -150,32 +139,28 @@ export default function CashOutScreen({ route, navigation }) {
       });
   }, []);
 
-  const playCoinSound = () => {
-    coinSoundRef.current?.replayAsync().catch(() => {});
-  };
-
-  const fadeOutApplause = () => {
-    const sound = applauseSoundRef.current;
-    if (!sound) return;
-    // Let it play at full volume for ~5s, then fade over ~1s
-    setTimeout(() => {
-      let volume = 1;
-      const step = 0.12;
-      const interval = setInterval(async () => {
-        volume = Math.max(0, volume - step);
-        try {
-          await sound.setVolumeAsync(volume);
-          if (volume <= 0) {
-            clearInterval(interval);
-            await sound.stopAsync();
-            await sound.setVolumeAsync(1);
-          }
-        } catch {
-          clearInterval(interval);
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const coinUri = await preloadCoinAsset();
+        if (coinUri) {
+          preloadedCoinUriRef.current = coinUri;
+          if (isMounted) setCoinSvgUri((prev) => prev || coinUri);
         }
-      }, 120);
-    }, 5000);
-  };
+        if (!isMounted) return;
+        Haptics.selectionAsync().catch(() => {});
+        playApplauseSound();
+        fadeOutApplause();
+        setCelebrating(true);
+      } catch (loadError) {
+        console.warn('Failed to load coin sound', loadError);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [preloadCoinAsset, playApplauseSound, fadeOutApplause]);
 
   const handleCashout = async () => {
     if (!roomId) return;

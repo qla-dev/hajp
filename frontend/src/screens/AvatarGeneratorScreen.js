@@ -16,7 +16,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import * as Haptics from 'expo-haptics';
-import { Audio } from 'expo-av';
 import { Asset } from 'expo-asset';
 import { SvgUri } from 'react-native-svg';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
@@ -24,6 +23,7 @@ import { updateCurrentUser } from '../api';
 import { emitProfileUpdated } from '../utils/profileEvents';
 import Avatar from '../components/Avatar';
 import MenuTab from '../components/MenuTab';
+import { useSoundEffect } from '../utils/useSoundEffect';
 
 import defaultConfig from '../../assets/json/avatar/avatarDefaultConfig.json';
 import colorsData from '../../assets/json/avatar/avatarColors.json';
@@ -235,8 +235,8 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
   );
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiPressed, setAiPressed] = useState(false);
-  const shuffleSoundRef = useRef(null);
-  const optionSoundRef = useRef(null);
+  const playShuffleSound = useSoundEffect(shuffleSoundAsset);
+  const playOptionSound = useSoundEffect(connectSoundAsset);
   const optionsAnim = useRef(new Animated.Value(1)).current;
   const optionDragRef = useRef(false);
   const optionsScrollRef = useRef(null);
@@ -289,56 +289,6 @@ export default function AvatarGeneratorScreen({ navigation, route }) {
     }
     return '#fff';
   }, [colors.background]);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(shuffleSoundAsset, { shouldPlay: false });
-        if (mounted) {
-          shuffleSoundRef.current = sound;
-        } else {
-          await sound.unloadAsync();
-        }
-      } catch {
-        // ignore load errors
-      }
-    })();
-    return () => {
-      mounted = false;
-      shuffleSoundRef.current?.unloadAsync();
-      shuffleSoundRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        if (mounted) {
-          optionSoundRef.current = sound;
-        } else {
-          await sound.unloadAsync();
-        }
-      } catch {
-        // ignore load errors
-      }
-    })();
-    return () => {
-      mounted = false;
-      optionSoundRef.current?.unloadAsync();
-      optionSoundRef.current = null;
-    };
-  }, []);
-
-  const playShuffleSound = useCallback(() => {
-    shuffleSoundRef.current?.replayAsync().catch(() => {});
-  }, []);
-
-  const playOptionSound = useCallback(() => {
-    optionSoundRef.current?.replayAsync().catch(() => {});
-  }, []);
 
   const handleTabChange = useCallback(
     (key) => {

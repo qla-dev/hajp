@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SvgUri } from 'react-native-svg';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL, fetchActiveQuestion, fetchRoomCashoutStatus, refreshQuestionOptions, voteQuestion, skipQuestion } from '../api';
-import { Audio } from 'expo-av';
+import { useSoundEffect } from '../utils/useSoundEffect';
 import Avatar from '../components/Avatar';
 import { BlurView } from 'expo-blur';
 import { Asset } from 'expo-asset';
@@ -75,9 +75,6 @@ export default function PollingScreen({ route, navigation }) {
   const [zoomAvatar, setZoomAvatar] = useState(null);
   const [zoomVisible, setZoomVisible] = useState(false);
   const zoomAnim = useRef(new Animated.Value(0)).current;
-  const connectSoundRef = useRef(null);
-  const skipSoundRef = useRef(null);
-  const shuffleSoundRef = useRef(null);
   const emojis = useMemo(() => ['🔥', '🚀', '💎', '🏆', '🎉', '✨'], []);
   const backgrounds = useMemo(
     () => [
@@ -156,44 +153,16 @@ export default function PollingScreen({ route, navigation }) {
     };
   }, []);
 
+  const playConnectSound = useSoundEffect(connectSoundAsset);
+  const playSkipSound = useSoundEffect(skipSoundAsset);
+  const playShuffleSound = useSoundEffect(shuffleSoundAsset, { volume: 0.1 });
+
   useEffect(() => {
     setSkippedCount(0);
     setAnsweredCount(0);
     setTotal(0);
     setIndex(0);
   }, [roomId]);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        const { sound: skipSound } = await Audio.Sound.createAsync(skipSoundAsset, { shouldPlay: false });
-        const { sound: shuffleSound } = await Audio.Sound.createAsync(shuffleSoundAsset, { shouldPlay: false });
-        await shuffleSound.setVolumeAsync(0.1);
-        if (mounted) {
-          connectSoundRef.current = sound;
-          skipSoundRef.current = skipSound;
-          shuffleSoundRef.current = shuffleSound;
-        } else {
-          await sound.unloadAsync();
-          await skipSound.unloadAsync();
-          await shuffleSound.unloadAsync();
-        }
-      } catch {
-        // ignore sound load errors
-      }
-    })();
-    return () => {
-      mounted = false;
-      connectSoundRef.current?.unloadAsync();
-      skipSoundRef.current?.unloadAsync();
-      shuffleSoundRef.current?.unloadAsync();
-      connectSoundRef.current = null;
-      skipSoundRef.current = null;
-      shuffleSoundRef.current = null;
-    };
-  }, []);
 
   const handleNoActivePoll = useCallback(async () => {
     if (!roomId) return;
@@ -269,7 +238,7 @@ export default function PollingScreen({ route, navigation }) {
     if (!question || interactionLocked) return;
     setInteractionLocked(true);
     Haptics?.impactAsync?.(Haptics?.ImpactFeedbackStyle?.Medium)?.catch(() => {});
-    connectSoundRef.current?.replayAsync().catch(() => {});
+    playConnectSound();
     try {
       await voteQuestion(question.id, option, roomId);
       setAnsweredCount((prev) => {
@@ -287,7 +256,7 @@ export default function PollingScreen({ route, navigation }) {
   const handleShuffle = async () => {
     if (!question) return;
     Haptics?.impactAsync?.(Haptics?.ImpactFeedbackStyle?.Light)?.catch(() => {});
-    shuffleSoundRef.current?.replayAsync().catch(() => {});
+    playShuffleSound();
     try {
       const { data } = await refreshQuestionOptions(question.id);
       setQuestion({ ...question, ...data });
@@ -307,7 +276,7 @@ export default function PollingScreen({ route, navigation }) {
     if (interactionLocked) return;
     setInteractionLocked(true);
     Haptics?.selectionAsync?.()?.catch(() => {});
-    skipSoundRef.current?.replayAsync().catch(() => {});
+    playSkipSound();
     try {
       await skipQuestion(question.id, roomId);
     } catch {}

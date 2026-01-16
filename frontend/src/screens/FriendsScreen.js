@@ -25,7 +25,7 @@ import {
 } from '../api';
 import FriendListItem from '../components/FriendListItem';
 import { useRoomSheet } from '../context/roomSheetContext';
-import { Audio } from 'expo-av';
+import { useSoundEffect } from '../utils/useSoundEffect';
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 
 export default function FriendsScreen({ navigation, route }) {
@@ -45,25 +45,7 @@ export default function FriendsScreen({ navigation, route }) {
   const isRequestList = mode === 'requests';
   const isGroupInvite = mode === 'group-invite';
   const isBlockedList = mode === 'blocked';
-  const connectSoundRef = React.useRef(null);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        if (mounted) connectSoundRef.current = sound;
-        else await sound.unloadAsync();
-      } catch {
-        // ignore load errors
-      }
-    })();
-    return () => {
-      mounted = false;
-      connectSoundRef.current?.unloadAsync();
-      connectSoundRef.current = null;
-    };
-  }, []);
+  const playConnectSound = useSoundEffect(connectSoundAsset);
 
   const loadFriends = useCallback(async () => {
     setLoading(true);
@@ -336,7 +318,7 @@ export default function FriendsScreen({ navigation, route }) {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
                         if (refType === 'room-invite') {
                           try {
-                            connectSoundRef.current?.replayAsync().catch(() => {});
+                            playConnectSound();
                             const { data } = await acceptRoomInvite(item.id);
                             const roomName = item.room_name || '';
                             Alert.alert(
@@ -349,7 +331,7 @@ export default function FriendsScreen({ navigation, route }) {
                           }
                         } else if (refType === 'my-room-allowence') {
                           try {
-                            connectSoundRef.current?.replayAsync().catch(() => {});
+                            playConnectSound();
                             const { data } = await approveRoomMember(item.id, item.user_id);
                             Alert.alert(
                               'Član odobren',
@@ -361,7 +343,7 @@ export default function FriendsScreen({ navigation, route }) {
                           }
                         } else {
                           try {
-                            connectSoundRef.current?.replayAsync().catch(() => {});
+                            playConnectSound();
                             const { data } = await approveFriendRequest(approveTargetId);
                             const name = item.name || item.username || 'korisnikom';
                             Alert.alert(

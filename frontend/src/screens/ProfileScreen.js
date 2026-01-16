@@ -25,7 +25,7 @@ import BottomCTA from '../components/BottomCTA';
 import SuggestionSlider from '../components/SuggestionSlider';
 import Avatar from '../components/Avatar';
 import * as Haptics from 'expo-haptics';
-import { Audio } from 'expo-av';
+import { useSoundEffect } from '../utils/useSoundEffect';
 import NoteBottomSheet from '../components/NoteBottomSheet';
 import BadgesPreview from '../components/BadgesPreview';
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
@@ -63,7 +63,7 @@ export default function ProfileScreen({ navigation, route }) {
   const marqueeAnim = useRef(new Animated.Value(0)).current;
   const marqueeLoop = useRef(null);
   const MARQUEE_SPACER = 32;
-  const connectSoundRef = useRef(null);
+  const playConnectSound = useSoundEffect(connectSoundAsset);
   const derivedTextWidth = Math.max(noteTextWidth, (noteDisplay?.length || 0) * 12);
   const marqueeDistance = derivedTextWidth + MARQUEE_SPACER;
 
@@ -80,31 +80,10 @@ export default function ProfileScreen({ navigation, route }) {
     };
   }, []);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        if (mounted) {
-          connectSoundRef.current = sound;
-        } else {
-          await sound.unloadAsync();
-        }
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      mounted = false;
-      connectSoundRef.current?.unloadAsync();
-      connectSoundRef.current = null;
-    };
-  }, []);
-
   const playConnectFeedback = useCallback(() => {
     Haptics.selectionAsync().catch(() => {});
-    connectSoundRef.current?.replayAsync().catch(() => {});
-  }, []);
+    playConnectSound();
+  }, [playConnectSound]);
 
   const panResponder = useRef(
     PanResponder.create({

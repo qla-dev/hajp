@@ -11,7 +11,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import * as Haptics from 'expo-haptics';
-import { Audio } from 'expo-av';
+import { useSoundEffect } from '../utils/useSoundEffect';
 import { fetchFriendSuggestions, addFriend } from '../api';
 import Avatar from './Avatar';
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
@@ -25,7 +25,7 @@ export default function SuggestionGrid({ title = 'Još preporuka', refreshKey, o
   const [fadeValues] = useState({});
   const navigation = useNavigation();
   const hapticCooldownRef = useRef(0);
-  const connectSoundRef = useRef(null);
+  const playConnectSound = useSoundEffect(connectSoundAsset);
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -43,32 +43,11 @@ export default function SuggestionGrid({ title = 'Još preporuka', refreshKey, o
     loadItems();
   }, [loadItems, refreshKey]);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        if (mounted) {
-          connectSoundRef.current = sound;
-        } else {
-          await sound.unloadAsync();
-        }
-      } catch {
-        // ignore load errors
-      }
-    })();
-    return () => {
-      mounted = false;
-      connectSoundRef.current?.unloadAsync();
-      connectSoundRef.current = null;
-    };
-  }, []);
-
   const handleConnect = async (item) => {
     if (!item?.id || pendingId === item.id) return;
 
     Haptics.selectionAsync().catch(() => {});
-    connectSoundRef.current?.replayAsync().catch(() => {});
+    playConnectSound();
 
     if (!fadeValues[item.id]) {
       fadeValues[item.id] = new Animated.Value(1);

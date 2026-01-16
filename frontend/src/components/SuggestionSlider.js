@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
-import { Audio } from 'expo-av';
+import { useSoundEffect } from '../utils/useSoundEffect';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { fetchFriendSuggestions, addFriend } from '../api';
 import Avatar from './Avatar';
@@ -42,7 +42,7 @@ export default function SuggestionSlider({
   const hapticCooldownRef = useRef(0);
   const tapTriggeredRef = useRef(false);
   const draggingRef = useRef(false);
-  const connectSoundRef = useRef(null);
+  const playConnectSound = useSoundEffect(connectSoundAsset);
 
   const loadSuggestions = useCallback(async () => {
     setLoading(true);
@@ -60,32 +60,11 @@ export default function SuggestionSlider({
     loadSuggestions();
   }, [loadSuggestions, refreshKey]);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        if (mounted) {
-          connectSoundRef.current = sound;
-        } else {
-          await sound.unloadAsync();
-        }
-      } catch {
-        // ignore load errors
-      }
-    })();
-    return () => {
-      mounted = false;
-      connectSoundRef.current?.unloadAsync();
-      connectSoundRef.current = null;
-    };
-  }, []);
-
   const handleConnect = async (item) => {
     if (!item.id || pendingId === item.id) return;
 
     Haptics.selectionAsync().catch(() => {});
-    connectSoundRef.current?.replayAsync().catch(() => {});
+    playConnectSound();
 
     if (!fadeValues[item.id]) {
       fadeValues[item.id] = new Animated.Value(1);

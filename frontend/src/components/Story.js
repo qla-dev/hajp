@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
-import { Video } from 'expo-av';
+import { Video } from 'expo-video';
 import { useTheme } from '../theme/darkMode';
 
 export default function Story({ story, style }) {

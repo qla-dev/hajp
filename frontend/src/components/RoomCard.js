@@ -5,7 +5,7 @@ import { useTheme, useThemedStyles } from '../theme/darkMode';
 import { baseURL } from '../api';
 import { vibeOptions } from '../data/vibes';
 import * as Haptics from 'expo-haptics';
-import { Audio } from 'expo-av';
+import { useSoundEffect } from '../utils/useSoundEffect';
 const connectSoundAsset = require('../../assets/sounds/connect.mp3');
 
 const FALLBACK_COVER =
@@ -14,7 +14,7 @@ const FALLBACK_COVER =
 export default function RoomCard({ room = {}, onPress, onJoin, joining, connectButtonHide = 0 }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
-  const connectSoundRef = useRef(null);
+  const playConnectSound = useSoundEffect(connectSoundAsset);
   const normalizedCoverUrl = room.cover_url || room.cover;
   const coverUri = normalizedCoverUrl
     ? `${baseURL.replace(/\/$/, '')}${normalizedCoverUrl}`
@@ -99,31 +99,10 @@ export default function RoomCard({ room = {}, onPress, onJoin, joining, connectB
     );
   };
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { sound } = await Audio.Sound.createAsync(connectSoundAsset, { shouldPlay: false });
-        if (mounted) {
-          connectSoundRef.current = sound;
-        } else {
-          await sound.unloadAsync();
-        }
-      } catch {
-        // ignore sound load errors
-      }
-    })();
-    return () => {
-      mounted = false;
-      connectSoundRef.current?.unloadAsync();
-      connectSoundRef.current = null;
-    };
-  }, []);
-
   const playConnectFeedback = useCallback(() => {
     Haptics.selectionAsync().catch(() => {});
-    connectSoundRef.current?.replayAsync().catch(() => {});
-  }, []);
+    playConnectSound();
+  }, [playConnectSound]);
 
   const handleJoin = () => {
     playConnectFeedback();
