@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard, LayoutAnimation, UIManager, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { login, baseURL } from '../api';
+import { login } from '../api';
 import FormTextInput from '../components/FormTextInput';
+import useGoogleAuth from '../hooks/useGoogleAuth';
 
 const logoAsset = require('../../assets/svg/logo.svg');
 const logoUri = Image.resolveAssetSource(logoAsset)?.uri;
@@ -16,6 +17,10 @@ try {
 } catch {
   Haptics = null;
 }
+
+const triggerHaptic = () => {
+  Haptics?.selectionAsync?.().catch(() => {});
+};
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -30,6 +35,12 @@ export default function LoginScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const keyboardOffset = Platform.select({ ios: -20, android: 0 }); // tweak this value to move content when keyboard shows
+  const handleGoogleSuccess = useCallback(() => {
+    navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+  }, [navigation]);
+  const { signIn: signInWithGoogle, loading: googleLoading, ready: googleReady } = useGoogleAuth({
+    onSuccess: handleGoogleSuccess,
+  });
 
   useEffect(() => {
     const asset = Asset.fromModule(logoAsset);
@@ -65,7 +76,7 @@ export default function LoginScreen({ navigation }) {
   }, []);
 
   const onLogin = async () => {
-    Haptics?.selectionAsync?.().catch(() => {});
+    triggerHaptic();
     if (!identifier || !password) {
       Alert.alert('Greška', 'Popunite sva polja.');
       return;
@@ -131,7 +142,7 @@ export default function LoginScreen({ navigation }) {
 
         <TouchableOpacity
           onPress={() => {
-            Haptics.selectionAsync?.().catch(() => {});
+            triggerHaptic();
             navigation.navigate('Register');
           }}
           style={styles.registerLink}
@@ -148,9 +159,22 @@ export default function LoginScreen({ navigation }) {
             <View style={styles.divider} />
           </View>
           <View style={styles.socialRow}>
-            <TouchableOpacity style={styles.socialButton} onPress={() => alert('Google prijava uskoro')}>
+            <TouchableOpacity
+              style={[
+                styles.socialButton,
+                (!googleReady || googleLoading) && styles.socialButtonDisabled,
+              ]}
+              onPress={() => {
+                triggerHaptic();
+                signInWithGoogle();
+              }}
+              disabled={!googleReady || googleLoading}
+            >
               <Ionicons name="logo-google" size={22} color="#DB4437" />
               <Text style={styles.socialText}>Google</Text>
+              {googleLoading && (
+                <ActivityIndicator size="small" color="#DB4437" style={styles.socialLoadingIndicator} />
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.socialButton} onPress={() => alert('Apple prijava uskoro')}>
               <Ionicons name="logo-apple" size={22} color={colors.text_primary} />
@@ -300,9 +324,15 @@ const createStyles = (colors) =>
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
+    socialButtonDisabled: {
+      opacity: 0.6,
+    },
     socialText: {
       marginLeft: 8,
       fontWeight: '700',
       color: colors.text_primary,
+    },
+    socialLoadingIndicator: {
+      marginLeft: 8,
     },
   });

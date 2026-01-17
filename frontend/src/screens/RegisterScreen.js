@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -18,8 +18,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { useTheme, useThemedStyles } from '../theme/darkMode';
-import { register, baseURL } from '../api';
+import { register } from '../api';
 import FormTextInput from '../components/FormTextInput';
+import useGoogleAuth from '../hooks/useGoogleAuth';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -54,6 +55,28 @@ export default function RegisterScreen({ navigation }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const keyboardOffset = Platform.select({ ios: 0, android: 0 }); // keep zero to avoid extra padding when keyboard opens
+  const handleGoogleSuccess = useCallback(
+    (data) => {
+      const isNewUser = data?.is_new_user;
+      const route = isNewUser ? 'AvatarGenerator' : 'Main';
+      const routeConfig = {
+        name: route,
+        ...(isNewUser
+          ? {
+              params: { authUserGender: defaultAuthUserGender, isSetup: 1 },
+            }
+          : {}),
+      };
+      navigation.reset({
+        index: 0,
+        routes: [routeConfig],
+      });
+    },
+    [defaultAuthUserGender, navigation],
+  );
+  const { signIn: signInWithGoogle, loading: googleLoading, ready: googleReady } = useGoogleAuth({
+    onSuccess: handleGoogleSuccess,
+  });
 
   useEffect(() => {
     const asset = Asset.fromModule(logoAsset);
@@ -282,10 +305,20 @@ export default function RegisterScreen({ navigation }) {
               <View style={styles.divider} />
             </View>
             <View style={styles.socialRow}>
-              <TouchableOpacity style={styles.socialButton} onPress={() => alert('Google prijava uskoro')}>
-                <Ionicons name="logo-google" size={22} color="#DB4437" />
-                <Text style={styles.socialText}>Google</Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.socialButton, (!googleReady || googleLoading) && styles.socialButtonDisabled]}
+              onPress={() => {
+                triggerHaptic();
+                signInWithGoogle();
+              }}
+              disabled={!googleReady || googleLoading}
+            >
+              <Ionicons name="logo-google" size={22} color="#DB4437" />
+              <Text style={styles.socialText}>Google</Text>
+              {googleLoading && (
+                <ActivityIndicator size="small" color="#DB4437" style={styles.socialLoadingIndicator} />
+              )}
+            </TouchableOpacity>
               <TouchableOpacity style={styles.socialButton} onPress={() => alert('Apple prijava uskoro')}>
                 <Ionicons name="logo-apple" size={22} color={colors.text_primary} />
                 <Text style={styles.socialText}>Apple</Text>
@@ -439,10 +472,16 @@ const createStyles = (colors) =>
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
+    socialButtonDisabled: {
+      opacity: 0.6,
+    },
     socialText: {
       marginLeft: 8,
       fontWeight: '700',
       color: colors.text_primary,
+    },
+    socialLoadingIndicator: {
+      marginLeft: 8,
     },
     errorText: {
       color: colors.error,

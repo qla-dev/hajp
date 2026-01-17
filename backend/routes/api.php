@@ -17,6 +17,7 @@ use App\Http\Controllers\UserController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/auth/google', [AuthController::class, 'googleLogin']);
 
 Route::get('/questions', [QuestionController::class, 'index']);
 Route::get('/questions/{question}', [QuestionController::class, 'show']);

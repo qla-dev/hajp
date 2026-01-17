@@ -23,6 +23,13 @@ export const login = async (payload) => {
   global.__HAJP_TOKEN__ = data.token;
   return data;
 };
+export const googleLogin = async (payload) => {
+  const { data } = await api.post('/auth/google', payload);
+  if (data?.token) {
+    global.__HAJP_TOKEN__ = data.token;
+  }
+  return data;
+};
 export const fetchRooms = () => api.get('/rooms');
 export const createRoom = (payload) =>
   payload instanceof FormData
