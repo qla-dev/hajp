@@ -7,14 +7,14 @@
     "icon": "./assets/svg/logo.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/svg/logo.png",
+      "image": "./assets/svg/logo-splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.hajp.mobile",
-      "buildNumber": "1",
+      "bundleIdentifier": "hajp.app.mobile",
+      "buildNumber": "3",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -25,7 +25,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "app.hajp.mobile",
+      "package": "hajp.app.mobile",
       "versionCode": 1
     },
     "web": {
