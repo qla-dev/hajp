@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Poll extends Model
 {
-    protected $fillable = ['room_id', 'status'];
+    protected $fillable = ['room_id', 'vibes', 'status'];
 
     public function room(): BelongsTo
     {

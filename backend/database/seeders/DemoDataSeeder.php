@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\AnonymousInbox;
 use App\Models\AnonymousMessage;
 use App\Models\Poll;
 use App\Models\Question;
@@ -40,23 +39,21 @@ class DemoDataSeeder extends Seeder
 
         foreach ($firstNames as $index => $firstName) {
             $lastName = $lastNames[$index];
-            $user = User::create([
+            $email = strtolower($firstName . '.' . $lastName . '@school.com');
+            $user = User::updateOrCreate([
+                'email' => $email,
+            ], [
                 'name' => $firstName . ' ' . $lastName,
                 'username' => strtolower($firstName . $lastName . $index),
-                'email' => strtolower($firstName . '.' . $lastName . '@school.com'),
                 'password' => Hash::make('password123'),
                 'profile_photo' => null,
                 'is_subscribed' => rand(0, 1) === 1,
             ]);
 
-            AnonymousInbox::create([
-                'user_id' => $user->id,
-                'share_link' => 'https://hajp.app/inbox/' . strtolower($firstName . $lastName),
-            ]);
-
             if ($user->is_subscribed) {
-                Subscription::create([
+                Subscription::updateOrCreate([
                     'user_id' => $user->id,
+                ], [
                     'expires_at' => now()->addMonth(),
                 ]);
             }
@@ -86,8 +83,9 @@ class DemoDataSeeder extends Seeder
             'Drop in for micro podcasts, snappy polls, and zero drama.',
         ];
         foreach ($roomNames as $index => $roomName) {
-            $rooms[$roomName] = Room::create([
+            $rooms[$roomName] = Room::updateOrCreate([
                 'name' => $roomName,
+            ], [
                 'type' => 'public',
                 'is_18_over' => false,
                 'cover_url' => $covers[$index % count($covers)],
@@ -128,8 +126,9 @@ class DemoDataSeeder extends Seeder
 
         foreach ($rooms as $room) {
             $creator = $users[array_rand($users)];
-            $poll = Poll::create([
-                'room_id' => $room->id,
+            $poll = Poll::firstOrCreate([
+                'vibes' => json_encode([$room->type]),
+            ], [
                 'status' => 'active',
             ]);
 
@@ -138,9 +137,10 @@ class DemoDataSeeder extends Seeder
                 $optionUsers = User::whereIn('id', $roomUserIds)->inRandomOrder()->take(4)->get();
 
                 if ($optionUsers->count() >= 2) {
-                    $question = Question::create([
+                    $question = Question::firstOrCreate([
                         'poll_id' => $poll->id,
                         'question' => $pollData['question'],
+                    ], [
                         'emoji' => $pollData['emoji'] ?? null,
                         'creator_id' => $creator->id,
                     ]);
@@ -179,14 +179,12 @@ class DemoDataSeeder extends Seeder
         ];
 
         foreach ($users as $user) {
-            $inbox = $user->anonymousInbox;
-            if ($inbox) {
+            if (!AnonymousMessage::where('user_id', $user->id)->exists()) {
                 $messageCount = rand(2, 8);
                 for ($i = 0; $i < $messageCount; $i++) {
                     AnonymousMessage::create([
-                        'inbox_id' => $inbox->id,
+                        'user_id' => $user->id,
                         'message' => $anonymousMessages[array_rand($anonymousMessages)],
-                        'metadata' => json_encode(['gender' => rand(0, 1) ? 'boy' : 'girl']),
                     ]);
                 }
             }

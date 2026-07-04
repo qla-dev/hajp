@@ -131,10 +131,123 @@ class AuthController extends Controller
         ]);
     }
 
+    public function google(Request $request)
+    {
+        $validated = $request->validate([
+            'id_token' => ['required', 'string'],
+            'terms_accepted' => ['sometimes', 'boolean'],
+        ], [
+            'id_token.required' => 'Google token je neophodan.',
+        ]);
+
+        $googleUser = $this->verifyGoogleIdToken($validated['id_token']);
+        $email = $googleUser['email'] ?? null;
+        $googleId = $googleUser['sub'] ?? null;
+
+        if (!$email || !$googleId) {
+            throw ValidationException::withMessages([
+                'id_token' => ['Google nalog nije vratio ispravan email.'],
+            ]);
+        }
+
+        $user = User::query()
+            ->where('google_id', $googleId)
+            ->orWhere('email', $email)
+            ->first();
+        $isNewUser = false;
+
+        if ($user) {
+            if ($user->google_id && $user->google_id !== $googleId) {
+                throw ValidationException::withMessages([
+                    'id_token' => ['Ovaj email je vec povezan sa drugim Google nalogom.'],
+                ]);
+            }
+
+            $user->forceFill([
+                'google_id' => $user->google_id ?: $googleId,
+                'email_verified_at' => $user->email_verified_at ?: now(),
+            ])->save();
+        } else {
+            $name = trim((string) ($googleUser['name'] ?? '')) ?: Str::before($email, '@');
+            $user = User::query()->create([
+                'name' => $name,
+                'username' => $this->generateGoogleUsername($email, $name),
+                'email' => $email,
+                'google_id' => $googleId,
+                'email_verified_at' => now(),
+                'password' => Hash::make(Str::random(48)),
+            ]);
+            $isNewUser = true;
+        }
+
+        return response()->json([
+            'message' => 'Google prijava je uspjesna.',
+            'token' => $user->createToken('api')->plainTextToken,
+            'user' => $user->refresh(),
+            'is_new_user' => $isNewUser,
+        ]);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->tokens()->delete();
         return response()->json(['ok' => true]);
+    }
+
+    private function verifyGoogleIdToken(string $idToken): array
+    {
+        $clientIds = config('services.google.client_ids', []);
+
+        if ($clientIds === []) {
+            throw ValidationException::withMessages([
+                'id_token' => ['Google prijava nije konfigurisana.'],
+            ]);
+        }
+
+        $response = Http::asJson()->get('https://oauth2.googleapis.com/tokeninfo', [
+            'id_token' => $idToken,
+        ]);
+
+        if (!$response->ok()) {
+            throw ValidationException::withMessages([
+                'id_token' => ['Google token nije ispravan.'],
+            ]);
+        }
+
+        $payload = $response->json();
+
+        if (!in_array($payload['aud'] ?? null, $clientIds, true)) {
+            throw ValidationException::withMessages([
+                'id_token' => ['Google token nije namijenjen ovoj aplikaciji.'],
+            ]);
+        }
+
+        if (($payload['email_verified'] ?? null) !== true && ($payload['email_verified'] ?? null) !== 'true') {
+            throw ValidationException::withMessages([
+                'id_token' => ['Google email nije verifikovan.'],
+            ]);
+        }
+
+        return $payload;
+    }
+
+    private function generateGoogleUsername(string $email, string $name): string
+    {
+        $base = Str::slug(Str::before($email, '@'), '_')
+            ?: Str::slug($name, '_')
+            ?: 'hajp';
+        $base = Str::lower($base);
+        $base = Str::limit($base, 42, '');
+        $username = $base;
+        $counter = 1;
+
+        while (User::where('username', $username)->exists()) {
+            $suffix = "_{$counter}";
+            $username = Str::limit($base, 50 - strlen($suffix), '') . $suffix;
+            $counter += 1;
+        }
+
+        return $username;
     }
 
     private function generateUsername(array $payload, string $email): string

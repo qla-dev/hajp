@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -10,6 +11,12 @@ return new class extends Migration
     {
         if (Schema::hasTable('polls')) {
             Schema::disableForeignKeyConstraints();
+            try {
+                DB::statement('ALTER TABLE polls DROP FOREIGN KEY polls_room_id_foreign');
+            } catch (Throwable) {
+                // The foreign key may not exist on every database.
+            }
+
             Schema::table('polls', function (Blueprint $table) {
                 if (Schema::hasColumn('polls', 'room_id')) {
                     $table->dropColumn('room_id');
