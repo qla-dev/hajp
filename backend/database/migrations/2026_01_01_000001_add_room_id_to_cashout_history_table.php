@@ -12,13 +12,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('cashout_history', function (Blueprint $table) {
-            $table->foreignId('room_id')
-                ->nullable()
-                ->after('poll_id')
-                ->constrained('rooms')
-                ->onDelete('cascade');
-        });
+        if (!Schema::hasColumn('cashout_history', 'room_id')) {
+            Schema::table('cashout_history', function (Blueprint $table) {
+                $table->foreignId('room_id')
+                    ->nullable()
+                    ->after('poll_id')
+                    ->constrained('rooms')
+                    ->onDelete('cascade');
+            });
+        }
     }
 
     /**
@@ -26,9 +28,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('cashout_history', function (Blueprint $table) {
-            $table->dropForeign(['room_id']);
-            $table->dropColumn('room_id');
-        });
+        if (Schema::hasColumn('cashout_history', 'room_id')) {
+            Schema::table('cashout_history', function (Blueprint $table) {
+                $table->dropForeign(['room_id']);
+                $table->dropColumn('room_id');
+            });
+        }
     }
 };

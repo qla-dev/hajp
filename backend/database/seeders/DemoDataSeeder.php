@@ -10,12 +10,16 @@ use App\Models\Subscription;
 use App\Models\User;
 use App\Models\Vote;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
+        $now = Carbon::now();
+        $password = Hash::make('password123');
         $schools = [
             'Newton North High School',
             'Newton South High School',
@@ -24,7 +28,6 @@ class DemoDataSeeder extends Seeder
             'Learning Prep School',
         ];
 
-        $users = [];
         $firstNames = ['Emma', 'Olivia', 'Ava', 'Sophia', 'Isabella', 'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn',
             'Liam', 'Noah', 'Oliver', 'Elijah', 'James', 'William', 'Benjamin', 'Lucas', 'Henry', 'Alexander',
             'Emily', 'Abigail', 'Ella', 'Scarlett', 'Grace', 'Chloe', 'Victoria', 'Riley', 'Aria', 'Lily',
@@ -37,33 +40,52 @@ class DemoDataSeeder extends Seeder
             'Walker', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores',
             'Green', 'Adams', 'Nelson', 'Baker', 'Hall', 'Rivera', 'Campbell', 'Mitchell', 'Carter', 'Roberts'];
 
+        $userRows = [];
+        $demoEmails = [];
         foreach ($firstNames as $index => $firstName) {
             $lastName = $lastNames[$index];
             $email = strtolower($firstName . '.' . $lastName . '@school.com');
-            $user = User::updateOrCreate([
-                'email' => $email,
-            ], [
+            $demoEmails[] = $email;
+            $userRows[] = [
                 'name' => $firstName . ' ' . $lastName,
                 'username' => strtolower($firstName . $lastName . $index),
-                'password' => Hash::make('password123'),
+                'email' => $email,
+                'password' => $password,
                 'profile_photo' => null,
-                'is_subscribed' => rand(0, 1) === 1,
-            ]);
-
-            if ($user->is_subscribed) {
-                Subscription::updateOrCreate([
-                    'user_id' => $user->id,
-                ], [
-                    'expires_at' => now()->addMonth(),
-                ]);
-            }
-
-            $users[] = $user;
+                'is_subscribed' => $index % 3 === 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
 
-        // Rooms (using school names as room labels)
-        $roomNames = $schools;
-        $rooms = [];
+        User::query()->upsert(
+            $userRows,
+            ['email'],
+            ['name', 'username', 'password', 'profile_photo', 'is_subscribed', 'updated_at']
+        );
+
+        $users = User::query()
+            ->whereIn('email', $demoEmails)
+            ->orderBy('id')
+            ->get()
+            ->values();
+
+        $subscribedRows = $users
+            ->filter(fn (User $user, int $index) => $index % 3 === 0)
+            ->map(fn (User $user) => [
+                'user_id' => $user->id,
+                'expires_at' => $now->copy()->addMonth(),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])
+            ->values()
+            ->all();
+
+        Subscription::query()->whereIn('user_id', $users->pluck('id'))->delete();
+        if ($subscribedRows !== []) {
+            Subscription::query()->insert($subscribedRows);
+        }
+
         $covers = [
             'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
             'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=900&q=80',
@@ -82,89 +104,140 @@ class DemoDataSeeder extends Seeder
             'Meet the crew tossing out rapid-fire debates and winning mood checks.',
             'Drop in for micro podcasts, snappy polls, and zero drama.',
         ];
-        foreach ($roomNames as $index => $roomName) {
-            $rooms[$roomName] = Room::updateOrCreate([
+
+        $roomRows = [];
+        foreach ($schools as $index => $roomName) {
+            $roomRows[] = [
                 'name' => $roomName,
-            ], [
                 'type' => 'public',
                 'is_18_over' => false,
                 'cover_url' => $covers[$index % count($covers)],
                 'tagline' => $taglines[$index % count($taglines)],
                 'description' => $descriptions[$index % count($descriptions)],
-            ]);
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
 
-        // assign users to rooms evenly
+        foreach ($roomRows as $roomRow) {
+            Room::query()->updateOrCreate(
+                ['name' => $roomRow['name']],
+                [
+                    'type' => $roomRow['type'],
+                    'is_18_over' => $roomRow['is_18_over'],
+                    'cover_url' => $roomRow['cover_url'],
+                    'tagline' => $roomRow['tagline'],
+                    'description' => $roomRow['description'],
+                ]
+            );
+        }
+
+        $rooms = Room::query()
+            ->whereIn('name', $schools)
+            ->orderBy('id')
+            ->get()
+            ->values();
+
+        DB::table('room_members')
+            ->whereIn('user_id', $users->pluck('id'))
+            ->whereIn('room_id', $rooms->pluck('id'))
+            ->delete();
+
+        $memberRows = [];
         foreach ($users as $index => $user) {
-            $room = $rooms[$roomNames[$index % count($roomNames)]];
-            $room->users()->syncWithoutDetaching([$user->id]);
+            $memberRows[] = [
+                'user_id' => $user->id,
+                'room_id' => $rooms[$index % $rooms->count()]->id,
+                'role' => 'user',
+                'approved' => true,
+                'accepted' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
+        DB::table('room_members')->insert($memberRows);
 
-        // Seed questions and polls
         $pollQuestions = [
-            ['question' => 'Smiling 24/7', 'emoji' => '😊'],
-            ['question' => 'Was probably a cat in their past life', 'emoji' => '🐱'],
-            ['question' => 'Should be kept away from anything flammable', 'emoji' => '🔥'],
-            ['question' => 'Wanna invite them over to my house', 'emoji' => '🏠'],
-            ['question' => 'Style you would like to steal', 'emoji' => '🧥'],
-            ['question' => 'Low key, I really like their political views', 'emoji' => '🗳️'],
-            ['question' => 'Most likely to write a famous Netflix series', 'emoji' => '🎬'],
-            ['question' => 'Best smile', 'emoji' => '😁'],
-            ['question' => 'Most likely to be a CEO', 'emoji' => '💼'],
-            ['question' => 'Best dressed', 'emoji' => '👗'],
-            ['question' => 'Funniest person', 'emoji' => '😂'],
-            ['question' => 'Most athletic', 'emoji' => '🏅'],
-            ['question' => 'Best hair', 'emoji' => '💇'],
-            ['question' => 'Most creative', 'emoji' => '🎨'],
-            ['question' => 'Best dancer', 'emoji' => '🕺'],
-            ['question' => 'Most likely to become famous', 'emoji' => '🌟'],
-            ['question' => 'Best personality', 'emoji' => '😊'],
-            ['question' => 'Most trustworthy', 'emoji' => '🤝'],
-            ['question' => 'Best friend material', 'emoji' => '❤️'],
-            ['question' => 'Most likely to brighten your day', 'emoji' => '☀️'],
+            ['question' => 'Smiling 24/7', 'emoji' => 'ðŸ˜Š'],
+            ['question' => 'Was probably a cat in their past life', 'emoji' => 'ðŸ±'],
+            ['question' => 'Should be kept away from anything flammable', 'emoji' => 'ðŸ”¥'],
+            ['question' => 'Wanna invite them over to my house', 'emoji' => 'ðŸ '],
+            ['question' => 'Style you would like to steal', 'emoji' => 'ðŸ§¥'],
+            ['question' => 'Low key, I really like their political views', 'emoji' => 'ðŸ—³ï¸'],
+            ['question' => 'Most likely to write a famous Netflix series', 'emoji' => 'ðŸŽ¬'],
+            ['question' => 'Best smile', 'emoji' => 'ðŸ˜'],
+            ['question' => 'Most likely to be a CEO', 'emoji' => 'ðŸ’¼'],
+            ['question' => 'Best dressed', 'emoji' => 'ðŸ‘—'],
+            ['question' => 'Funniest person', 'emoji' => 'ðŸ˜‚'],
+            ['question' => 'Most athletic', 'emoji' => 'ðŸ…'],
+            ['question' => 'Best hair', 'emoji' => 'ðŸ’‡'],
+            ['question' => 'Most creative', 'emoji' => 'ðŸŽ¨'],
+            ['question' => 'Best dancer', 'emoji' => 'ðŸ•º'],
+            ['question' => 'Most likely to become famous', 'emoji' => 'ðŸŒŸ'],
+            ['question' => 'Best personality', 'emoji' => 'ðŸ˜Š'],
+            ['question' => 'Most trustworthy', 'emoji' => 'ðŸ¤'],
+            ['question' => 'Best friend material', 'emoji' => 'â¤ï¸'],
+            ['question' => 'Most likely to brighten your day', 'emoji' => 'â˜€ï¸'],
         ];
 
+        $demoVibes = json_encode(['public']);
+        $demoPollIds = Poll::query()->where('vibes', $demoVibes)->pluck('id');
+        $demoQuestionIds = Question::query()->whereIn('poll_id', $demoPollIds)->pluck('id');
+        Vote::query()->whereIn('question_id', $demoQuestionIds)->delete();
+        Question::query()->whereIn('poll_id', $demoPollIds)->delete();
+        Poll::query()->whereIn('id', $demoPollIds)->delete();
+
+        $poll = Poll::query()->create([
+            'vibes' => $demoVibes,
+            'status' => 'active',
+        ]);
+
+        $creator = $users->first();
+        $questionRows = array_map(fn (array $pollData) => [
+            'poll_id' => $poll->id,
+            'question' => $pollData['question'],
+            'emoji' => $pollData['emoji'] ?? null,
+            'creator_id' => $creator->id,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $pollQuestions);
+        Question::query()->insert($questionRows);
+
+        $questions = Question::query()
+            ->where('poll_id', $poll->id)
+            ->orderBy('id')
+            ->get()
+            ->values();
+
+        $userIds = $users->pluck('id')->values()->all();
+        $usersByRoom = [];
         foreach ($rooms as $room) {
-            $creator = $users[array_rand($users)];
-            $poll = Poll::firstOrCreate([
-                'vibes' => json_encode([$room->type]),
-            ], [
-                'status' => 'active',
-            ]);
-
-            foreach ($pollQuestions as $pollData) {
-                $roomUserIds = $room->users()->pluck('users.id');
-                $optionUsers = User::whereIn('id', $roomUserIds)->inRandomOrder()->take(4)->get();
-
-                if ($optionUsers->count() >= 2) {
-                    $question = Question::firstOrCreate([
-                        'poll_id' => $poll->id,
-                        'question' => $pollData['question'],
-                    ], [
-                        'emoji' => $pollData['emoji'] ?? null,
-                        'creator_id' => $creator->id,
-                    ]);
-
-                    $optionPool = $optionUsers->pluck('id')->toArray();
-                    $votersCount = rand(5, 20);
-                    for ($i = 0; $i < $votersCount; $i++) {
-                        $voter = $users[array_rand($users)];
-                        $selectedUserId = $optionPool[array_rand($optionPool)];
-
-                        if (!Vote::where('question_id', $question->id)->where('user_id', $voter->id)->exists()) {
-                            Vote::create([
-                                'question_id' => $question->id,
-                                'room_id' => $room->id,
-                                'user_id' => $voter->id,
-                                'selected_user_id' => $selectedUserId,
-                            ]);
-                        }
-                    }
-                }
-            }
+            $usersByRoom[$room->id] = DB::table('room_members')
+                ->where('room_id', $room->id)
+                ->pluck('user_id')
+                ->values()
+                ->all();
         }
 
-        // Anonymous messages
+        $voteRows = [];
+        foreach ($questions as $questionIndex => $question) {
+            $room = $rooms[$questionIndex % $rooms->count()];
+            $optionPool = $usersByRoom[$room->id] ?: $userIds;
+            $voterCount = min(16, count($userIds));
+            for ($i = 0; $i < $voterCount; $i++) {
+                $voteRows[] = [
+                    'question_id' => $question->id,
+                    'room_id' => $room->id,
+                    'user_id' => $userIds[($questionIndex + $i) % count($userIds)],
+                    'selected_user_id' => $optionPool[$i % count($optionPool)],
+                    'seen' => 0,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+        }
+        Vote::query()->insert($voteRows);
+
         $anonymousMessages = [
             'i don\'t think u ever knew how much u meant to me',
             'Dobar',
@@ -178,16 +251,19 @@ class DemoDataSeeder extends Seeder
             'you\'re so underrated',
         ];
 
-        foreach ($users as $user) {
-            if (!AnonymousMessage::where('user_id', $user->id)->exists()) {
-                $messageCount = rand(2, 8);
-                for ($i = 0; $i < $messageCount; $i++) {
-                    AnonymousMessage::create([
-                        'user_id' => $user->id,
-                        'message' => $anonymousMessages[array_rand($anonymousMessages)],
-                    ]);
-                }
+        AnonymousMessage::query()->whereIn('user_id', $userIds)->delete();
+        $messageRows = [];
+        foreach ($users as $userIndex => $user) {
+            for ($i = 0; $i < 4; $i++) {
+                $messageRows[] = [
+                    'user_id' => $user->id,
+                    'message' => $anonymousMessages[($userIndex + $i) % count($anonymousMessages)],
+                    'style_id' => null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
             }
         }
+        AnonymousMessage::query()->insert($messageRows);
     }
 }
