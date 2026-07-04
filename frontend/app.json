@@ -12,21 +12,23 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "icon": "./assets/svg/logo.png",
       "supportsTablet": true,
       "bundleIdentifier": "hajp.app.mobile",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
+      "icon": "./assets/svg/logo.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/svg/logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "package": "hajp.app.mobile",
-      "versionCode": 1
+      "versionCode": 4
     },
     "web": {
       "favicon": "./assets/svg/logo.png"
