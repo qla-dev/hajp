@@ -12,6 +12,20 @@ const serializeConfig = (config) =>
     .map((value) => (value === undefined ? '' : String(value)))
     .join('|');
 
+const stopPlayer = async (player) => {
+  if (!player) return;
+  try {
+    player.pause?.();
+  } catch {
+    // ignore playback errors
+  }
+  try {
+    await player.seekTo?.(0);
+  } catch {
+    // ignore playback errors
+  }
+};
+
 export function useSoundEffect(source, config = {}) {
   const ref = useRef(null);
   const key = serializeConfig(config);
@@ -50,5 +64,6 @@ export function useSoundEffect(source, config = {}) {
     player.seekTo(0).then(playFromStart).catch(playFromStart);
   }, []);
   play.getPlayer = () => ref.current;
+  play.stop = () => stopPlayer(ref.current);
   return play;
 }

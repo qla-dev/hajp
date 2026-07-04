@@ -111,12 +111,11 @@ export default function CashOutScreen({ route, navigation }) {
         player.volume = volume;
         if (volume <= 0) {
           clearInterval(interval);
-          player
-            .stop()
-            .catch(() => {})
-            .finally(() => {
+          Promise.resolve(playApplauseSound.stop?.()).finally(() => {
+            if (playApplauseSound.getPlayer?.() === player) {
               player.volume = 1;
-            });
+            }
+          });
         }
       }, 120);
     }, 5000);
